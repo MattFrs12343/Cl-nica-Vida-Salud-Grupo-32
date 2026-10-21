@@ -1,0 +1,89 @@
+{
+  "ok": true,
+  "data": [
+    {
+      "id": 120,
+      "codigo": "CM-0120",
+      "paciente": {
+        "id": 10,
+        "codigo": "PAC-0010",
+        "nombre_completo": "María Gómez",
+        "ci": "87654321"
+      },
+      "medico": {
+        "id": 3,
+        "nombre_completo": "Dra. Ana Pérez"
+      },
+      "especialidad": {
+        "id": 1,
+        "nombre": "Medicina General"
+      },
+      "fecha": "2026-11-20",
+      "hora_inicio": "09:00",
+      "hora_fin": "09:30",
+      "estado": "confirmada",
+      "origen": "web",
+      "es_reconsulta": false,
+      "es_prioritaria": false,
+      "motivo": "Control general"
+    },
+    {
+      "id": 121,
+      "codigo": "CM-0121",
+      "paciente": {
+        "id": 11,
+        "codigo": "PAC-0011",
+        "nombre_completo": "Juan Rivas",
+        "ci": "11223344"
+      },
+      "medico": {
+        "id": 3,
+        "nombre_completo": "Dra. Ana Pérez"
+      },
+      "especialidad": {
+        "id": 1,
+        "nombre": "Medicina General"
+      },
+      "fecha": "2026-11-20",
+      "hora_inicio": "09:30",
+      "hora_fin": "10:00",
+      "estado": "programada",
+      "origen": "kiosco",
+      "es_reconsulta": false,
+      "es_prioritaria": false,
+      "motivo": "Dolor lumbar"
+    },
+    {
+      "id": 122,
+      "codigo": "CM-0122",
+      "paciente": {
+        "id": 12,
+        "codigo": "PAC-0012",
+        "nombre_completo": "Rosa Villca",
+        "ci": "55667788"
+      },
+      "medico": {
+        "id": 3,
+        "nombre_completo": "Dra. Ana Pérez"
+      },
+      "especialidad": {
+        "id": 3,
+        "nombre": "Geriatría"
+      },
+      "fecha": "2026-11-20",
+      "hora_inicio": "10:00",
+      "hora_fin": "10:30",
+      "estado": "atendida",
+      "origen": "recepcion",
+      "es_reconsulta": false,
+      "es_prioritaria": false,
+      "motivo": "Control de presión"
+    }
+  ],
+  "message": null,
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 3
+  }
+}

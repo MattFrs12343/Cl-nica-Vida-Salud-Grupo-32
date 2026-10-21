@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "data": {
+    "id": 5,
+    "rol": "medico",
+    "nombre": "Dra. Ana Pérez",
+    "medico_id": 3,
+    "medico_ids": null,
+    "paciente_id": null
+  },
+  "message": null,
+  "meta": {}
+}

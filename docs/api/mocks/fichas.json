@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "data": [
+    {
+      "id": 120,
+      "codigo": "FIC-0120",
+      "cita_codigo": "CM-0120",
+      "paciente": "María Gómez",
+      "medico": "Dra. Ana Pérez",
+      "especialidad": "Medicina General",
+      "fecha": "2026-11-20",
+      "hora": "09:00",
+      "canal": "kiosco",
+      "codigo_acceso": "4821",
+      "emitida_at": "2026-11-20T08:42:00-04:00"
+    },
+    {
+      "id": 121,
+      "codigo": "FIC-0121",
+      "cita_codigo": "CM-0121",
+      "paciente": "Juan Rivas",
+      "medico": "Dra. Ana Pérez",
+      "especialidad": "Medicina General",
+      "fecha": "2026-11-20",
+      "hora": "09:30",
+      "canal": "kiosco",
+      "codigo_acceso": "9073",
+      "emitida_at": "2026-11-20T09:01:00-04:00"
+    }
+  ],
+  "message": null,
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 2
+  }
+}

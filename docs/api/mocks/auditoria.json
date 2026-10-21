@@ -1,0 +1,50 @@
+{
+  "ok": true,
+  "data": [
+    {
+      "id": 301,
+      "usuario": {
+        "id": 2,
+        "nombre": "Admin Vida Salud"
+      },
+      "ip": "192.168.1.20",
+      "tabla_afectada": "especialidades",
+      "accion": "UPDATE",
+      "registro_id": 2,
+      "fecha": "2026-11-20T08:12:00-04:00",
+      "datos_antes": {
+        "edad_max": 14,
+        "destacada": false
+      },
+      "datos_despues": {
+        "edad_max": 12,
+        "destacada": true
+      }
+    },
+    {
+      "id": 302,
+      "usuario": {
+        "id": 1,
+        "nombre": "Super Admin"
+      },
+      "ip": "192.168.1.10",
+      "tabla_afectada": "medicos",
+      "accion": "INSERT",
+      "registro_id": 5,
+      "fecha": "2026-11-19T16:40:00-04:00",
+      "datos_antes": null,
+      "datos_despues": {
+        "codigo": "MED-0005",
+        "nombres": "Lucía",
+        "apellidos": "Rojas",
+        "estado": "activo"
+      }
+    }
+  ],
+  "message": null,
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 2
+  }
+}

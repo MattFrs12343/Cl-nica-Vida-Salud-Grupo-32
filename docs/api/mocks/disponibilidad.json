@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "data": {
+    "fecha": "2026-11-20",
+    "medico_id": 3,
+    "canal": "web",
+    "slots": [
+      { "hora": "08:00", "disponible": true, "cupo_restante": 2 },
+      { "hora": "08:30", "disponible": true, "cupo_restante": 2 },
+      { "hora": "09:00", "disponible": false, "cupo_restante": 0 },
+      { "hora": "09:30", "disponible": true, "cupo_restante": 1 },
+      { "hora": "10:00", "disponible": true, "cupo_restante": 2 },
+      { "hora": "10:30", "disponible": false, "cupo_restante": 0 },
+      { "hora": "11:00", "disponible": true, "cupo_restante": 2 }
+    ]
+  },
+  "message": null,
+  "meta": {}
+}

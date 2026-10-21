@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "data": [
+    {
+      "id": 1,
+      "nombre": "Medicina General",
+      "descripcion": "Atención integral para adultos.",
+      "sexo_permitido": "ambos",
+      "edad_min": null,
+      "edad_max": null,
+      "destacada": true,
+      "estado": "activo"
+    },
+    {
+      "id": 2,
+      "nombre": "Pediatría",
+      "descripcion": "Atención de niños y adolescentes.",
+      "sexo_permitido": "ambos",
+      "edad_min": 0,
+      "edad_max": 12,
+      "destacada": true,
+      "estado": "activo"
+    },
+    {
+      "id": 3,
+      "nombre": "Geriatría",
+      "descripcion": "Atención integral del adulto mayor.",
+      "sexo_permitido": "ambos",
+      "edad_min": 60,
+      "edad_max": null,
+      "destacada": true,
+      "estado": "activo"
+    },
+    {
+      "id": 4,
+      "nombre": "Ginecología",
+      "descripcion": "Salud integral de la mujer.",
+      "sexo_permitido": "femenino",
+      "edad_min": null,
+      "edad_max": null,
+      "destacada": false,
+      "estado": "activo"
+    },
+    {
+      "id": 5,
+      "nombre": "Traumatología",
+      "descripcion": "Lesiones del sistema músculo-esquelético.",
+      "sexo_permitido": "ambos",
+      "edad_min": null,
+      "edad_max": null,
+      "destacada": false,
+      "estado": "activo"
+    }
+  ],
+  "message": null,
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 5
+  }
+}

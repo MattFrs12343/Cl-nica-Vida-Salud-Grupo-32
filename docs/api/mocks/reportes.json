@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "data": {
+    "desde": "2026-11-01",
+    "hasta": "2026-11-20",
+    "citas_por_estado": [
+      { "estado": "programada", "total": 42 },
+      { "estado": "confirmada", "total": 78 },
+      { "estado": "atendida", "total": 156 },
+      { "estado": "cancelada", "total": 19 },
+      { "estado": "inasistencia", "total": 11 }
+    ],
+    "citas_por_medico": [
+      { "medico": "Dra. Ana Pérez", "total": 86 },
+      { "medico": "Dr. Carlos Mendoza", "total": 74 },
+      { "medico": "Dra. Lucía Rojas", "total": 61 }
+    ],
+    "citas_por_especialidad": [
+      { "especialidad": "Medicina General", "total": 98 },
+      { "especialidad": "Pediatría", "total": 54 },
+      { "especialidad": "Geriatría", "total": 37 },
+      { "especialidad": "Ginecología", "total": 21 },
+      { "especialidad": "Traumatología", "total": 11 }
+    ],
+    "pacientes_registrados": 58,
+    "asistencia": {
+      "atendidas": 156,
+      "canceladas": 19,
+      "inasistencias": 11
+    }
+  },
+  "message": null,
+  "meta": {}
+}

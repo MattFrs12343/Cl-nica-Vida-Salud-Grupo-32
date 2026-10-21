@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "data": {
+    "medico_id": 3,
+    "fecha": "2026-11-20",
+    "citas_hoy": 12,
+    "en_espera": 3,
+    "atendidas": 6,
+    "proximas": 3,
+    "inasistencias": 0,
+    "siguiente_cita": {
+      "hora": "10:30",
+      "paciente": "Juan Rivas",
+      "motivo": "Dolor lumbar"
+    },
+    "agenda": [
+      { "hora": "08:00", "paciente": "María Gómez", "estado": "atendida" },
+      { "hora": "08:30", "paciente": "Rosa Villca", "estado": "atendida" },
+      { "hora": "09:00", "paciente": "Pedro Salas", "estado": "confirmada" },
+      { "hora": "09:30", "paciente": "Ana Quispe", "estado": "programada" },
+      { "hora": "10:00", "paciente": "Luis Flores", "estado": "confirmada" }
+    ]
+  },
+  "message": null,
+  "meta": {}
+}

@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+!.env.example
+vendor
+node_modules
+gentelella/node_modules
+gentelella/dist
+storage/logs/*.log
+public/uploads/*
+docs/specs

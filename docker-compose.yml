@@ -1,0 +1,72 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      APP_NAME: "Clínica Vida Salud"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080
+      APP_TIMEZONE: America/La_Paz
+      SESSION_NAME: vidasalud_session
+      SESSION_LIFETIME: "7200"
+      SESSION_SECURE: "false"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_DATABASE: clinica
+      DB_USERNAME: clinica
+      DB_PASSWORD: clinica
+      DB_SSLMODE: prefer
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      MAIL_ENCRYPTION: ""
+      MAIL_FROM: no-reply@vidasalud.test
+      MAIL_FROM_NAME: "Clínica Vida Salud"
+      MAIL_SMTP_AUTH: "false"
+      KIOSK_DEVICE_KEY: dev-kiosk-key
+      KIOSK_HMAC_SECRET: dev-hmac-secret-change-me
+      KIOSK_TOKEN_TTL: "600"
+      UPLOAD_MAX_MB: "2"
+      TZ: America/La_Paz
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: clinica
+      POSTGRES_USER: clinica
+      POSTGRES_PASSWORD: clinica
+      TZ: America/La_Paz
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinica -d clinica"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+      TZ: America/La_Paz
+
+volumes:
+  pgdata:

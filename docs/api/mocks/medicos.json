@@ -1,0 +1,60 @@
+{
+  "ok": true,
+  "data": [
+    {
+      "id": 3,
+      "codigo": "MED-0003",
+      "nombres": "Ana",
+      "apellidos": "Pérez",
+      "nombre_completo": "Dra. Ana Pérez",
+      "registro_profesional": "MP-12345",
+      "email": "ana.perez@vidasalud.test",
+      "telefono": "71234567",
+      "duracion_cita_min": 30,
+      "estado": "activo",
+      "especialidades": [
+        { "id": 1, "nombre": "Medicina General" },
+        { "id": 3, "nombre": "Geriatría" }
+      ],
+      "qr_url": "/uploads/medicos/med-0003-qr.png"
+    },
+    {
+      "id": 4,
+      "codigo": "MED-0004",
+      "nombres": "Carlos",
+      "apellidos": "Mendoza",
+      "nombre_completo": "Dr. Carlos Mendoza",
+      "registro_profesional": "MP-23456",
+      "email": "carlos.mendoza@vidasalud.test",
+      "telefono": "72345678",
+      "duracion_cita_min": 30,
+      "estado": "activo",
+      "especialidades": [
+        { "id": 2, "nombre": "Pediatría" }
+      ],
+      "qr_url": null
+    },
+    {
+      "id": 5,
+      "codigo": "MED-0005",
+      "nombres": "Lucía",
+      "apellidos": "Rojas",
+      "nombre_completo": "Dra. Lucía Rojas",
+      "registro_profesional": "MP-34567",
+      "email": "lucia.rojas@vidasalud.test",
+      "telefono": "73456789",
+      "duracion_cita_min": 30,
+      "estado": "activo",
+      "especialidades": [
+        { "id": 4, "nombre": "Ginecología" }
+      ],
+      "qr_url": null
+    }
+  ],
+  "message": null,
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 3
+  }
+}

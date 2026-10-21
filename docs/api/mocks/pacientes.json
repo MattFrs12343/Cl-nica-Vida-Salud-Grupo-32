@@ -1,0 +1,59 @@
+{
+  "ok": true,
+  "data": [
+    {
+      "id": 10,
+      "codigo": "PAC-0010",
+      "ci": "87654321",
+      "nombres": "María",
+      "apellidos": "Gómez",
+      "nombre_completo": "María Gómez",
+      "fecha_nacimiento": "1990-05-12",
+      "edad": 36,
+      "sexo": "femenino",
+      "telefono": "71234567",
+      "email": "maria@correo.com",
+      "estado": "activo",
+      "usuario_id": null,
+      "ultima_cita": "2026-11-20"
+    },
+    {
+      "id": 11,
+      "codigo": "PAC-0011",
+      "ci": "11223344",
+      "nombres": "Juan",
+      "apellidos": "Rivas",
+      "nombre_completo": "Juan Rivas",
+      "fecha_nacimiento": "1985-02-03",
+      "edad": 41,
+      "sexo": "masculino",
+      "telefono": "72345678",
+      "email": null,
+      "estado": "activo",
+      "usuario_id": null,
+      "ultima_cita": "2026-11-20"
+    },
+    {
+      "id": 12,
+      "codigo": "PAC-0012",
+      "ci": "55667788",
+      "nombres": "Rosa",
+      "apellidos": "Villca",
+      "nombre_completo": "Rosa Villca",
+      "fecha_nacimiento": "1958-09-21",
+      "edad": 68,
+      "sexo": "femenino",
+      "telefono": "73456789",
+      "email": null,
+      "estado": "activo",
+      "usuario_id": null,
+      "ultima_cita": "2026-11-20"
+    }
+  ],
+  "message": null,
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 3
+  }
+}

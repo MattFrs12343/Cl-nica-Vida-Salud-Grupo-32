@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "data": [
+    {
+      "id": 45,
+      "paciente": {
+        "id": 10,
+        "nombre_completo": "María Gómez"
+      },
+      "medico": {
+        "id": 3,
+        "nombre_completo": "Dra. Ana Pérez"
+      },
+      "monto": 150.0,
+      "metodo": "efectivo",
+      "referencia_paciente": "Consulta general",
+      "fecha": "2026-11-20T09:35:00-04:00",
+      "registrado_por": "recepcion.medico"
+    },
+    {
+      "id": 46,
+      "paciente": {
+        "id": 11,
+        "nombre_completo": "Juan Rivas"
+      },
+      "medico": {
+        "id": 3,
+        "nombre_completo": "Dra. Ana Pérez"
+      },
+      "monto": 180.0,
+      "metodo": "visa",
+      "referencia_paciente": "Consulta + certificado",
+      "fecha": "2026-11-20T10:05:00-04:00",
+      "registrado_por": "medico"
+    }
+  ],
+  "message": null,
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 2
+  }
+}
