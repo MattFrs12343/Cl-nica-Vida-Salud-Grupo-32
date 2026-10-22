@@ -304,7 +304,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 - [x] **M-17 · Landing backend** — rutas `/`, `/reservar`, 404, layout `base.php`, SEO/OG y assets. · *Deps:* M-03. · *DoD:* landing servida por PHP.
 - [x] **M-18 · Landing UI** — hero editorial, nosotros, especialidades, médicos, noticias, contacto, footer; rediseño responsive y accesible. · *Deps:* M-17. · *DoD:* landing, kiosco y 404 verificados a 360–1440 px, sin overflow horizontal.
 - [x] **M-19 · Landing JS** — buscador, filtros, directorio y wizard de reserva en 3 pasos con validaciones, carga, éxito y manejo de `401`/`409`/`422`. · *Deps:* M-15, M-16, M-18. · *DoD:* reserva real, búsqueda/filtros y alertas verificados en navegador; `bin/test-public.php` y `bin/test-auth.php` en verde.
-- [ ] **M-20 · APIs admin** — usuarios (CRUD, activar, desbloquear, roles), médicos/especialidades (CRUD, asignaciones, QR, restricciones), horarios/cupos/bloqueos. · *Deps:* M-11, M-12.
+- [x] **M-20 · APIs admin** — usuarios (CRUD, activar, desbloquear, roles), médicos/especialidades (CRUD, asignaciones, QR, restricciones), horarios/cupos/bloqueos. · *Deps:* M-11, M-12. · *DoD:* CRUDs, permisos y CSRF verificados con `bin/test-admin.php`; `bin/test-public.php` y `bin/test-auth.php` en verde.
 - [ ] **M-21 · APIs admin de citas, reportes y auditoría** — listados con filtros, detalle, reportes agregados y bitácora. · *Deps:* M-20.
 - [ ] **M-22 · Pruebas landing + admin** — reserva real, cupo web, correo, CRUDs y reportes con datos seed. · *Deps:* M-19, M-21.
 
