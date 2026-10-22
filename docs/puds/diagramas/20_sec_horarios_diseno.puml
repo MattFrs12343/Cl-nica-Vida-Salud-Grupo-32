@@ -1,0 +1,44 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0A6EBD
+  ActorBorderColor #0A6EBD
+  LifeLineBorderColor #9CC3E5
+  LifeLineBackgroundColor #F7FBFF
+  ParticipantBorderColor #0A6EBD
+  ParticipantBackgroundColor #EAF4FB
+  FontSize 10
+}
+autonumber
+actor "Administrador" as U
+participant "HorariosView" as V
+participant "Router" as R
+participant "RoleMiddleware" as MW
+participant "HorarioController" as C
+participant "DisponibilidadService" as S
+participant "HorarioModel" as M
+database "PostgreSQL" as DB
+U -> V : seleccionar médico, día y franja
+V -> R : POST /api/medicos/{id}/horarios + CSRF
+R -> MW : resolver ruta protegida
+MW -> C : rol administrador autorizado
+C -> C : validar día, horas y cupos
+C -> S : validarFranja(medico, dia, horas)
+S -> M : buscarSolapamientos(medico, dia, rango)
+M -> DB : SELECT franjas activas del médico
+DB --> M : franjas registradas
+M --> S : lista de franjas
+alt franja inválida o solapada
+  S --> C : conflicto de horario
+  C --> V : 422 y detalle del conflicto
+else franja válida
+  S -> M : crearFranja(medico, dia, horas, cupos)
+  M -> DB : INSERT ... cupos_web, cupos_kiosco
+  DB --> M : id de la franja
+  M --> S : franja creada
+  S --> C : horario disponible
+  C --> V : 201 con franja y cupos 50/50
+end
+note right of S : El cálculo de slots usa la duración\nconfigurada por médico (RN08).
+@enduml

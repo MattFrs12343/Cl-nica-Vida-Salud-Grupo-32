@@ -120,7 +120,10 @@ def chapter5():
 
 def chapter6():
     b.h1("6. DISEÑO DEL SISTEMA")
-    b.h2("6.1 Arquitectura lógica")
+    b.p("El diseño transforma el análisis en una solución construible. Se especifica la arquitectura lógica y física, se diseñan los casos de uso críticos mediante diagramas de secuencia, se define el modelo de datos lógico y físico y se documentan los patrones, la seguridad, la interfaz y la API. La estructura sigue el esquema solicitado para la disciplina de Diseño: 6.1 arquitectura física y lógica, 6.2 diseño de casos de uso y 6.3 diseño de datos.")
+
+    b.h2("6.1 Diseño de arquitectura (lógica y física)")
+    b.h3("6.1.1 Arquitectura lógica")
     b.p("El sistema se organiza en capas: presentación, aplicación, dominio e infraestructura. La capa de presentación incluye las vistas Gentelella de los paneles, la landing y el kiosco. La capa de aplicación contiene controladores y middleware. El dominio agrupa servicios y reglas de negocio. La infraestructura comprende modelos PDO, correo, generación de QR y acceso a PostgreSQL.")
     b.figure("06_arquitectura_logica.png", 16.0, "Arquitectura lógica por capas y componentes")
     b.table(
@@ -137,35 +140,55 @@ def chapter6():
         font_size=8.2,
     )
 
-    b.h2("6.2 Patrones y decisiones de diseño")
-    b.bullets([
-        ("MVC: ", "separa presentación, coordinación y datos; facilita el mantenimiento y las pruebas."),
-        ("Front Controller: ", "un único punto de entrada resuelve rutas y middleware."),
-        ("Service Layer: ", "concentra reglas de negocio y transacciones fuera de los controladores."),
-        ("Repository/Model: ", "encapsula SQL parametrizado y operaciones de persistencia."),
-        ("Dependency Injection simple: ", "los controladores reciben servicios y modelos desde el contenedor."),
-        ("Template Method: ", "los layouts y vistas reutilizan estructura y bloques."),
-        ("Token firmado: ", "el kiosco utiliza HMAC con expiración corta."),
-    ])
-
-    b.h2("6.3 Arquitectura de despliegue")
-    b.p("El despliegue productivo separa la aplicación web y la base de datos. El código PHP se publica en un hosting cPanel con HTTPS; PostgreSQL se aloja en Neon o Railway y se accede con `sslmode=require`. El navegador del paciente y el iPad del kiosco se conectan por HTTPS. El servidor de correo se integra mediante SMTP de Brevo.")
-    b.figure("07_despliegue.png", 16.0, "Diagrama de despliegue del sistema")
+    b.h3("6.1.2 Arquitectura física")
+    b.p("La arquitectura física describe la infraestructura sobre la que se ejecuta la arquitectura lógica y complementa la vista de despliegue. Se organiza en cinco zonas: la zona pública de Internet, el perímetro de seguridad, la zona de aplicación del hosting, la zona de datos gestionada y la red local de la clínica, además de los servicios externos contratados.")
+    b.p("El navegador del paciente y el personal remoto acceden por HTTPS al firewall y WAF del hosting, que deriva el tráfico al servidor Apache con PHP-FPM. La aplicación no expone la base de datos a Internet: PostgreSQL se aloja en una instancia gestionada con TLS obligatorio y respaldo diario. La red local de la clínica aloja el PC de recepción y el iPad del kiosco, que consumen la misma aplicación web; la impresora de fichas es opcional. El correo se entrega por el relay SMTP de Brevo y los pedidos se comparten mediante el enlace de WhatsApp.")
+    b.figure("17_arquitectura_fisica.png", 16.5, "Arquitectura física del sistema por zonas y nodos", max_height_cm=21.0)
     b.table(
-        ["Nodo", "Tecnología", "Función"],
+        ["Zona", "Nodo físico", "Software y configuración", "Protocolo / puerto"],
         [
-            ("Cliente web", "Navegador moderno", "Landing, portal y paneles."),
-            ("Kiosco", "iPad / tablet", "Flujo táctil de identificación y ficha."),
-            ("Servidor web", "cPanel + PHP 8.1+", "Aplicación MVC y endpoints."),
-            ("Base de datos", "PostgreSQL 16 en Neon/Railway", "Persistencia, RLS y transacciones."),
-            ("Correo", "Brevo SMTP + PHPMailer", "Recuperación y notificaciones."),
-            ("WhatsApp", "Deep link", "Acceso a pedidos con código."),
+            ("Pública (Internet)", "PC o móvil del paciente", "Navegador moderno con TLS 1.2 o superior.", "HTTPS 443"),
+            ("Pública (Internet)", "Equipo del personal remoto (opcional)", "Navegador moderno.", "HTTPS 443"),
+            ("Perímetro", "Firewall y WAF del hosting", "Reglas de entrada, filtrado y terminación TLS.", "HTTPS 443"),
+            ("Aplicación", "Servidor del hosting cPanel\n2 vCPU · 2 GB RAM · 20 GB SSD", "Apache 2.4, PHP 8.1 FPM, pdo_pgsql y openssl.", "HTTPS 443"),
+            ("Datos", "Instancia PostgreSQL 16 gestionada\nNeon o Railway", "PostgreSQL 16, RLS, triggers y snapshot diario.", "pdo_pgsql 5432 / TLS"),
+            ("LAN clínica", "PC de recepción", "Windows 11 con Chrome o Edge.", "HTTPS 443"),
+            ("LAN clínica", "iPad kiosco", "iPadOS con Safari en modo kiosco.", "HTTPS 443"),
+            ("LAN clínica", "Impresora de fichas (opcional)", "Impresión desde la estación de recepción.", "USB / red local"),
+            ("Servicios externos", "Brevo SMTP", "Relay de correo transaccional.", "SMTP 587 / TLS"),
+            ("Servicios externos", "WhatsApp (wa.me)", "Enlace profundo con código de acceso.", "HTTPS 443"),
+            ("Servicios externos", "GitHub", "Repositorio del código y la documentación.", "HTTPS 443 / SSH 22"),
         ],
-        [3.0, 6.0, 7.0],
-        caption="Nodos de despliegue",
+        [2.8, 5.2, 5.8, 3.2],
+        caption="Nodos de la arquitectura física",
+        font_size=7.9,
     )
+    b.note("El dimensionamiento corresponde al mínimo previsto para la operación de la clínica. El hosting y la instancia de base de datos pueden escalar de forma vertical sin modificar la arquitectura lógica, y el respaldo diario permite restaurar la información ante una falla.", "Capacidad y continuidad")
 
-    b.h2("6.4 Diseño de la base de datos")
+    b.h2("6.2 Diseño de casos de uso (diagramas de secuencia)")
+    b.p("El diseño de casos de uso traduce las realizaciones del análisis en interacciones entre los componentes de diseño: router frontal, middleware, controlador, servicio y modelo. Para el Ciclo 1 se detallan los flujos que sostienen la plataforma base, conforme a la distribución del capítulo 1: UC04 Iniciar sesión, UC08 Gestionar pacientes y UC21 Configurar horarios y cupos. Los flujos de reserva, kiosco, cancelación y consulta del Ciclo 2 conservan su realización de análisis en la sección 5.4 y se completarán con sus diagramas de diseño en la siguiente iteración.")
+    b.table(
+        ["Caso de uso", "Actor", "Componentes de diseño", "Diagrama"],
+        [
+            ("UC01 Navegar por la landing", "Público", "LandingView, Router, EspecialidadModel", "Vista simple"),
+            ("UC02 Buscar especialidad y médico", "Público", "SearchController, EspecialidadModel, MedicoModel", "Consulta"),
+            ("UC03 Registrarse o activar cuenta", "Paciente", "AuthController, AuthService, UsuarioModel, MailService", "Transacción"),
+            ("UC04 Iniciar sesión", "Todos", "AuthMiddleware, AuthController, AuthService, UsuarioModel", "Figura 18"),
+            ("UC08 Gestionar pacientes", "Recepcionista", "PacienteController, PacienteService, PacienteModel", "Figura 19"),
+            ("UC20 Gestionar médicos y especialidades", "Administrador", "MedicoController, EspecialidadController, MedicoModel", "CRUD"),
+            ("UC21 Configurar horarios y cupos", "Administrador", "HorarioController, DisponibilidadService, HorarioModel", "Figura 20"),
+            ("UC22 Gestionar usuarios", "Administrador", "UsuarioController, AuthService, UsuarioModel", "CRUD"),
+        ],
+        [4.6, 2.8, 6.8, 2.8],
+        caption="Casos de uso del Ciclo 1 y su realización de diseño",
+        font_size=8.1,
+    )
+    b.figure("18_sec_login_diseno.png", 16.2, "Secuencia de diseño de inicio de sesión y control de intentos")
+    b.figure("19_sec_pacientes_diseno.png", 16.2, "Secuencia de diseño de registro y validación de pacientes")
+    b.figure("20_sec_horarios_diseno.png", 16.2, "Secuencia de diseño de configuración de horarios y cupos")
+
+    b.h2("6.3 Diseño de datos (lógico y físico)")
+    b.p("El diseño de datos comprende dos niveles. El nivel lógico se expresa con los modelos entidad-relación y las relaciones normalizadas del dominio. El nivel físico precisa los tipos de PostgreSQL, las claves, los índices, los enums, los triggers y las políticas RLS que materializan el modelo en la base de datos `clinica_vida_salud`.")
     b.p("El modelo relacional se normaliza para evitar duplicidad y se complementa con enums, índices y restricciones. Las entidades con historial no se eliminan físicamente. Los códigos visibles se generan en el servicio mediante secuencias por prefijo. La tabla `auditoria` se alimenta por trigger y no admite escritura directa desde la aplicación.")
     b.figure("14_er_nucleo.png", 16.0, "Modelo entidad-relación del núcleo")
     b.figure("15_er_clinico.png", 16.0, "Modelo entidad-relación de la historia clínica y pagos")
@@ -187,8 +210,52 @@ def chapter6():
         caption="Tablas principales y restricciones",
         font_size=8.2,
     )
+    b.table(
+        ["Elemento físico", "Implementación en PostgreSQL", "Propósito"],
+        [
+            ("Claves primarias", "`BIGSERIAL` o `UUID` según la tabla.", "Identidad única de cada registro."),
+            ("Claves foráneas", "`REFERENCES` con `ON UPDATE CASCADE` y `ON DELETE RESTRICT`.", "Integridad referencial e historial."),
+            ("Tipos enumerados", "`CREATE TYPE estado_cita AS ENUM (...)`.", "Dominios controlados y legibles."),
+            ("Índices", "`ux_cita_no_superpone` parcial; índices por fecha, médico y estado.", "Rendimiento y anti-superposición."),
+            ("Restricciones", "`CHECK (hora_fin > hora_inicio)` y `CHECK (monto > 0)`.", "Validación directa en la base de datos."),
+            ("Triggers", "`fn_auditar()` con `SECURITY DEFINER`.", "Auditoría de catálogos con IP y JSONB."),
+            ("RLS", "`FORCE ROW LEVEL SECURITY` y políticas por rol.", "Aislamiento de filas por usuario."),
+            ("JSONB", "`signos_vitales JSONB` en la tabla de consultas.", "Datos clínicos flexibles y consultables."),
+        ],
+        [3.2, 7.8, 5.0],
+        caption="Elementos del modelo físico de datos",
+        font_size=8.0,
+    )
 
-    b.h2("6.5 Seguridad y control de acceso")
+    b.h2("6.4 Patrones y decisiones de diseño")
+    b.bullets([
+        ("MVC: ", "separa presentación, coordinación y datos; facilita el mantenimiento y las pruebas."),
+        ("Front Controller: ", "un único punto de entrada resuelve rutas y middleware."),
+        ("Service Layer: ", "concentra reglas de negocio y transacciones fuera de los controladores."),
+        ("Repository/Model: ", "encapsula SQL parametrizado y operaciones de persistencia."),
+        ("Dependency Injection simple: ", "los controladores reciben servicios y modelos desde el contenedor."),
+        ("Template Method: ", "los layouts y vistas reutilizan estructura y bloques."),
+        ("Token firmado: ", "el kiosco utiliza HMAC con expiración corta."),
+    ])
+
+    b.h2("6.5 Arquitectura de despliegue")
+    b.p("El despliegue productivo separa la aplicación web y la base de datos. El código PHP se publica en un hosting cPanel con HTTPS; PostgreSQL se aloja en Neon o Railway y se accede con `sslmode=require`. El navegador del paciente y el iPad del kiosco se conectan por HTTPS. El servidor de correo se integra mediante SMTP de Brevo.")
+    b.figure("07_despliegue.png", 16.0, "Diagrama de despliegue del sistema")
+    b.table(
+        ["Nodo", "Tecnología", "Función"],
+        [
+            ("Cliente web", "Navegador moderno", "Landing, portal y paneles."),
+            ("Kiosco", "iPad / tablet", "Flujo táctil de identificación y ficha."),
+            ("Servidor web", "cPanel + PHP 8.1+", "Aplicación MVC y endpoints."),
+            ("Base de datos", "PostgreSQL 16 en Neon/Railway", "Persistencia, RLS y transacciones."),
+            ("Correo", "Brevo SMTP + PHPMailer", "Recuperación y notificaciones."),
+            ("WhatsApp", "Deep link", "Acceso a pedidos con código."),
+        ],
+        [3.0, 6.0, 7.0],
+        caption="Nodos de despliegue",
+    )
+
+    b.h2("6.6 Seguridad y control de acceso")
     b.p("La seguridad se implementa en varias capas. En la aplicación, el middleware valida sesión y rol, y los formularios incluyen CSRF. En la base de datos, RLS filtra filas según el rol y el usuario de sesión. El kiosco usa un rol de base de datos restringido y un token HMAC. La página pública de pedidos valida código y código de acceso sin exponer datos sensibles.")
     b.table(
         ["Control", "Implementación"],
@@ -206,7 +273,7 @@ def chapter6():
         caption="Controles de seguridad del diseño",
     )
 
-    b.h2("6.6 Diseño de interfaz y navegación")
+    b.h2("6.7 Diseño de interfaz y navegación")
     b.p("La interfaz se organiza por roles. La landing presenta la clínica, especialidades destacadas, médicos y el acceso a la reserva. El portal del paciente permite ver y cancelar citas. El panel administrativo usa Gentelella y el panel médico prioriza la agenda del día. El kiosco emplea botones grandes, teclado numérico y un flujo de cuatro pasos con reinicio automático por inactividad.")
     b.figure("16_mapa_navegacion.png", 15.8, "Mapa de navegación por rol")
     b.table(
@@ -226,7 +293,7 @@ def chapter6():
         font_size=8.2,
     )
 
-    b.h2("6.7 Diseño de la API")
+    b.h2("6.8 Diseño de la API")
     b.table(
         ["Grupo", "Endpoints representativos", "Propósito"],
         [
@@ -244,7 +311,7 @@ def chapter6():
         font_size=8.1,
     )
 
-    b.h2("6.8 Decisiones de diseño relevantes")
+    b.h2("6.9 Decisiones de diseño relevantes")
     b.table(
         ["Decisión", "Alternativa considerada", "Justificación"],
         [

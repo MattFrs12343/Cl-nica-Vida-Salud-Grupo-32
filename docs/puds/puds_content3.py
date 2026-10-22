@@ -395,7 +395,7 @@ def annexes():
     )
 
     b.h1("ANEXO D. INVENTARIO DE DIAGRAMAS")
-    b.p("La distribución mantiene el criterio del documento de referencia PROYECTOCOMPLETO1: los casos de uso se concentran en la captura de requisitos, el análisis reúne las clases y las secuencias, y el diseño reúne los componentes, el despliegue y el modelo entidad-relación. Como diferencia, este PUDS representa los paquetes con una tabla en la sección 4.4 y añade una vista de navegación por rol.")
+    b.p("La distribución mantiene el criterio del documento de referencia PROYECTOCOMPLETO1: los casos de uso se concentran en la captura de requisitos; el análisis reúne las clases, el dominio y las secuencias de los flujos del Ciclo 2; y el diseño reúne la arquitectura lógica y física, las secuencias de diseño del Ciclo 1, el despliegue y el modelo entidad-relación. Como diferencia, este PUDS representa los paquetes con una tabla en la sección 4.4 y añade una vista de navegación por rol.")
     b.table(
         ["Capítulo", "Tipos de diagrama", "Diagramas"],
         [
@@ -403,7 +403,7 @@ def annexes():
             ("3", "Actividad de negocio", "1"),
             ("4", "Casos de uso", "3"),
             ("5", "Clases, secuencia y estados", "9"),
-            ("6", "Componentes, despliegue, entidad-relación y navegación", "5"),
+            ("6", "Componentes, arquitectura física, secuencia de diseño, despliegue, entidad-relación y navegación", "9"),
             ("8", "Flujo de pruebas", "1"),
             ("Anexo E", "QR del repositorio (no es diagrama UML)", "1"),
         ],
@@ -431,6 +431,10 @@ def annexes():
             ("12_sec_consulta.png", "Secuencia de consulta", "Secuencia", "5"),
             ("13_estados_cita.png", "Estados de la cita", "Estados", "5"),
             ("06_arquitectura_logica.png", "Arquitectura lógica", "Componentes", "6"),
+            ("17_arquitectura_fisica.png", "Arquitectura física", "Despliegue", "6"),
+            ("18_sec_login_diseno.png", "Secuencia de diseño de login", "Secuencia", "6"),
+            ("19_sec_pacientes_diseno.png", "Secuencia de diseño de pacientes", "Secuencia", "6"),
+            ("20_sec_horarios_diseno.png", "Secuencia de diseño de horarios", "Secuencia", "6"),
             ("07_despliegue.png", "Despliegue", "Despliegue", "6"),
             ("16_mapa_navegacion.png", "Navegación", "Navegación", "6"),
             ("14_er_nucleo.png", "ER núcleo", "Entidad-relación", "6"),
@@ -466,7 +470,7 @@ def annexes():
             ("Especificación de requisitos RF01–RF13.", "Cumplido"),
             ("Catálogo de casos de uso UC01–UC24.", "Cumplido"),
             ("Modelo de datos y políticas RLS.", "Cumplido"),
-            ("Diseño de arquitectura y despliegue.", "Cumplido"),
+            ("Diseño de arquitectura lógica, física y despliegue.", "Cumplido"),
             ("Plan y casos de prueba.", "Cumplido"),
             ("Documento en formato Word y PDF.", "Pendiente de compilación"),
             ("Defensa preparada.", "Pendiente"),

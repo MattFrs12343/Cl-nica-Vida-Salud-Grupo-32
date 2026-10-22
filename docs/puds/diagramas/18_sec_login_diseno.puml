@@ -1,0 +1,46 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0A6EBD
+  ActorBorderColor #0A6EBD
+  LifeLineBorderColor #9CC3E5
+  LifeLineBackgroundColor #F7FBFF
+  ParticipantBorderColor #0A6EBD
+  ParticipantBackgroundColor #EAF4FB
+  FontSize 10
+}
+autonumber
+actor "Usuario" as U
+participant "Navegador" as B
+participant "Router" as R
+participant "AuthMiddleware" as MW
+participant "AuthController" as C
+participant "AuthService" as S
+participant "UsuarioModel" as M
+database "PostgreSQL" as DB
+U -> B : credenciales y token CSRF
+B -> R : POST /auth/login
+R -> MW : resolver ruta pública
+MW -> C : despachar solicitud
+C -> C : validar CSRF y sanitizar entrada
+C -> S : autenticar(usuario, contraseña)
+S -> M : buscarPorUsuarioOEmail(usuario)
+M -> DB : SELECT ... WHERE username/email = :valor
+DB --> M : fila del usuario
+M --> S : usuario o null
+alt credenciales inválidas
+  S -> M : registrarIntentoFallido(id)
+  M -> DB : UPDATE intentos_fallidos, bloqueado
+  S --> C : error de autenticación
+  C --> B : 401 y mensaje genérico
+else credenciales válidas
+  S -> S : password_verify() y verificar bloqueo
+  S -> M : reiniciarIntentosYUltimoAcceso(id)
+  M -> DB : UPDATE intentos_fallidos = 0
+  S --> C : usuario autenticado y rol
+  C -> C : session_regenerate_id(true)
+  C --> B : 302 a /dashboard según rol
+end
+note right of C : La sesión guarda usuario_id y rol;\nel middleware protege las rutas internas.
+@enduml
