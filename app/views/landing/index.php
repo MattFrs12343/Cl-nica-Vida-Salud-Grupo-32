@@ -46,6 +46,25 @@ $enlaceReserva = static function (array $medico): string {
 
     return url('/reservar?' . http_build_query($query));
 };
+
+$doctoresPorEspecialidad = [];
+
+foreach ($medicos as $medico) {
+    foreach (($medico['especialidades'] ?? []) as $especialidad) {
+        $especialidadId = (int) ($especialidad['id'] ?? 0);
+
+        if ($especialidadId > 0) {
+            $doctoresPorEspecialidad[$especialidadId][] = $medico;
+        }
+    }
+}
+
+$especialidadesConMedicos = array_values(array_filter(
+    $especialidades,
+    static fn (array $especialidad): bool => count(
+        $doctoresPorEspecialidad[(int) ($especialidad['id'] ?? 0)] ?? []
+    ) > 0
+));
 ?>
 <section class="hero">
     <div class="container hero-grid">
@@ -104,9 +123,9 @@ $enlaceReserva = static function (array $medico): string {
     </div>
 </section>
 
-<section class="section specialties" id="especialidades">
+<section class="section specialties" id="especialidades" data-section-reveal>
     <div class="container">
-        <div class="specialties-head">
+        <div class="specialties-head reveal">
             <h2>Encuentra tu<br><em>especialidad.</em></h2>
             <div class="specialty-search">
                 <label class="sr-only" for="buscador-especialidades">Buscar especialidad</label>
@@ -135,6 +154,7 @@ $enlaceReserva = static function (array $medico): string {
                     $descripcion = trim((string) ($especialidad['descripcion'] ?? ''));
                     $busqueda = mb_strtolower((string) $especialidad['nombre'] . ' ' . $descripcion);
                     $destacada = $indice === 0;
+                    $totalDoctores = count($doctoresPorEspecialidad[(int) $especialidad['id']] ?? []);
                     ?>
                     <div
                         class="specialty-shell<?= $destacada ? ' is-featured' : '' ?> reveal"
@@ -148,6 +168,9 @@ $enlaceReserva = static function (array $medico): string {
                             data-especialidad-nombre="<?= e($especialidad['nombre']) ?>"
                         >
                             <span class="specialty-index" aria-hidden="true"><?= e(str_pad((string) ($indice + 1), 2, '0', STR_PAD_LEFT)) ?></span>
+                            <?php if ($totalDoctores > 0): ?>
+                                <span class="specialty-count"><?= e($totalDoctores) ?> <?= $totalDoctores === 1 ? 'médico' : 'médicos' ?></span>
+                            <?php endif; ?>
                             <span class="specialty-icon" aria-hidden="true">
                                 <svg class="icon"><use href="#<?= e($icono) ?>"></use></svg>
                             </span>
@@ -169,7 +192,7 @@ $enlaceReserva = static function (array $medico): string {
     </div>
 </section>
 
-<section class="section doctors" id="medicos">
+<section class="section doctors" id="medicos" data-section-reveal>
     <div class="container doctors-grid">
         <div class="doctors-intro reveal">
             <h2>Personas que<br><em>escuchan.</em></h2>
@@ -186,43 +209,67 @@ $enlaceReserva = static function (array $medico): string {
             </a>
         </div>
 
-        <div class="doctors-list" data-doctor-grid aria-live="polite">
-            <?php if ($medicos === []): ?>
-                <div class="empty-state empty-state-inline">
-                    <strong>El directorio está cargando.</strong>
-                    <p>Recarga la página o <a href="<?= e(url('/reservar')) ?>">reserva directamente</a>.</p>
+        <div class="doctors-directory">
+            <?php if ($especialidadesConMedicos !== []): ?>
+                <div class="doctor-filters" role="group" aria-label="Filtrar médicos por especialidad">
+                    <button class="doctor-filter is-active" type="button" data-doctor-filter="all" aria-pressed="true">
+                        Todos
+                        <span class="doctor-filter-count"><?= count($medicos) ?></span>
+                    </button>
+                    <?php foreach ($especialidadesConMedicos as $especialidad): ?>
+                        <?php $cantidad = count($doctoresPorEspecialidad[(int) $especialidad['id']] ?? []); ?>
+                        <button
+                            class="doctor-filter"
+                            type="button"
+                            data-doctor-filter="<?= e($especialidad['id']) ?>"
+                            data-doctor-filter-name="<?= e($especialidad['nombre']) ?>"
+                            aria-pressed="false"
+                        >
+                            <?= e($especialidad['nombre']) ?>
+                            <span class="doctor-filter-count"><?= e($cantidad) ?></span>
+                        </button>
+                    <?php endforeach; ?>
                 </div>
-            <?php else: ?>
-                <?php foreach ($medicos as $indice => $medico): ?>
-                    <article class="doctor-row reveal" data-doctor-id="<?= e($medico['id']) ?>">
-                        <span class="doctor-index" aria-hidden="true"><?= e(str_pad((string) ($indice + 1), 2, '0', STR_PAD_LEFT)) ?></span>
-                        <span class="doctor-avatar" aria-hidden="true"><?= e($iniciales($medico)) ?></span>
-                        <div class="doctor-main">
-                            <h3><?= e($medico['nombre_completo'] ?? ('Dr. ' . $medico['nombres'] . ' ' . $medico['apellidos'])) ?></h3>
-                            <ul class="doctor-tags" aria-label="Especialidades">
-                                <?php foreach ($medico['especialidades'] as $especialidad): ?>
-                                    <li><?= e($especialidad['nombre']) ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                        <div class="doctor-meta">
-                            <span class="doctor-duration">
-                                <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
-                                <?= e($medico['duracion_cita_min']) ?> min
-                            </span>
-                            <a class="doctor-link" href="<?= e($enlaceReserva($medico)) ?>" aria-label="Agendar cita con <?= e($medico['nombre_completo']) ?>">
-                                <span>Agendar</span>
-                                <svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"></use></svg>
-                            </a>
-                        </div>
-                    </article>
-                <?php endforeach; ?>
             <?php endif; ?>
+
+            <div class="doctors-list" data-doctor-grid aria-live="polite">
+                <?php if ($medicos === []): ?>
+                    <div class="empty-state empty-state-inline">
+                        <strong>El directorio está cargando.</strong>
+                        <p>Recarga la página o <a href="<?= e(url('/reservar')) ?>">reserva directamente</a>.</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($medicos as $indice => $medico): ?>
+                        <article class="doctor-row reveal" data-doctor-id="<?= e($medico['id']) ?>">
+                            <span class="doctor-index" aria-hidden="true"><?= e(str_pad((string) ($indice + 1), 2, '0', STR_PAD_LEFT)) ?></span>
+                            <span class="doctor-avatar" aria-hidden="true"><?= e($iniciales($medico)) ?></span>
+                            <div class="doctor-main">
+                                <h3><?= e($medico['nombre_completo'] ?? ('Dr. ' . $medico['nombres'] . ' ' . $medico['apellidos'])) ?></h3>
+                                <ul class="doctor-tags" aria-label="Especialidades">
+                                    <?php foreach ($medico['especialidades'] as $especialidad): ?>
+                                        <li><?= e($especialidad['nombre']) ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                            <div class="doctor-meta">
+                                <span class="doctor-duration">
+                                    <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+                                    <?= e($medico['duracion_cita_min']) ?> min
+                                </span>
+                                <a class="doctor-link" href="<?= e($enlaceReserva($medico)) ?>" aria-label="Agendar cita con <?= e($medico['nombre_completo']) ?>">
+                                    <span>Agendar</span>
+                                    <svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"></use></svg>
+                                </a>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="section about" id="nosotros">
+<section class="section about" id="nosotros" data-section-reveal>
     <div class="container about-grid">
         <div class="about-visual reveal">
             <div class="about-frame">
@@ -273,7 +320,7 @@ $enlaceReserva = static function (array $medico): string {
     </div>
 </section>
 
-<section class="section access" id="kiosco">
+<section class="section access" id="kiosco" data-section-reveal>
     <div class="container">
         <div class="access-head reveal">
             <h2>Dos formas de<br><em>llegar a tu cita.</em></h2>
@@ -325,7 +372,7 @@ $enlaceReserva = static function (array $medico): string {
     </div>
 </section>
 
-<section class="section news" id="noticias">
+<section class="section news" id="noticias" data-section-reveal>
     <div class="container">
         <div class="news-head reveal">
             <h2>Ideas para<br><em>cuidarte mejor.</em></h2>
@@ -366,7 +413,7 @@ $enlaceReserva = static function (array $medico): string {
     </div>
 </section>
 
-<section class="section contact" id="contacto">
+<section class="section contact" id="contacto" data-section-reveal>
     <div class="container contact-panel reveal">
         <div class="contact-copy">
             <span class="contact-mark" aria-hidden="true"><svg class="icon"><use href="#i-spark"></use></svg></span>

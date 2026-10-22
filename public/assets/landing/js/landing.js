@@ -204,13 +204,19 @@
         }
     });
 
-    /* Reveal on enter ----------------------------------------------------- */
+    /* Reveal sections on enter --------------------------------------------- */
 
-    const revealNodes = $$(".reveal");
+    const revealSections = $$("[data-section-reveal]");
 
-    if (revealNodes.length > 0) {
+    revealSections.forEach((section) => {
+        $$(".reveal", section).forEach((node, index) => {
+            node.style.setProperty("--reveal-delay", `${Math.min(index * 70, 350)}ms`);
+        });
+    });
+
+    if (revealSections.length > 0) {
         if (reduceMotion || !("IntersectionObserver" in window)) {
-            revealNodes.forEach((node) => node.classList.add("is-visible"));
+            revealSections.forEach((section) => section.classList.add("is-revealed"));
         } else {
             const revealObserver = new IntersectionObserver(
                 (entries, observer) => {
@@ -219,14 +225,14 @@
                             return;
                         }
 
-                        entry.target.classList.add("is-visible");
+                        entry.target.classList.add("is-revealed");
                         observer.unobserve(entry.target);
                     });
                 },
-                { threshold: 0.12, rootMargin: "0px 0px -7% 0px" }
+                { threshold: 0.08, rootMargin: "0px 0px -6% 0px" }
             );
 
-            revealNodes.forEach((node) => revealObserver.observe(node));
+            revealSections.forEach((section) => revealObserver.observe(section));
         }
     }
 
@@ -271,9 +277,22 @@
     const doctorGrid = $("[data-doctor-grid]");
     const doctorCount = $("[data-doctors-count]");
     const doctorReset = $("[data-doctors-reset]");
-    const defaultDoctorLabel = doctorCount?.textContent || "Médicos activos";
-    let currentSpecialty = null;
+    const doctorFilters = $$("[data-doctor-filter]");
     let doctorRequest = 0;
+
+    const setDoctorFilterState = (especialidadId = null) => {
+        const activeFilter = especialidadId === null ? "all" : String(especialidadId);
+
+        doctorFilters.forEach((button) => {
+            const isActive = button.dataset.doctorFilter === activeFilter;
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+
+        if (doctorReset) {
+            doctorReset.hidden = especialidadId === null;
+        }
+    };
 
     const doctorSkeleton = () => {
         const row = el("div", "doctor-row skeleton-row");
@@ -391,16 +410,12 @@
             return;
         }
 
-        currentSpecialty = especialidadId;
         const request = ++doctorRequest;
 
+        setDoctorFilterState(especialidadId);
         doctorGrid.setAttribute("aria-busy", "true");
         doctorGrid.replaceChildren(doctorSkeleton(), doctorSkeleton(), doctorSkeleton());
         setDoctorStatus("Cargando médicos…");
-
-        if (doctorReset) {
-            doctorReset.hidden = especialidadId === null;
-        }
 
         const params = new URLSearchParams();
 
@@ -477,10 +492,26 @@
         });
     });
 
+    doctorFilters.forEach((button) => {
+        button.addEventListener("click", () => {
+            const isAll = button.dataset.doctorFilter === "all";
+            const especialidadId = isAll ? null : button.dataset.doctorFilter;
+            const especialidadNombre = isAll ? null : button.dataset.doctorFilterName || null;
+
+            $$("[data-especialidad-id]").forEach((item) => {
+                item.classList.toggle(
+                    "is-active",
+                    !isAll && item.dataset.especialidadId === String(especialidadId)
+                );
+            });
+
+            loadDoctors(especialidadId, especialidadNombre);
+        });
+    });
+
     doctorReset?.addEventListener("click", () => {
         $$("[data-especialidad-id]").forEach((item) => item.classList.remove("is-active"));
         loadDoctors();
-        setDoctorStatus(defaultDoctorLabel);
     });
 
     /* Reservation wizard --------------------------------------------------- */

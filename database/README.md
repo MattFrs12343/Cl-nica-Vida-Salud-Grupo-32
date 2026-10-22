@@ -109,7 +109,7 @@ La auditoría se escribe con `fn_auditar()` (`SECURITY DEFINER`). El rol de la a
 `db:seed` crea:
 
 - 5 especialidades, 3 destacadas.
-- 3 médicos, 2 asignados a la recepcionista médica.
+- 4 médicos, 2 asignados a la recepcionista médica.
 - Horarios de lunes a viernes (08:00–12:00 y 14:00–18:00) con cupos 50/50.
 - 4 pacientes (uno vinculado a la cuenta `paciente`).
 - 5 citas: 2 pasadas atendidas y 3 futuras (confirmada/programadas).

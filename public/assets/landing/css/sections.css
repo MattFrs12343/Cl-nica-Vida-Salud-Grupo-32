@@ -284,6 +284,16 @@
     letter-spacing: 0.04em;
 }
 
+.specialty-count {
+    position: absolute;
+    top: 38px;
+    right: 20px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.02em;
+}
+
 .specialty-icon {
     display: grid;
     place-items: center;
@@ -384,7 +394,8 @@
     pointer-events: none;
 }
 
-.specialty-shell.is-featured .specialty-index {
+.specialty-shell.is-featured .specialty-index,
+.specialty-shell.is-featured .specialty-count {
     color: rgba(244, 246, 240, 0.48);
 }
 
@@ -468,6 +479,63 @@
     grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
     gap: clamp(2.5rem, 6vw, 6rem);
     align-items: start;
+}
+
+.doctors-directory {
+    min-width: 0;
+}
+
+.doctor-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 18px;
+}
+
+html:not(.js) .doctor-filters {
+    display: none;
+}
+
+.doctor-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 30px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.25s ease, border-color 0.25s ease,
+        color 0.25s ease;
+}
+
+.doctor-filter:hover {
+    border-color: rgba(11, 61, 53, 0.32);
+    color: var(--pine);
+}
+
+.doctor-filter.is-active {
+    border-color: var(--pine);
+    background: var(--pine);
+    color: var(--paper);
+}
+
+.doctor-filter-count {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 9px;
+}
+
+.doctor-filter.is-active .doctor-filter-count {
+    color: rgba(244, 246, 240, 0.58);
 }
 
 .doctors-intro {

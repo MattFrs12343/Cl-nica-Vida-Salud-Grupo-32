@@ -43,6 +43,16 @@ INSERT INTO medicos (
         '70010003',
         'jorge.salazar@vidasalud.test',
         30
+    ),
+    (
+        'MED-DEMO-004',
+        NULL,
+        'MP-1004',
+        'Andrés',
+        'Salinas',
+        '70010004',
+        'andres.salinas@vidasalud.test',
+        30
     )
 ON CONFLICT DO NOTHING;
 
@@ -53,7 +63,8 @@ FROM (VALUES
     ('MED-DEMO-001', 'Cardiología'),
     ('MED-DEMO-002', 'Pediatría'),
     ('MED-DEMO-003', 'Geriatría'),
-    ('MED-DEMO-003', 'Medicina General')
+    ('MED-DEMO-003', 'Medicina General'),
+    ('MED-DEMO-004', 'Ginecología')
 ) AS asignacion(medico_codigo, especialidad_nombre)
 JOIN medicos m ON m.codigo = asignacion.medico_codigo
 JOIN especialidades e ON e.nombre = asignacion.especialidad_nombre
@@ -73,7 +84,7 @@ INSERT INTO horarios (
 SELECT m.id, dia.dia, TIME '08:00', TIME '12:00', 50, 50
 FROM medicos m
 CROSS JOIN generate_series(1, 5) AS dia(dia)
-WHERE m.codigo IN ('MED-DEMO-001', 'MED-DEMO-002', 'MED-DEMO-003')
+WHERE m.codigo IN ('MED-DEMO-001', 'MED-DEMO-002', 'MED-DEMO-003', 'MED-DEMO-004')
   AND NOT EXISTS (
       SELECT 1 FROM horarios h
       WHERE h.medico_id = m.id
@@ -88,7 +99,7 @@ INSERT INTO horarios (
 SELECT m.id, dia.dia, TIME '14:00', TIME '18:00', 50, 50
 FROM medicos m
 CROSS JOIN generate_series(1, 5) AS dia(dia)
-WHERE m.codigo IN ('MED-DEMO-001', 'MED-DEMO-002', 'MED-DEMO-003')
+WHERE m.codigo IN ('MED-DEMO-001', 'MED-DEMO-002', 'MED-DEMO-003', 'MED-DEMO-004')
   AND NOT EXISTS (
       SELECT 1 FROM horarios h
       WHERE h.medico_id = m.id
