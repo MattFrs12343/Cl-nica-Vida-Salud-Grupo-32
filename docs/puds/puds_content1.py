@@ -82,17 +82,70 @@ def chapter1():
 
     b.h2("1.7 Metodología y ciclo de vida")
     b.p("Se adopta un ciclo de vida iterativo e incremental basado en RUP, con énfasis en las disciplinas de Captura de Requisitos, Análisis, Diseño, Implementación y Pruebas. El trabajo se organiza en dos ciclos: el primero consolida la base de datos, seguridad, catálogos, horarios y landing; el segundo incorpora citas, estados, kiosco, historia clínica, pedidos, pagos, reportes y auditoría.")
+    b.p("El Ciclo 1 (hasta el 24/10/2026) establece la plataforma base sobre la que se construyen los demás módulos. Su implementación sigue un orden de dependencias: primero el modelo de datos y las políticas de seguridad a nivel de fila; luego la autenticación y el control de acceso por roles; a continuación los catálogos de pacientes, médicos y especialidades; después la configuración de horarios y cupos 50/50 web/kiosco; y finalmente la landing pública base. Este orden garantiza que cada módulo cuente con las tablas, permisos y catálogos que necesita antes de ser construido, y se complementa con las reglas transversales de seguridad, validación cliente/servidor, CSRF y despliegue en cPanel con PostgreSQL en la nube.")
     b.figure("rup_fases.png", 15.5, "Fases e hitos del proceso unificado aplicados al proyecto")
     b.figure("rup_disciplinas.png", 15.5, "Disciplinas RUP y su intensidad relativa por fase")
     b.table(
         ["Ciclo", "Periodo", "Entregables principales"],
         [
-            ("Ciclo 1", "Hasta 24/10/2026", "Modelo de datos, autenticación, pacientes, médicos, especialidades, horarios, cupos y landing base."),
+            ("Ciclo 1", "Hasta 24/10/2026", "Modelo de datos y RLS; autenticación; pacientes, médicos y especialidades; horarios y cupos 50/50; landing base. Orden: 99 → 01 → 02/03/04 → 05 → 15."),
             ("Ciclo 2", "Hasta 07/11/2026", "Citas, estados, reconsultas, kiosco, fichas, agenda, historia clínica, pedidos, WhatsApp, pagos, reportes y auditoría."),
             ("Cierre", "09/11/2026", "Documento PUDS-UML, pruebas integradas, repositorio y defensa."),
         ],
         [2.2, 3.0, 10.8],
         caption="Planificación general por ciclos",
+    )
+    b.h3("1.7.1 Detalle de los entregables del Ciclo 1")
+    b.p("La tabla siguiente desglosa el alcance comprometido para el Ciclo 1, alineado con las especificaciones por módulo del repositorio (carpeta docs/specs). Cada entrega incluye su modelo de datos, endpoints, reglas de negocio y criterios de aceptación.")
+    b.table(
+        ["Spec", "Módulo", "Resultado esperado"],
+        [
+            ("99", "Modelo de datos y RLS", "Esquema PostgreSQL 16 con enums, códigos visibles, borrado lógico y políticas de seguridad a nivel de fila por rol."),
+            ("01", "Autenticación y control de acceso", "Login por CI o correo, sesión segura, menú dinámico por rol, bloqueo tras tres intentos fallidos y recuperación de contraseña por token."),
+            ("02", "Pacientes", "CRUD y búsqueda por CI, nombre o apellido; perfil con datos personales, contacto, información médica y contacto de emergencia; CI única y desactivación sin pérdida de historial."),
+            ("03", "Médicos", "CRUD, asignación de especialidades (N:M), código QR profesional, activación/desactivación y asignación de recepcionistas."),
+            ("04", "Especialidades", "CRUD con restricciones de sexo y edad, especialidades destacadas y visibilidad controlada en la landing."),
+            ("05", "Horarios y cupos", "Franjas semanales por médico, cupos web/kiosco 50/50, bloqueos de agenda y cálculo de disponibilidad por canal."),
+            ("15", "Landing pública base", "Página informativa con buscador de especialidades, directorio de médicos activos, llamados a la acción y registro/login de paciente."),
+        ],
+        [1.4, 4.0, 10.6],
+        caption="Entregables detallados del Ciclo 1",
+        font_size=8.2,
+    )
+    b.p("El cierre del Ciclo 1 deja operativa la base del sistema: usuarios y roles, catálogos maestros, disponibilidad y sitio público, de modo que el Ciclo 2 pueda concentrarse en la operación de citas, la atención clínica y los procesos de soporte.")
+
+    b.h3("1.7.2 Detalle de los entregables del Ciclo 2")
+    b.p("El Ciclo 2 (hasta el 07/11/2026) completa la operación clínica y administrativa. A partir de la base entregada, incorpora el registro y la gestión de citas, los estados y reconsultas, el kiosco y las fichas, la agenda y el historial, la historia clínica con recetas, documentos y órdenes, el envío de pedidos por WhatsApp, los pagos, los reportes y la auditoría. El orden conserva la dependencia entre agenda, cita, atención y soporte, de modo que cada módulo se apoye en datos y permisos ya disponibles.")
+    b.table(
+        ["Spec", "Módulo", "Resultado esperado"],
+        [
+            ("06", "Citas", "Registro, prevención de duplicados y superposiciones, reprogramación y cancelación con validación de disponibilidad."),
+            ("07", "Estados y asistencia", "Transiciones de estado, control de asistencia e inasistencia, y reconsultas por ausencia o seguimiento."),
+            ("09", "Kiosco y fichas", "Emisión de ficha con token firmado, código de acceso y QR; confirmación de la cita."),
+            ("08", "Agenda e historial", "Agenda médica por rol e historial cronológico del paciente."),
+            ("10", "Historia clínica", "Consultas, recetas, documentos y órdenes de estudio."),
+            ("11", "WhatsApp y pedidos", "Envío de pedidos mediante enlace con código de acceso."),
+            ("12", "Pagos", "Registro de pagos por monto y método, asociado a la atención."),
+            ("13", "Reportes", "Dashboards y reportes de demanda, atención, cancelaciones y productividad."),
+            ("14", "Auditoría", "Bitácora de cambios de catálogos con IP y datos antes/después."),
+        ],
+        [1.4, 4.0, 10.6],
+        caption="Entregables detallados del Ciclo 2",
+        font_size=8.2,
+    )
+
+    b.h3("1.7.3 Distribución de casos de uso por ciclo")
+    b.p("La asignación de casos de uso a cada ciclo sigue la prioridad y las dependencias funcionales. El Ciclo 1 agrupa los casos de uso de la plataforma base y el Ciclo 2 los de la operación clínica y de soporte. La tabla siguiente resume la distribución y remite a la priorización detallada del capítulo 4.")
+    b.table(
+        ["Ciclo", "Casos de uso", "N.º", "Distribución por prioridad", "Resultado esperado"],
+        [
+            ("Ciclo 1", "UC01–UC04, UC08, UC20–UC22", "8", "5 P1, 1 P3, 2 P4", "Plataforma base, catálogos y disponibilidad operativos."),
+            ("Ciclo 2", "UC05–UC07, UC09–UC19, UC23–UC24", "16", "6 P1, 3 P2, 7 P3", "Operación de citas, atención clínica, pagos, reportes y auditoría."),
+        ],
+        [1.8, 5.6, 1.0, 3.4, 4.2],
+        caption="Distribución de casos de uso por ciclo",
+        font_size=8.0,
+        align_center_cols={0, 2, 3},
     )
 
     b.h2("1.8 Organización del documento")
@@ -121,20 +174,41 @@ def chapter2():
     b.p("Las disciplinas se representan en el documento mediante los diagramas de casos de uso, análisis, diseño, implementación y pruebas. La arquitectura se documenta con vistas lógica y de despliegue, mientras que la implementación se organiza en capas y paquetes.")
 
     b.h2("2.3 UML 2.5")
-    b.p("UML es un lenguaje de modelado que proporciona notaciones para visualizar, especificar, construir y documentar artefactos de software. En este proyecto se emplean diagramas de casos de uso, actividad, clases, secuencia, estados, componentes, despliegue y paquetes. Los diagramas se elaboran con PlantUML y se integran al documento como figuras numeradas.")
+    b.p("UML es un lenguaje de modelado que proporciona notaciones para visualizar, especificar, construir y documentar artefactos de software. En este proyecto se emplean diagramas de casos de uso, actividad, clases, secuencia, estados, componentes, despliegue y entidad-relación; la organización en paquetes se representa mediante la tabla de la sección 4.4. Los diagramas se elaboran con PlantUML y se integran al documento como figuras numeradas.")
     b.table(
-        ["Diagrama", "Uso en el proyecto"],
+        ["Diagrama", "Tipo", "Uso en el proyecto", "Capítulo"],
         [
-            ("Casos de uso", "Delimitar actores y servicios del sistema."),
-            ("Actividad", "Modelar el flujo de reserva y atención."),
-            ("Clases", "Representar el dominio y las clases de análisis."),
-            ("Secuencia", "Detallar la interacción entre actores y componentes."),
-            ("Estados", "Modelar el ciclo de vida de una cita."),
-            ("Componentes", "Describir la arquitectura lógica y los servicios."),
-            ("Despliegue", "Ubicar nodos, contenedores y base de datos."),
+            ("Casos de uso", "Comportamiento", "Delimitar actores y servicios; tres vistas por paquete.", "4"),
+            ("Actividad", "Comportamiento", "Modelar el flujo de reserva y atención.", "3"),
+            ("Clases", "Estructura", "Representar el dominio y las clases de análisis.", "5"),
+            ("Secuencia", "Comportamiento", "Detallar la interacción entre actores y componentes.", "5"),
+            ("Estados", "Comportamiento", "Modelar el ciclo de vida de la cita.", "5"),
+            ("Componentes", "Estructura", "Describir la arquitectura lógica y los servicios.", "6"),
+            ("Despliegue", "Estructura", "Ubicar nodos, contenedores y base de datos.", "6"),
+            ("Paquetes", "Estructura", "Agrupar casos de uso por módulo funcional.", "4 (tabla)"),
+            ("Entidad-relación", "Estructura", "Modelar el esquema relacional del núcleo y del dominio clínico.", "6"),
         ],
-        [4.0, 12.0],
+        [3.2, 2.8, 8.2, 1.8],
         caption="Diagramas UML utilizados",
+        font_size=8.2,
+        align_center_cols={1, 3},
+    )
+    b.p("La tabla siguiente contrasta la cobertura de tipos UML de este PUDS con la del documento de referencia PROYECTOCOMPLETO1. El objetivo es verificar que se conserva la notación adoptada y que la distribución por capítulos es equivalente, sin trasladar a este documento la estructura de módulos de la referencia.")
+    b.table(
+        ["Tipo UML", "Este PUDS", "PROYECTOCOMPLETO1", "Observación"],
+        [
+            ("Casos de uso", "3 diagramas (cap. 4)", "5 diagramas (figs. 7–11)", "Se conserva la notación; la agrupación por paquete se documenta en la tabla 4.4."),
+            ("Paquetes", "Tabla 4.4", "1 diagrama (fig. 12)", "Se mantiene la agrupación lógica; no se añade una figura independiente."),
+            ("Clases", "3 diagramas (cap. 5)", "3 diagramas (figs. 29–31)", "Cobertura equivalente: análisis y dominio."),
+            ("Entidad-relación", "2 diagramas (cap. 6)", "4 diagramas (figs. 32–35)", "Se prioriza el núcleo y el modelo clínico."),
+            ("Secuencia", "5 diagramas (cap. 5)", "3 diagramas (figs. 36–38)", "Mayor detalle en login, reserva, kiosco, cancelación y consulta."),
+            ("Actividad", "1 diagrama (cap. 3)", "3 diagramas (figs. 4–6)", "Se documenta el proceso principal de reserva y atención."),
+            ("Estados", "1 diagrama (cap. 5)", "3 diagramas (figs. 39–41)", "Se modela el ciclo de vida de la cita."),
+            ("Componentes y despliegue", "2 diagramas (cap. 6)", "2 diagramas (figs. 27–28)", "Cobertura equivalente."),
+        ],
+        [3.2, 3.2, 3.8, 5.8],
+        caption="Comparación de tipos de diagrama UML con PROYECTOCOMPLETO1",
+        font_size=7.9,
     )
 
     b.h2("2.4 Arquitectura web MVC")
@@ -337,7 +411,7 @@ def chapter4():
 
     b.figure("01_casos_uso_publico.png", 15.5, "Casos de uso del acceso público y reserva web")
     b.figure("01b_casos_uso_citas.png", 15.5, "Casos de uso de operación de citas y agenda")
-    b.figure("01c_casos_uso_atencion.png", 15.8, "Casos de uso de atención médica y administración")
+    b.figure("01c_casos_uso_atencion.png", 15.8, "Casos de uso de atención médica y administración", max_height_cm=23.0)
 
     b.h2("4.5 Catálogo de casos de uso")
     b.table(
@@ -373,6 +447,44 @@ def chapter4():
         font_size=8.0,
         align_center_cols={0},
     )
+
+    b.h3("4.5.1 Priorización de casos de uso por importancia y riesgo")
+    b.p("La priorización combina dos ejes: la importancia, que mide el grado en que el caso de uso sostiene la operación o la seguridad del paciente, y el riesgo, que estima el daño clínico, económico o legal que produciría una falla o un uso indebido. La combinación da lugar a cuatro niveles: P1 Crítica, P2 Alta, P3 Media y P4 Baja. La tabla se ordena por prioridad y conserva el código para mantener la trazabilidad con el catálogo y con los paquetes PK-01 (acceso público), PK-02 (citas y agenda) y PK-03 (atención y administración).")
+    b.table(
+        ["Prioridad", "Código", "Paquete", "Caso de uso", "Importancia", "Riesgo", "Fundamento"],
+        [
+            ("P1 Crítica", "UC04", "PK-01", "Iniciar sesión", "Alta", "Crítico", "Puerta de entrada a datos clínicos y administrativos."),
+            ("P1 Crítica", "UC05", "PK-01", "Reservar cita web", "Alta", "Crítico", "Reserva transaccional; evita duplicados y sobrecupos."),
+            ("P1 Crítica", "UC08", "PK-02", "Gestionar pacientes", "Alta", "Alto", "Maestro de pacientes; base de citas e historia clínica."),
+            ("P1 Crítica", "UC09", "PK-02", "Programar cita", "Alta", "Crítico", "Núcleo de la operación; evita superposiciones."),
+            ("P1 Crítica", "UC15", "PK-03", "Emitir ficha en kiosco", "Alta", "Crítico", "La ficha habilita la atención y confirma la cita."),
+            ("P1 Crítica", "UC16", "PK-03", "Registrar consulta", "Alta", "Crítico", "Documento clínico y evidencia de la atención."),
+            ("P1 Crítica", "UC17", "PK-03", "Generar receta, documento u orden", "Alta", "Alto", "Documento clínico con implicación legal."),
+            ("P1 Crítica", "UC19", "PK-03", "Registrar pago", "Alta", "Crítico", "Impacto económico directo y cierre de cuenta."),
+            ("P1 Crítica", "UC20", "PK-03", "Gestionar médicos y especialidades", "Alta", "Alto", "Catálogos que habilitan la agenda y la elegibilidad."),
+            ("P1 Crítica", "UC21", "PK-03", "Configurar horarios y cupos", "Alta", "Alto", "Define la disponibilidad y el reparto 50/50."),
+            ("P1 Crítica", "UC22", "PK-03", "Gestionar usuarios", "Alta", "Crítico", "Controla el acceso y los privilegios por rol."),
+            ("P2 Alta", "UC12", "PK-02", "Controlar asistencia", "Alta", "Medio", "Afecta estados, reconsultas e indicadores."),
+            ("P2 Alta", "UC13", "PK-02", "Gestionar reconsultas", "Alta", "Medio", "Prioriza la continuidad de la atención."),
+            ("P2 Alta", "UC14", "PK-02", "Consultar agenda e historial", "Alta", "Medio", "Soporte a la decisión clínica y operativa."),
+            ("P3 Media", "UC03", "PK-01", "Registrarse o activar cuenta", "Media", "Medio", "Habilita el acceso del paciente sin datos clínicos."),
+            ("P3 Media", "UC06", "PK-01", "Cancelar cita", "Media", "Medio", "Libera cupo; requiere control de plazo."),
+            ("P3 Media", "UC07", "PK-01", "Consultar mis citas e historial", "Media", "Medio", "Consulta de solo lectura para el paciente."),
+            ("P3 Media", "UC10", "PK-02", "Reprogramar cita", "Media", "Medio", "Revalida disponibilidad sin perder historial."),
+            ("P3 Media", "UC11", "PK-02", "Cancelar cita en recepción", "Media", "Medio", "Libera cupo con registro de motivo."),
+            ("P3 Media", "UC18", "PK-03", "Enviar pedido por WhatsApp", "Media", "Medio", "Notificación externa; no altera datos clínicos."),
+            ("P3 Media", "UC23", "PK-03", "Generar reportes", "Media", "Medio", "Indicadores para la dirección; no opera la agenda."),
+            ("P3 Media", "UC24", "PK-03", "Auditar catálogos", "Media", "Medio", "Trazabilidad exigible; no bloquea la operación."),
+            ("P4 Baja", "UC01", "PK-01", "Navegar por la landing", "Baja", "Bajo", "Informativo; no altera datos."),
+            ("P4 Baja", "UC02", "PK-01", "Buscar especialidad y médico", "Baja", "Bajo", "Orientativo; solo lectura pública."),
+        ],
+        [1.9, 1.3, 1.5, 4.0, 1.8, 1.5, 4.0],
+        caption="Priorización de los casos de uso por importancia y riesgo",
+        font_size=7.6,
+        align_center_cols={0, 1, 2, 4, 5},
+        row_fills=["F4B6B6"] * 11 + ["F8CBAD"] * 3 + ["FFE699"] * 8 + ["C6E0B4"] * 2,
+    )
+    b.p("El sombreado de cada fila codifica la prioridad: rojo para P1 Crítica, naranja para P2 Alta, amarillo para P3 Media y verde para P4 Baja. El resultado es 11 casos de uso P1 Crítica, 3 P2 Alta, 8 P3 Media y 2 P4 Baja. Los casos P1 se construyen y prueban primero dentro de cada ciclo y concentran la mayor cobertura de pruebas; los casos P3 y P4 se incorporan según la dependencia funcional y el avance de la operación. La prioridad no altera el catálogo: los 24 casos de uso se conservan sin omisiones ni duplicados y solo se reordenan para planificar la entrega.")
 
     b.h2("4.6 Especificación de casos de uso críticos")
     b.h3("4.6.1 UC04 — Iniciar sesión")

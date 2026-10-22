@@ -7,6 +7,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+from docx.image.image import Image as DocxImage
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DOCS = os.path.join(ROOT, "docs", "puds")
@@ -391,12 +392,17 @@ class Builder:
         _set_run_font(r, size=8.5, italic=True, color=GRAY)
         return p
 
-    def figure(self, filename, width_cm, caption, break_before=False):
+    def figure(self, filename, width_cm, caption, break_before=False, max_height_cm=None):
         if break_before:
             self.doc.add_page_break()
         path = os.path.join(DIA, filename)
         if not os.path.exists(path):
             path = os.path.join(ASSETS, filename)
+        if max_height_cm:
+            info = DocxImage.from_file(path)
+            aspect = info.height / info.width
+            if width_cm * aspect > max_height_cm:
+                width_cm = max_height_cm / aspect
         p = self.doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_before = Pt(4)
@@ -406,7 +412,7 @@ class Builder:
         self.caption("Figura", caption)
 
     def table(self, headers, rows, widths, caption=None, font_size=8.5, first_col_bold=False,
-              header_fill="0A6EBD", align_center_cols=None):
+              header_fill="0A6EBD", align_center_cols=None, row_fills=None):
         if caption:
             self.caption("Tabla", caption)
         table = self.doc.add_table(rows=1, cols=len(headers))
@@ -439,7 +445,9 @@ class Builder:
                 cell.width = Cm(widths[i])
                 _cell_margins(cell)
                 cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
-                if idx % 2 == 1:
+                if row_fills and idx < len(row_fills) and row_fills[idx]:
+                    _shade(cell, row_fills[idx])
+                elif idx % 2 == 1:
                     _shade(cell, "F4F8FC")
                 cell.text = ""
                 lines = str(val).split("\n")
