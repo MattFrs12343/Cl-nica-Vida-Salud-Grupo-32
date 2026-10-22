@@ -1,23 +1,35 @@
 <section class="page-hero">
     <div class="container">
-        <span class="eyebrow">Atención presencial</span>
-        <h1>Kiosco de fichas</h1>
+        <span class="page-kicker">Atención presencial</span>
+        <h1>Tu ficha,<br><em>sin filas.</em></h1>
         <p>
-            Si vienes a la clínica, puedes sacar tu ficha en el kiosco táctil. En pocos pasos
-            eliges especialidad, médico y horario, y obtienes tu código de atención.
+            Si vienes a la clínica, saca tu ficha en el kiosco táctil. Eliges especialidad,
+            médico y horario, y obtienes tu código de atención en pocos pasos.
         </p>
     </div>
 </section>
 
-<section class="section">
+<section class="section kiosco-section">
     <div class="container kiosco-grid">
         <div class="kiosco-steps">
-            <h2>¿Cómo funciona?</h2>
-            <ol class="steps-list steps-list-lg">
-                <li><span>1</span> Ingresa tu cédula de identidad en la pantalla.</li>
-                <li><span>2</span> Si es tu primera visita, completa tus datos básicos.</li>
-                <li><span>3</span> Elige especialidad, médico y horario disponible.</li>
-                <li><span>4</span> Recibe tu ficha con código y QR. ¡Listo!</li>
+            <h2>Cómo funciona.</h2>
+            <ol class="steps-list">
+                <li>
+                    <span>01</span>
+                    <div><strong>Ingresa tu cédula de identidad</strong> en la pantalla del kiosco.</div>
+                </li>
+                <li>
+                    <span>02</span>
+                    <div><strong>Confirma tus datos.</strong> Si es tu primera visita, completa la información básica.</div>
+                </li>
+                <li>
+                    <span>03</span>
+                    <div><strong>Elige especialidad, médico y horario</strong> con cupo disponible.</div>
+                </li>
+                <li>
+                    <span>04</span>
+                    <div><strong>Recibe tu ficha</strong> con código y QR. Preséntala en recepción.</div>
+                </li>
             </ol>
 
             <div class="notice">
@@ -26,16 +38,28 @@
             </div>
         </div>
 
-        <aside class="contact-card">
-            <h2>¿Prefieres reservar desde casa?</h2>
-            <p>Agenda online con tu cuenta de paciente y llega con tu cita confirmada.</p>
-            <a class="button button-primary" href="<?= e(url('/reservar')) ?>">Agendar cita online</a>
-            <a class="button button-outline" href="<?= e(url('/activar')) ?>">Activar mi cuenta</a>
+        <aside class="kiosco-aside">
+            <div class="kiosco-ticket-card">
+                <h2>Tu ficha,<br>en un código.</h2>
+                <p>La ficha digital te permite confirmar tu atención y guardar el comprobante en tu teléfono.</p>
 
-            <hr>
+                <div class="kiosco-demo-ticket" aria-hidden="true">
+                    <span>Ejemplo de ficha</span>
+                    <strong>FIC-042</strong>
+                </div>
 
-            <h3>Horario de atención</h3>
-            <p class="muted">Lunes a viernes 08:00–18:00<br>Sábados 08:00–12:00</p>
+                <a class="btn btn-light btn-block" href="<?= e(url('/reservar')) ?>">
+                    <span>Reservar online</span>
+                    <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"></use></svg></span>
+                </a>
+                <a class="btn btn-ghost-light btn-block" href="<?= e(url('/activar')) ?>">Activar mi cuenta</a>
+            </div>
+
+            <div class="kiosco-help">
+                <h2>¿Prefieres desde casa?</h2>
+                <p>Agenda con tu cuenta de paciente y llega con tu cita confirmada.</p>
+                <a href="<?= e(url('/reservar')) ?>">Reservar online →</a>
+            </div>
         </aside>
     </div>
 </section>

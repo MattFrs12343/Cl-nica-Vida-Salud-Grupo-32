@@ -1,86 +1,125 @@
 <?php
 /** @var array<int, array<string, mixed>> $especialidades */
+/** @var array<int, array<string, mixed>> $medicos */
+
+$medicos = $medicos ?? [];
+$indiceMedicina = null;
+
+foreach ($especialidades as $indice => $especialidad) {
+    if (mb_strtolower(trim((string) ($especialidad['nombre'] ?? ''))) === 'medicina general') {
+        $indiceMedicina = $indice;
+        break;
+    }
+}
+
+if ($indiceMedicina !== null && $indiceMedicina !== 0) {
+    $medicinaGeneral = $especialidades[$indiceMedicina];
+    unset($especialidades[$indiceMedicina]);
+    array_unshift($especialidades, $medicinaGeneral);
+    $especialidades = array_values($especialidades);
+}
+
+$iconos = [
+    'stethoscope' => 'i-stethoscope',
+    'child' => 'i-child',
+    'elderly' => 'i-elderly',
+    'heart' => 'i-heart',
+    'female' => 'i-female',
+];
+
+$iniciales = static function (array $medico): string {
+    $nombres = trim((string) ($medico['nombres'] ?? ''));
+    $apellidos = trim((string) ($medico['apellidos'] ?? ''));
+    $primera = $nombres !== '' ? mb_substr($nombres, 0, 1) : '';
+    $segunda = $apellidos !== '' ? mb_substr($apellidos, 0, 1) : '';
+
+    return mb_strtoupper($primera . $segunda);
+};
+
+$enlaceReserva = static function (array $medico): string {
+    $query = ['medico' => (int) ($medico['id'] ?? 0)];
+    $primera = $medico['especialidades'][0]['id'] ?? null;
+
+    if ($primera !== null) {
+        $query['especialidad'] = (int) $primera;
+    }
+
+    return url('/reservar?' . http_build_query($query));
+};
 ?>
 <section class="hero">
     <div class="container hero-grid">
         <div class="hero-copy">
-            <span class="eyebrow">Clínica Vida Salud</span>
-            <h1>Tu salud, con la atención que mereces.</h1>
-            <p class="hero-lead">
-                Agenda tu cita online en minutos, elige a tu médico y recibe atención cercana.
-                También puedes sacar tu ficha en nuestro kiosco presencial.
-            </p>
+            <p class="hero-kicker"><span class="status-dot" aria-hidden="true"></span> Clínica Vida Salud · Santa Cruz</p>
+            <h1>Tu salud,<br><em>a tu ritmo.</em></h1>
+            <p class="hero-lead">Reserva online, elige especialidad y médico, y llega con tu cita lista.</p>
 
             <div class="hero-actions">
-                <a class="button button-primary button-lg" href="<?= e(url('/reservar')) ?>">Agendar cita</a>
-                <a class="button button-outline button-lg" href="<?= e(url('/kiosco')) ?>">Sacar ficha</a>
+                <a class="btn btn-primary btn-lg" href="<?= e(url('/reservar')) ?>">
+                    <span>Reservar cita</span>
+                    <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"></use></svg></span>
+                </a>
+                <a class="btn btn-ghost btn-lg" href="<?= e(url('/kiosco')) ?>">
+                    <span>Sacar ficha</span>
+                </a>
             </div>
-
-            <ul class="hero-points">
-                <li>Especialidades para toda la familia</li>
-                <li>Confirmación por correo</li>
-                <li>Médicos con cupos web y presenciales</li>
-            </ul>
         </div>
 
-        <div class="hero-card" aria-hidden="true">
-            <div class="hero-card-head">
-                <span class="pulse-dot"></span>
-                <span>Agenda disponible</span>
+        <div class="hero-visual">
+            <div class="hero-frame">
+                <img
+                    src="<?= e(asset('landing/img/hero-doctor.jpg')) ?>"
+                    alt="Doctora de Clínica Vida Salud con uniforme médico"
+                    width="1400"
+                    height="1750"
+                    fetchpriority="high"
+                    decoding="async"
+                >
+                <span class="hero-badge"><span class="status-dot" aria-hidden="true"></span> Agenda abierta</span>
             </div>
-            <div class="hero-slot">
-                <span class="hero-slot-day">Lun</span>
-                <strong>08:00</strong>
-                <small>Medicina General</small>
+            <div class="hero-frame-note" aria-hidden="true">
+                <span>Medicina familiar</span>
+                <span>SC · BO</span>
             </div>
-            <div class="hero-slot hero-slot-active">
-                <span class="hero-slot-day">Lun</span>
-                <strong>08:30</strong>
-                <small>Pediatría</small>
-            </div>
-            <div class="hero-slot">
-                <span class="hero-slot-day">Mar</span>
-                <strong>09:00</strong>
-                <small>Geriatría</small>
-            </div>
+        </div>
+    </div>
+
+    <div class="container signal-rail">
+        <div class="signal-item">
+            <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
+            <span>Reserva online 24/7</span>
+        </div>
+        <div class="signal-item">
+            <svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg>
+            <span>Cupos web y presenciales</span>
+        </div>
+        <div class="signal-item">
+            <svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg>
+            <span>Confirmación por correo</span>
+        </div>
+        <div class="signal-item">
+            <svg class="icon" aria-hidden="true"><use href="#i-qr"></use></svg>
+            <span>Ficha digital con QR</span>
         </div>
     </div>
 </section>
 
-<section class="quick-access" aria-label="Accesos rápidos">
-    <div class="container quick-grid">
-        <a class="quick-card" href="#especialidades">
-            <span class="quick-icon" aria-hidden="true">✚</span>
-            <strong>Especialidades</strong>
-            <small>Encuentra la atención que necesitas.</small>
-        </a>
-        <a class="quick-card" href="#medicos">
-            <span class="quick-icon" aria-hidden="true">◉</span>
-            <strong>Médicos</strong>
-            <small>Conoce a nuestro equipo profesional.</small>
-        </a>
-        <a class="quick-card" href="<?= e(url('/kiosco')) ?>">
-            <span class="quick-icon" aria-hidden="true">▣</span>
-            <strong>Kiosco</strong>
-            <small>Ficha presencial con código QR.</small>
-        </a>
-        <a class="quick-card" href="#contacto">
-            <span class="quick-icon" aria-hidden="true">☎</span>
-            <strong>Contacto</strong>
-            <small>Estamos para ayudarte.</small>
-        </a>
-    </div>
-</section>
-
-<section class="section" id="especialidades">
+<section class="section specialties" id="especialidades">
     <div class="container">
-        <div class="section-head">
-            <div>
-                <span class="eyebrow">Atención médica</span>
-                <h2>Especialidades</h2>
-                <p>Las especialidades destacadas aparecen primero. Selecciona una para ver sus médicos.</p>
+        <div class="specialties-head">
+            <h2>Encuentra tu<br><em>especialidad.</em></h2>
+            <div class="specialty-search">
+                <label class="sr-only" for="buscador-especialidades">Buscar especialidad</label>
+                <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+                <input
+                    id="buscador-especialidades"
+                    type="search"
+                    placeholder="Buscar especialidad"
+                    autocomplete="off"
+                    data-specialty-search
+                >
+                <span class="search-count" data-specialty-count><?= count($especialidades) ?> especialidades</span>
             </div>
-            <a class="text-link" href="<?= e(url('/reservar')) ?>">Reservar ahora →</a>
         </div>
 
         <?php if ($especialidades === []): ?>
@@ -90,133 +129,272 @@
             </div>
         <?php else: ?>
             <div class="specialty-grid" data-specialty-grid>
-                <?php foreach ($especialidades as $especialidad): ?>
-                    <button
-                        type="button"
-                        class="specialty-card<?= $especialidad['destacada'] ? ' is-featured' : '' ?>"
-                        data-especialidad-id="<?= e($especialidad['id']) ?>"
-                        data-especialidad-nombre="<?= e($especialidad['nombre']) ?>"
+                <?php foreach ($especialidades as $indice => $especialidad): ?>
+                    <?php
+                    $icono = $iconos[(string) ($especialidad['icono'] ?? '')] ?? 'i-spark';
+                    $descripcion = trim((string) ($especialidad['descripcion'] ?? ''));
+                    $busqueda = mb_strtolower((string) $especialidad['nombre'] . ' ' . $descripcion);
+                    $destacada = $indice === 0;
+                    ?>
+                    <div
+                        class="specialty-shell<?= $destacada ? ' is-featured' : '' ?> reveal"
+                        data-specialty-item
+                        data-search="<?= e($busqueda) ?>"
                     >
-                        <?php if ($especialidad['destacada']): ?>
-                            <span class="badge">Destacada</span>
-                        <?php endif; ?>
-                        <strong><?= e($especialidad['nombre']) ?></strong>
-                        <span><?= e($especialidad['descripcion'] ?? 'Atención profesional y cercana.') ?></span>
-                        <small>Ver médicos →</small>
-                    </button>
+                        <a
+                            class="specialty-card"
+                            href="<?= e(url('/reservar?especialidad=' . (int) $especialidad['id'])) ?>"
+                            data-especialidad-id="<?= e($especialidad['id']) ?>"
+                            data-especialidad-nombre="<?= e($especialidad['nombre']) ?>"
+                        >
+                            <span class="specialty-index" aria-hidden="true"><?= e(str_pad((string) ($indice + 1), 2, '0', STR_PAD_LEFT)) ?></span>
+                            <span class="specialty-icon" aria-hidden="true">
+                                <svg class="icon"><use href="#<?= e($icono) ?>"></use></svg>
+                            </span>
+                            <span class="specialty-name"><?= e($especialidad['nombre']) ?></span>
+                            <span class="specialty-desc"><?= e($descripcion !== '' ? $descripcion : 'Atención profesional y cercana.') ?></span>
+                            <span class="specialty-arrow" aria-hidden="true">
+                                <svg class="icon"><use href="#i-arrow-up-right"></use></svg>
+                            </span>
+                        </a>
+                    </div>
                 <?php endforeach; ?>
+            </div>
+
+            <div class="specialty-empty" data-specialty-empty hidden>
+                <strong>No encontramos esa especialidad.</strong>
+                <p>Prueba con otra palabra o <a href="<?= e(url('/reservar')) ?>">reserva una cita</a>.</p>
             </div>
         <?php endif; ?>
     </div>
 </section>
 
-<section class="section section-muted" id="medicos">
-    <div class="container">
-        <div class="section-head">
-            <div>
-                <span class="eyebrow">Nuestro equipo</span>
-                <h2>Médicos</h2>
-                <p id="medicos-subtitulo">Profesionales activos de la clínica, listos para atenderte.</p>
+<section class="section doctors" id="medicos">
+    <div class="container doctors-grid">
+        <div class="doctors-intro reveal">
+            <h2>Personas que<br><em>escuchan.</em></h2>
+            <p>Un equipo que combina experiencia clínica con una atención sin apuros. Elige a tu médico y reserva en línea.</p>
+
+            <div class="doctors-status-row">
+                <span class="doctors-status"><span class="status-dot" aria-hidden="true"></span><span data-doctors-count><?= count($medicos) ?> médicos activos</span></span>
+                <button class="link-button" type="button" data-doctors-reset hidden>Ver todos</button>
             </div>
-            <a class="text-link" href="<?= e(url('/reservar')) ?>">Agendar con un médico →</a>
+
+            <a class="btn btn-outline" href="<?= e(url('/reservar')) ?>">
+                <span>Reservar cita</span>
+                <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"></use></svg></span>
+            </a>
         </div>
 
-        <div class="doctor-grid" data-doctor-grid aria-live="polite">
-            <div class="empty-state" data-doctors-loading>
-                <strong>Cargando médicos…</strong>
-                <p>Estamos consultando la disponibilidad del equipo.</p>
-            </div>
+        <div class="doctors-list" data-doctor-grid aria-live="polite">
+            <?php if ($medicos === []): ?>
+                <div class="empty-state empty-state-inline">
+                    <strong>El directorio está cargando.</strong>
+                    <p>Recarga la página o <a href="<?= e(url('/reservar')) ?>">reserva directamente</a>.</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($medicos as $indice => $medico): ?>
+                    <article class="doctor-row reveal" data-doctor-id="<?= e($medico['id']) ?>">
+                        <span class="doctor-index" aria-hidden="true"><?= e(str_pad((string) ($indice + 1), 2, '0', STR_PAD_LEFT)) ?></span>
+                        <span class="doctor-avatar" aria-hidden="true"><?= e($iniciales($medico)) ?></span>
+                        <div class="doctor-main">
+                            <h3><?= e($medico['nombre_completo'] ?? ('Dr. ' . $medico['nombres'] . ' ' . $medico['apellidos'])) ?></h3>
+                            <ul class="doctor-tags" aria-label="Especialidades">
+                                <?php foreach ($medico['especialidades'] as $especialidad): ?>
+                                    <li><?= e($especialidad['nombre']) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                        <div class="doctor-meta">
+                            <span class="doctor-duration">
+                                <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+                                <?= e($medico['duracion_cita_min']) ?> min
+                            </span>
+                            <a class="doctor-link" href="<?= e($enlaceReserva($medico)) ?>" aria-label="Agendar cita con <?= e($medico['nombre_completo']) ?>">
+                                <span>Agendar</span>
+                                <svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"></use></svg>
+                            </a>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 </section>
 
-<section class="section" id="nosotros">
+<section class="section about" id="nosotros">
     <div class="container about-grid">
-        <div>
-            <span class="eyebrow">Quiénes somos</span>
-            <h2>Medicina cercana, con procesos simples.</h2>
-            <p>
-                En Clínica Vida Salud combinamos atención profesional con una experiencia digital clara:
-                reserva online, recordatorios por correo y fichas con código QR para que llegues y seas atendido.
-            </p>
-            <p>
-                Nuestro equipo trabaja por especialidades y coordina cupos web y presenciales para reducir
-                esperas y mejorar tu experiencia.
-            </p>
+        <div class="about-visual reveal">
+            <div class="about-frame">
+                <img
+                    src="<?= e(asset('landing/img/about-team.jpg')) ?>"
+                    alt="Profesional de salud de Clínica Vida Salud"
+                    width="1200"
+                    height="1500"
+                    loading="lazy"
+                    decoding="async"
+                >
+                <span class="about-stamp"><svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg> Cuidado cercano</span>
+            </div>
+            <div class="about-fact">
+                <strong>3 canales</strong>
+                <span>web, kiosco y recepción</span>
+            </div>
         </div>
 
-        <div class="stat-grid">
-            <div class="stat-card">
-                <strong>+10</strong>
-                <span>especialidades médicas</span>
-            </div>
-            <div class="stat-card">
-                <strong>3</strong>
-                <span>canales de atención</span>
-            </div>
-            <div class="stat-card">
-                <strong>100%</strong>
-                <span>citas con ficha digital</span>
+        <div class="about-copy reveal">
+            <h2>No es solo una cita.<br><em>Es tiempo para ti.</em></h2>
+            <p class="about-lead">Desde la primera llamada hasta tu ficha de atención, cuidamos cada paso para que solo te preocupes por sentirte mejor.</p>
+
+            <div class="principles">
+                <div class="principle">
+                    <span class="principle-num">01</span>
+                    <div>
+                        <h3>Escucha primero</h3>
+                        <p>Consultas con tiempo para entender qué necesitas, no solo para revisar un síntoma.</p>
+                    </div>
+                </div>
+                <div class="principle">
+                    <span class="principle-num">02</span>
+                    <div>
+                        <h3>Todo en un lugar</h3>
+                        <p>Especialidades, agenda y ficha digital coordinadas por el mismo equipo.</p>
+                    </div>
+                </div>
+                <div class="principle">
+                    <span class="principle-num">03</span>
+                    <div>
+                        <h3>Sin complicaciones</h3>
+                        <p>Reservas online, confirmación por correo y recordatorios claros.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section section-muted" id="noticias">
+<section class="section access" id="kiosco">
     <div class="container">
-        <div class="section-head">
-            <div>
-                <span class="eyebrow">Campañas</span>
-                <h2>Noticias y prevención</h2>
-                <p>Consejos breves para cuidar tu salud durante todo el año.</p>
-            </div>
+        <div class="access-head reveal">
+            <h2>Dos formas de<br><em>llegar a tu cita.</em></h2>
+            <p>Reserva desde casa o saca tu ficha al llegar. Ambos caminos terminan en la misma atención.</p>
+        </div>
+
+        <div class="access-grid">
+            <article class="access-panel access-panel-pine reveal">
+                <div class="access-top">
+                    <span class="access-num">01</span>
+                    <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
+                </div>
+                <h3>Reserva online</h3>
+                <p>Elige especialidad, médico y horario. Recibe la confirmación y llega con tu cita lista.</p>
+                <a class="btn btn-light" href="<?= e(url('/reservar')) ?>">
+                    <span>Reservar cita</span>
+                    <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"></use></svg></span>
+                </a>
+
+                <div class="slot-board" aria-hidden="true">
+                    <div class="slot-board-head"><span>Agenda web</span><span>Cupos disponibles</span></div>
+                    <div class="slot-board-days"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span></div>
+                    <div class="slot-board-pills">
+                        <span>08:00</span><span>08:30</span><span class="is-on">09:00</span><span>10:30</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="access-panel access-panel-paper reveal">
+                <div class="access-top">
+                    <span class="access-num">02</span>
+                    <svg class="icon" aria-hidden="true"><use href="#i-ticket"></use></svg>
+                </div>
+                <h3>Kiosco presencial</h3>
+                <p>Ingresa tu CI, elige tu horario y obtén una ficha con código y QR. Sin cuenta, sin filas.</p>
+                <a class="btn btn-outline" href="<?= e(url('/kiosco')) ?>">
+                    <span>Cómo funciona</span>
+                    <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"></use></svg></span>
+                </a>
+
+                <div class="ticket" aria-hidden="true">
+                    <div class="ticket-head"><span>Ficha de atención</span><span>Ejemplo</span></div>
+                    <strong>FIC-042</strong>
+                    <div class="ticket-barcode"></div>
+                    <div class="ticket-foot"><span>Acceso 8420</span><span>Clínica Vida Salud</span></div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section news" id="noticias">
+    <div class="container">
+        <div class="news-head reveal">
+            <h2>Ideas para<br><em>cuidarte mejor.</em></h2>
         </div>
 
         <div class="news-grid">
-            <article class="news-card">
-                <span class="news-tag">Prevención</span>
-                <h3>Chequeos anuales: cuándo programarlos</h3>
-                <p>Un control periódico ayuda a detectar a tiempo factores de riesgo cardiovascular.</p>
+            <article class="news-feature reveal">
+                <div class="news-image">
+                    <img
+                        src="<?= e(asset('landing/img/news-checkup.jpg')) ?>"
+                        alt="Estetoscopio sobre una superficie clínica"
+                        width="1000"
+                        height="750"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                </div>
+                <div class="news-content">
+                    <span class="news-tag">Prevención</span>
+                    <h3>Chequeos anuales: cuándo programarlos</h3>
+                    <p>Un control periódico ayuda a detectar a tiempo factores de riesgo. Te contamos qué revisar según tu edad.</p>
+                </div>
             </article>
-            <article class="news-card">
-                <span class="news-tag">Familia</span>
-                <h3>Control pediátrico en cada etapa</h3>
-                <p>El seguimiento del crecimiento y las vacunas acompañan el desarrollo infantil.</p>
-            </article>
-            <article class="news-card">
-                <span class="news-tag">Adulto mayor</span>
-                <h3>Movilidad y autonomía después de los 60</h3>
-                <p>La evaluación geriátrica permite adaptar hábitos y prevenir caídas.</p>
-            </article>
+
+            <div class="news-side">
+                <article class="news-note news-note-mint reveal">
+                    <span class="news-tag">Familia</span>
+                    <h3>Control pediátrico en cada etapa</h3>
+                    <p>Crecimiento, vacunas y desarrollo: acompañar a tiempo hace la diferencia.</p>
+                </article>
+                <article class="news-note news-note-coral reveal">
+                    <span class="news-tag">Adulto mayor</span>
+                    <h3>Movilidad y autonomía después de los 60</h3>
+                    <p>La evaluación geriátrica permite adaptar hábitos y prevenir caídas.</p>
+                </article>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="section" id="contacto">
-    <div class="container contact-grid">
-        <div>
-            <span class="eyebrow">Contacto</span>
-            <h2>Estamos para ayudarte</h2>
-            <p>Escríbenos o acércate a la clínica. Si ya tienes una cita, trae tu código de ficha.</p>
-
-            <ul class="contact-list">
-                <li><strong>Teléfono</strong><a href="tel:+59170000000">+591 700 00000</a></li>
-                <li><strong>WhatsApp</strong><a href="https://wa.me/59170000000" rel="noopener">+591 700 00000</a></li>
-                <li><strong>Correo</strong><a href="mailto:contacto@vidasalud.test">contacto@vidasalud.test</a></li>
-                <li><strong>Dirección</strong><span>Av. Principal #123, Santa Cruz de la Sierra</span></li>
-                <li><strong>Horario</strong><span>Lunes a viernes 08:00–18:00 · Sábados 08:00–12:00</span></li>
-            </ul>
+<section class="section contact" id="contacto">
+    <div class="container contact-panel reveal">
+        <div class="contact-copy">
+            <span class="contact-mark" aria-hidden="true"><svg class="icon"><use href="#i-spark"></use></svg></span>
+            <h2>¿Hablamos?</h2>
+            <p>Si tienes dudas antes de reservar, escríbenos. Te respondemos en horario de atención.</p>
+            <div class="contact-actions">
+                <a class="btn btn-dark" href="https://wa.me/59170000000" target="_blank" rel="noopener">
+                    <span>Escribir por WhatsApp</span>
+                    <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"></use></svg></span>
+                </a>
+                <a class="contact-phone" href="tel:+59170000000">+591 700 00000</a>
+            </div>
         </div>
 
-        <div class="contact-card">
-            <h3>¿Cómo reservar?</h3>
-            <ol class="steps-list">
-                <li><span>1</span> Inicia sesión o activa tu cuenta de paciente.</li>
-                <li><span>2</span> Elige especialidad, médico, fecha y horario.</li>
-                <li><span>3</span> Recibe tu confirmación y tu código de ficha.</li>
-            </ol>
-            <a class="button button-primary" href="<?= e(url('/reservar')) ?>">Agendar cita</a>
-            <a class="button button-outline" href="<?= e(url('/kiosco')) ?>">Ver kiosco</a>
+        <div class="contact-details">
+            <div class="contact-detail">
+                <span>Dirección</span>
+                <p>Av. Principal #123<br>Santa Cruz de la Sierra</p>
+                <a href="https://maps.google.com/?q=Santa+Cruz+de+la+Sierra" target="_blank" rel="noopener">Ver en mapa</a>
+            </div>
+            <div class="contact-detail">
+                <span>Horario</span>
+                <p>Lunes a viernes<br>08:00–18:00<br>Sábado 08:00–12:00</p>
+            </div>
+            <div class="contact-detail">
+                <span>Correo</span>
+                <a href="mailto:contacto@vidasalud.test">contacto@vidasalud.test</a>
+            </div>
         </div>
     </div>
 </section>

@@ -9,12 +9,16 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\View;
 use App\Models\EspecialidadModel;
+use App\Models\MedicoModel;
 
 final class PublicController extends Controller
 {
-    public function __construct(private ?EspecialidadModel $especialidades = null)
-    {
+    public function __construct(
+        private ?EspecialidadModel $especialidades = null,
+        private ?MedicoModel $medicos = null
+    ) {
         $this->especialidades ??= new EspecialidadModel();
+        $this->medicos ??= new MedicoModel();
     }
 
     public function index(Request $request): Response
@@ -25,6 +29,7 @@ final class PublicController extends Controller
             'canonical' => url('/'),
             'bodyClass' => 'landing',
             'especialidades' => $this->especialidades->listActivas(),
+            'medicos' => $this->medicos->listActivos(),
         ], 'layouts/base'));
     }
 

@@ -1,0 +1,627 @@
+@media (max-width: 1180px) {
+    .desktop-nav {
+        gap: 18px;
+    }
+
+    .nav-pill {
+        gap: 16px;
+    }
+
+    .hero h1 {
+        font-size: clamp(3.4rem, 7vw, 6.2rem);
+    }
+
+    .footer-main {
+        grid-template-columns: 1.2fr 0.6fr 0.65fr 0.9fr;
+        gap: 26px;
+    }
+}
+
+@media (max-width: 1020px) {
+    :root {
+        --gutter: clamp(1.15rem, 5vw, 2rem);
+    }
+
+    .desktop-nav,
+    .nav-actions {
+        display: none;
+    }
+
+    .nav-toggle {
+        display: inline-flex;
+    }
+
+    .nav-pill {
+        padding-right: 9px;
+    }
+
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.4rem;
+    }
+
+    .hero-copy {
+        max-width: 760px;
+        padding-bottom: 0;
+    }
+
+    .hero h1 {
+        font-size: clamp(3.6rem, 10vw, 6.4rem);
+    }
+
+    .hero-visual {
+        justify-content: flex-start;
+        max-width: 560px;
+        padding-bottom: 30px;
+    }
+
+    .hero-frame {
+        width: 100%;
+    }
+
+    .specialties-head {
+        display: grid;
+        gap: 24px;
+        justify-items: start;
+    }
+
+    .specialty-search {
+        width: min(480px, 100%);
+    }
+
+    .specialty-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .doctors-grid {
+        grid-template-columns: 1fr;
+        gap: 2.8rem;
+    }
+
+    .doctors-intro {
+        position: static;
+        max-width: 700px;
+    }
+
+    .doctors-intro p {
+        max-width: 52ch;
+    }
+
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 3.5rem;
+    }
+
+    .about-visual {
+        width: min(100%, 540px);
+    }
+
+    .about-copy {
+        max-width: 720px;
+    }
+
+    .about-lead {
+        max-width: 60ch;
+    }
+
+    .access-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .access-panel {
+        min-height: 520px;
+    }
+
+    .news-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .news-side {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+    }
+
+    .news-note {
+        min-height: 250px;
+    }
+
+    .contact-panel {
+        grid-template-columns: 1fr;
+        gap: 2.4rem;
+    }
+
+    .contact-details {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        padding-top: 25px;
+        padding-left: 0;
+        border-top: 1px solid rgba(16, 34, 30, 0.18);
+        border-left: 0;
+    }
+
+    .contact-detail:last-child {
+        grid-column: auto;
+    }
+
+    .footer-main {
+        grid-template-columns: 1fr 1fr;
+        gap: 34px;
+    }
+
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
+
+    .footer-statement {
+        max-width: 40ch;
+    }
+
+    .page-hero-grid,
+    .reserva-hero-grid,
+    .kiosco-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-hero-aside {
+        max-width: 440px;
+    }
+
+    .kiosco-aside {
+        position: static;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+
+    .reserva-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .reserva-aside {
+        gap: 14px;
+    }
+
+    .summary-card {
+        position: static;
+    }
+
+    .reserva-hero-note {
+        max-width: 430px;
+    }
+}
+
+@media (max-width: 760px) {
+    html {
+        scroll-padding-top: 92px;
+    }
+
+    .section {
+        padding: clamp(3.6rem, 9vw, 5.5rem) 0;
+    }
+
+    .section h2 {
+        font-size: clamp(2.3rem, 9vw, 3.6rem);
+    }
+
+    .site-header {
+        padding-top: 9px;
+    }
+
+    .nav-pill {
+        min-height: 58px;
+    }
+
+    .brand-mark {
+        width: 31px;
+        height: 31px;
+    }
+
+    .brand-type {
+        font-size: 18px;
+    }
+
+    .hero {
+        padding-top: 1.4rem;
+    }
+
+    .hero-kicker {
+        margin-bottom: 20px;
+        font-size: 9.5px;
+    }
+
+    .hero h1 {
+        font-size: clamp(3.15rem, 13vw, 5.2rem);
+        letter-spacing: -0.07em;
+    }
+
+    .hero-lead {
+        margin-bottom: 26px;
+        font-size: 1rem;
+    }
+
+    .hero-actions .btn {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .hero-frame {
+        border-radius: 110px 110px 24px 24px;
+    }
+
+    .signal-rail {
+        grid-template-columns: 1fr 1fr;
+        gap: 13px;
+        margin-top: 1.8rem;
+    }
+
+    .signal-item + .signal-item {
+        padding-left: 0;
+        border-left: 0;
+    }
+
+    .signal-item:nth-child(even) {
+        justify-content: flex-end;
+        text-align: right;
+    }
+
+    .specialty-grid {
+        grid-auto-rows: auto;
+        gap: 10px;
+    }
+
+    .specialty-card {
+        min-height: 178px;
+        padding: 18px;
+        border-radius: 21px;
+    }
+
+    .specialty-shell.is-featured .specialty-card {
+        min-height: 350px;
+        padding: 24px;
+    }
+
+    .specialty-shell.is-featured .specialty-name {
+        padding-top: 42px;
+    }
+
+    .specialty-desc {
+        font-size: 11.5px;
+    }
+
+    .doctor-row {
+        grid-template-columns: 24px 44px minmax(0, 1fr);
+        gap: 12px;
+        padding: 18px 4px;
+    }
+
+    .doctor-avatar {
+        width: 42px;
+        height: 42px;
+        font-size: 11px;
+    }
+
+    .doctor-meta {
+        grid-column: 2 / -1;
+        justify-self: start;
+        padding-top: 3px;
+    }
+
+    .doctor-duration {
+        font-size: 10.5px;
+    }
+
+    .doctor-main h3 {
+        font-size: 1.02rem;
+    }
+
+    .about-frame {
+        border-radius: 24px 100px 24px 24px;
+    }
+
+    .about-fact {
+        right: 10px;
+        bottom: -16px;
+        padding: 14px 17px;
+    }
+
+    .about-fact strong {
+        font-size: 1.2rem;
+    }
+
+    .about-fact span {
+        font-size: 10px;
+    }
+
+    .access-panel {
+        min-height: auto;
+        border-radius: 24px;
+    }
+
+    .access-panel .btn {
+        margin-bottom: 34px;
+    }
+
+    .slot-board,
+    .ticket {
+        transform: none;
+    }
+
+    .news-feature {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .news-image {
+        min-height: 245px;
+        max-height: 300px;
+    }
+
+    .news-content {
+        padding: 25px;
+    }
+
+    .news-side {
+        grid-template-columns: 1fr;
+    }
+
+    .news-note {
+        min-height: 220px;
+    }
+
+    .contact-panel {
+        padding: 27px 24px;
+        border-radius: 28px;
+    }
+
+    .contact-copy h2 {
+        font-size: clamp(3rem, 15vw, 4.6rem);
+    }
+
+    .contact-details {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .contact-detail:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .footer-wordmark {
+        font-size: 18vw;
+    }
+
+    .footer-bottom {
+        flex-wrap: wrap;
+        gap: 7px 18px;
+    }
+
+    .footer-bottom span:last-child {
+        margin-left: auto;
+    }
+
+    .page-hero {
+        padding-top: 1.8rem;
+    }
+
+    .page-hero h1 {
+        font-size: clamp(2.9rem, 12vw, 4.8rem);
+    }
+
+    .kiosco-aside {
+        grid-template-columns: 1fr;
+    }
+
+    .reserva-hero h1 {
+        font-size: clamp(2.8rem, 12vw, 4.4rem);
+    }
+
+    .reserva-card,
+    .reserva-success {
+        border-radius: 24px;
+    }
+
+    .reserva-progress {
+        gap: 6px;
+        margin-bottom: 25px;
+    }
+
+    .reserva-progress li {
+        gap: 6px;
+    }
+
+    .reserva-progress li > span {
+        width: 20px;
+        height: 20px;
+    }
+
+    .reserva-progress strong {
+        font-size: 10px;
+    }
+
+    .reserva-progress small {
+        display: none;
+    }
+
+    .date-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .date-hint {
+        padding-bottom: 0;
+    }
+
+    .step-actions {
+        flex-wrap: wrap;
+    }
+
+    .step-actions .btn {
+        flex: 1;
+    }
+
+    .success-ticket {
+        grid-template-columns: 1fr;
+    }
+
+    .success-ticket > div:last-child {
+        grid-column: auto;
+    }
+
+    .not-found {
+        min-height: 64vh;
+    }
+
+    .not-found-actions {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .not-found-actions .btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 580px) {
+    .specialty-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .specialty-shell.is-featured {
+        grid-column: auto;
+        grid-row: auto;
+    }
+
+    .specialty-shell.is-featured .specialty-card {
+        min-height: 325px;
+    }
+
+    .specialty-search {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 4px 10px;
+    }
+
+    .search-count {
+        grid-column: 2;
+        margin-top: -3px;
+    }
+
+    .choice-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .doctor-choice {
+        grid-template-columns: 39px minmax(0, 1fr);
+    }
+
+    .doctor-choice-meta {
+        display: none;
+    }
+
+    .confirm-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .confirm-summary > div:last-child {
+        grid-column: auto;
+    }
+
+    .contact-details {
+        grid-template-columns: 1fr;
+        gap: 19px;
+    }
+
+    .contact-detail:last-child {
+        grid-column: auto;
+    }
+
+    .contact-actions {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .footer-main {
+        grid-template-columns: 1fr;
+        gap: 27px;
+    }
+
+    .footer-brand {
+        grid-column: auto;
+    }
+
+    .footer-col {
+        padding-top: 4px;
+    }
+
+    .footer-wordmark {
+        font-size: 19vw;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+    }
+
+    .footer-bottom span:last-child {
+        margin-left: 0;
+    }
+
+    .summary-card {
+        padding: 21px;
+    }
+
+    .reserva-aside {
+        gap: 12px;
+    }
+
+    .slots-grid,
+    .slots-loading {
+        grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    }
+}
+
+@media (max-width: 420px) {
+    .hero-actions {
+        flex-direction: column;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+    }
+
+    .signal-rail {
+        grid-template-columns: 1fr;
+    }
+
+    .signal-item:nth-child(even) {
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .specialty-shell.is-featured .specialty-name {
+        font-size: 1.9rem;
+    }
+
+    .doctor-index {
+        display: none;
+    }
+
+    .doctor-row {
+        grid-template-columns: 44px minmax(0, 1fr);
+    }
+
+    .doctor-meta {
+        grid-column: 2;
+    }
+
+    .reserva-progress strong {
+        font-size: 9px;
+    }
+
+    .reserva-progress li {
+        align-items: flex-start;
+    }
+
+    .reserva-progress li > span {
+        width: 18px;
+        height: 18px;
+        font-size: 7.5px;
+    }
+}
