@@ -1,0 +1,71 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #9CC3E5
+  FontColor #0A6EBD
+  FontSize 11
+}
+skinparam component {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 10
+}
+package "Sitio público" {
+  [Landing /] as L
+  [Login] as LG
+  [Registro / Activación] as RG
+  [Reserva web] as RW
+  [Página pública de pedido] as PP
+  [Kiosco /kiosco] as K
+}
+package "Panel administrativo" {
+  [Dashboard] as D
+  [Pacientes] as PA
+  [Médicos] as ME
+  [Especialidades] as ES
+  [Horarios y cupos] as HO
+  [Citas] as CI
+  [Reconsultas] as RE
+  [Reportes] as RP
+  [Auditoría] as AU
+}
+package "Panel médico" {
+  [Agenda] as AG
+  [Consultas] as CO
+  [Historia clínica] as HC
+  [Recetas / documentos] as RX
+  [Pagos] as PG
+}
+package "Portal del paciente" {
+  [Mis citas] as MC
+  [Historial] as HI
+  [Mi perfil] as MP
+}
+L --> LG
+L --> RG
+L --> RW
+L --> PP
+L --> K
+LG --> D
+LG --> AG
+LG --> MC
+D --> PA
+D --> ME
+D --> ES
+D --> HO
+D --> CI
+D --> RE
+D --> RP
+D --> AU
+AG --> CO
+CO --> HC
+CO --> RX
+AG --> PG
+MC --> HI
+MC --> MP
+RW --> MC
+@enduml

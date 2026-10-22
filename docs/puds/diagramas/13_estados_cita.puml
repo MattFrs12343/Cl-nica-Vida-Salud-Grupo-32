@@ -1,0 +1,35 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam state {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 12
+}
+state "Programada" as P
+state "Confirmada" as C
+state "Atendida" as A
+state "Cancelada" as X
+state "Inasistencia" as I
+[*] --> P : Registrar cita
+P --> C : Emitir ficha / confirmar
+P --> X : Cancelar (> 1 día antes)
+P --> I : No asistió
+C --> A : Consulta realizada
+C --> X : Cancelar (> 1 día antes)
+C --> I : No asistió
+A --> [*] : Cita cerrada
+X --> [*] : Cita cerrada
+I --> [*] : Cita cerrada
+note right of X
+  No se puede marcar como
+  atendida sin procedimiento
+  autorizado (RF10-D).
+end note
+note right of A
+  Estado terminal: conserva
+  historia clínica, recetas
+  y pagos (RN10).
+end note
+@enduml

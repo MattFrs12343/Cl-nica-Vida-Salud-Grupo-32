@@ -1,0 +1,68 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam nodesep 25
+skinparam ranksep 35
+skinparam component {
+  BackgroundColor #F7FBFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 10
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #9CC3E5
+  FontColor #0A6EBD
+  FontSize 11
+}
+package "1. Presentación" {
+  [Landing pública\nHTML/CSS/JS] as UI_LANDING
+  [Paneles Gentelella\nadmin / recepción / médico] as UI_PANEL
+  [Kiosco iPad\ntouch-friendly] as UI_KIOSCO
+}
+package "2. Control" {
+  [Router frontal\npublic/index.php] as ROUTER
+  [Middlewares\nauth · roles · CSRF · kiosco] as MW
+}
+package "3. Negocio" {
+  [AuthService] as AUTH
+  [PacienteService] as PAC
+  [CitaService] as CITA
+  [DisponibilidadService] as DISP
+  [KioscoService] as KIOSCO
+  [ConsultaService] as CONS
+  [PedidoService] as PED
+  [ReporteService] as REP
+}
+package "4. Datos" {
+  [Modelos PDO\nSQL parametrizado] as MODEL
+  database "PostgreSQL 16\nRLS + triggers" as DB
+}
+package "Servicios externos" {
+  [Brevo SMTP\nPHPMailer] as SMTP
+  [WhatsApp wa.me\ndeep link] as WA
+}
+UI_LANDING --> ROUTER
+UI_PANEL --> ROUTER
+UI_KIOSCO --> ROUTER
+ROUTER --> MW
+MW --> AUTH
+MW --> CITA
+MW --> KIOSCO
+AUTH --> MODEL
+PAC --> MODEL
+CITA --> DISP
+CITA --> MODEL
+DISP --> MODEL
+KIOSCO --> CITA
+KIOSCO --> MODEL
+CONS --> MODEL
+PED --> MODEL
+REP --> MODEL
+MODEL --> DB
+AUTH ..> SMTP
+CITA ..> SMTP
+PED ..> WA
+@enduml

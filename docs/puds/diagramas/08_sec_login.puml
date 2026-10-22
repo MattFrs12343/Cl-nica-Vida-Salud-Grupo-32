@@ -1,0 +1,39 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0A6EBD
+  ActorBorderColor #0A6EBD
+  LifeLineBorderColor #9CC3E5
+  LifeLineBackgroundColor #F7FBFF
+  ParticipantBorderColor #0A6EBD
+  ParticipantBackgroundColor #EAF4FB
+  FontSize 10
+}
+autonumber
+actor "Usuario" as U
+participant "Vista Login" as V
+participant "AuthController" as C
+participant "UsuarioModel" as M
+database "PostgreSQL" as DB
+U -> V : credenciales (usuario/CI + clave)
+V -> C : POST /auth/login
+C -> M : buscarPorCredencial()
+M -> DB : SELECT usuarios / pacientes
+DB --> M : registro
+M --> C : usuario + password_hash
+alt usuario inexistente o inactivo
+  C --> V : error genérico
+else usuario bloqueado
+  C --> V : "Cuenta bloqueada"
+else credenciales inválidas
+  C -> M : incrementarIntentos()
+  M -> DB : UPDATE intentos_fallidos
+  C --> V : error + intentos restantes
+else credenciales válidas
+  C -> C : password_verify()
+  C -> C : session_regenerate_id()
+  C -> M : resetIntentos() / ultimo_acceso
+  C --> V : redirigir según rol
+end
+@enduml

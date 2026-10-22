@@ -1,0 +1,54 @@
+@startuml
+left to right direction
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  ArrowColor #0A6EBD
+  FontSize 11
+  FontColor #0B3C5D
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #9CC3E5
+  FontColor #0A6EBD
+}
+actor "Médico" as MED
+actor "Recepcionista\nde médico" as RM
+actor "Administrador" as ADM
+actor "Kiosco\n(iPad)" as KIO
+rectangle "Atención médica y administración" {
+  usecase "Emitir ficha en kiosco" as UC15
+  usecase "Registrar consulta" as UC16
+  usecase "Generar receta /\ndocumento / orden" as UC17
+  usecase "Enviar pedido\npor WhatsApp" as UC18
+  usecase "Registrar pago" as UC19
+  usecase "Gestionar médicos y\nespecialidades" as UC20
+  usecase "Configurar horarios\ny cupos" as UC21
+  usecase "Gestionar usuarios" as UC22
+  usecase "Generar reportes" as UC23
+  usecase "Auditar catálogos" as UC24
+}
+MED --> UC16
+MED --> UC17
+MED --> UC18
+MED --> UC19
+RM --> UC15
+RM --> UC17
+RM --> UC18
+RM --> UC19
+KIO --> UC15
+ADM --> UC20
+ADM --> UC21
+ADM --> UC22
+ADM --> UC23
+ADM --> UC24
+UC17 .> UC18 : <<extend>>
+@enduml

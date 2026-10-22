@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  ArrowColor #0A6EBD
+  FontSize 11
+  FontColor #0B3C5D
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #9CC3E5
+  FontColor #0A6EBD
+}
+actor "Público /\nPaciente" as PAC
+rectangle "Landing y acceso público" {
+  usecase "Navegar landing" as UC01
+  usecase "Buscar especialidad\ny médico" as UC02
+  usecase "Registrarse /\nactivar cuenta" as UC03
+  usecase "Reservar cita web" as UC05
+  usecase "Cancelar cita" as UC06
+  usecase "Consultar mis citas\ne historial" as UC07
+  usecase "Iniciar sesión" as UC04
+}
+PAC --> UC01
+PAC --> UC02
+PAC --> UC03
+PAC --> UC05
+PAC --> UC06
+PAC --> UC07
+UC05 .> UC04 : <<include>>
+UC06 .> UC04 : <<include>>
+UC07 .> UC04 : <<include>>
+@enduml

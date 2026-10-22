@@ -1,0 +1,47 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 11
+}
+skinparam swimlane {
+  BorderColor #0A6EBD
+  TitleBackgroundColor #0A6EBD
+  TitleFontColor #FFFFFF
+  FontColor #0B3C5D
+}
+|Paciente|
+start
+:Solicita cita por web,\nkiosco o recepción;
+|Sistema|
+:Valida paciente, especialidad\ny elegibilidad (sexo/edad);
+:Calcula disponibilidad y\ncupo del canal;
+if (¿Slot disponible?) then (Sí)
+  :Registra cita y genera\ncódigo CM-####;
+  :Emite ficha con código\ny acceso;
+  :Envía confirmación por correo;
+else (No)
+  :Muestra alternativas de\nfecha, médico o canal;
+  stop
+endif
+|Paciente|
+:Llega a la clínica y\npresenta su ficha;
+|Recepción / Médico|
+:Confirma asistencia\n(programada → confirmada);
+|Médico|
+:Atiende la consulta;
+:Registra historia clínica,\nsignos vitales y diagnóstico;
+:Genera receta, documento\nu orden de estudio;
+|Sistema|
+:Publica pedido y envía\nenlace por WhatsApp;
+|Recepción|
+:Registra el pago\n(monto y método);
+|Médico|
+if (¿Requiere reconsulta?) then (Sí)
+  :Agenda reconsulta\nprioritaria (+7 días);
+endif
+stop
+@enduml
