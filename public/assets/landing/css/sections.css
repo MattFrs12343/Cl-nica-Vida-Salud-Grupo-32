@@ -235,7 +235,7 @@
     flex: none;
     color: var(--muted);
     font-family: var(--mono);
-    font-size: 9.5px;
+    font-size: 10.5px;
     letter-spacing: 0.03em;
     white-space: nowrap;
 }
@@ -290,7 +290,7 @@
     right: 20px;
     color: var(--muted);
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.02em;
 }
 
@@ -396,7 +396,7 @@
 
 .specialty-shell.is-featured .specialty-index,
 .specialty-shell.is-featured .specialty-count {
-    color: rgba(244, 246, 240, 0.48);
+    color: rgba(244, 246, 240, 0.68);
 }
 
 .specialty-shell.is-featured .specialty-icon {
@@ -507,7 +507,7 @@ html:not(.js) .doctor-filters {
     background: var(--white);
     color: var(--ink-soft);
     font-family: var(--sans);
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 500;
     line-height: 1;
     white-space: nowrap;
@@ -531,7 +531,7 @@ html:not(.js) .doctor-filters {
 .doctor-filter-count {
     color: var(--muted);
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 10.5px;
 }
 
 .doctor-filter.is-active .doctor-filter-count {
@@ -564,7 +564,7 @@ html:not(.js) .doctor-filters {
     gap: 9px;
     color: var(--ink-soft);
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.02em;
 }
 
@@ -580,12 +580,19 @@ html:not(.js) .doctor-filters {
     align-items: center;
     padding: 21px 7px;
     border-bottom: 1px solid var(--line);
-    transition: background 0.3s var(--ease), padding 0.3s var(--ease);
+    transition: background 0.3s var(--ease);
+}
+
+.doctor-row > * {
+    transition: transform 0.3s var(--ease);
 }
 
 .doctor-row:hover {
-    padding-left: 13px;
     background: rgba(252, 253, 251, 0.65);
+}
+
+.doctor-row:hover > * {
+    transform: translateX(6px);
 }
 
 .doctor-index {
@@ -1330,7 +1337,7 @@ html:not(.js) .doctor-filters {
     overflow: hidden;
     border-radius: var(--radius-xl);
     background: var(--accent);
-    color: var(--ink);
+    color: var(--ink-on-accent);
 }
 
 .contact-panel::after {
@@ -1379,7 +1386,7 @@ html:not(.js) .doctor-filters {
 .contact-copy p {
     max-width: 42ch;
     margin-bottom: 27px;
-    color: rgba(16, 34, 30, 0.76);
+    color: var(--ink-on-accent);
     font-size: 14px;
     line-height: 1.55;
 }
@@ -1393,8 +1400,8 @@ html:not(.js) .doctor-filters {
 
 .contact-phone {
     padding-bottom: 4px;
-    border-bottom: 1px solid rgba(16, 34, 30, 0.35);
-    color: var(--ink);
+    border-bottom: 1px solid rgba(11, 26, 22, 0.35);
+    color: var(--ink-on-accent);
     font-size: 13.5px;
     font-weight: 600;
     text-decoration: none;
@@ -1412,9 +1419,9 @@ html:not(.js) .doctor-filters {
 .contact-detail > span {
     display: block;
     margin-bottom: 7px;
-    color: rgba(16, 34, 30, 0.64);
+    color: var(--ink-on-accent);
     font-family: var(--mono);
-    font-size: 8.5px;
+    font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
 }
@@ -1422,16 +1429,16 @@ html:not(.js) .doctor-filters {
 .contact-detail p,
 .contact-detail a {
     margin: 0;
-    color: var(--ink);
+    color: var(--ink-on-accent);
     font-size: 13px;
     line-height: 1.5;
     text-decoration: none;
 }
 
 .contact-detail a {
-    border-bottom: 1px solid rgba(16, 34, 30, 0.35);
+    border-bottom: 1px solid rgba(11, 26, 22, 0.35);
 }
 
 .contact-detail a:hover {
-    border-color: var(--ink);
+    border-color: var(--ink-on-accent);
 }

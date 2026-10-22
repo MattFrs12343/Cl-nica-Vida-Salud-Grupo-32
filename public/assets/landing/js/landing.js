@@ -102,6 +102,73 @@
         headerObserver.observe(sentinel);
     }
 
+    /* Active section ------------------------------------------------------ */
+
+    const sectionNavLinks = $$("[data-nav-section]");
+
+    if (sectionNavLinks.length > 0) {
+        const navTargets = [];
+        const seenSections = new Set();
+
+        sectionNavLinks.forEach((link) => {
+            const id = link.dataset.navSection;
+
+            if (!id || seenSections.has(id)) {
+                return;
+            }
+
+            const section = doc.getElementById(id);
+
+            if (!section) {
+                return;
+            }
+
+            seenSections.add(id);
+            navTargets.push({ id, section });
+        });
+
+        if (navTargets.length > 0) {
+            let navFrame = null;
+
+            const updateActiveSection = () => {
+                navFrame = null;
+                const offset =
+                    (header?.offsetHeight || 0) +
+                    Math.min(window.innerHeight * 0.35, 360);
+                const isAtBottom =
+                    window.innerHeight + window.scrollY >=
+                    doc.documentElement.scrollHeight - 4;
+                let activeId = isAtBottom ? navTargets[navTargets.length - 1].id : null;
+
+                if (!isAtBottom) {
+                    navTargets.forEach(({ id, section }) => {
+                        if (section.getBoundingClientRect().top <= offset) {
+                            activeId = id;
+                        }
+                    });
+                }
+
+                sectionNavLinks.forEach((link) => {
+                    if (link.dataset.navSection === activeId) {
+                        link.setAttribute("aria-current", "location");
+                    } else {
+                        link.removeAttribute("aria-current");
+                    }
+                });
+            };
+
+            const scheduleActiveSection = () => {
+                if (navFrame === null) {
+                    navFrame = window.requestAnimationFrame(updateActiveSection);
+                }
+            };
+
+            window.addEventListener("scroll", scheduleActiveSection, { passive: true });
+            window.addEventListener("resize", scheduleActiveSection);
+            updateActiveSection();
+        }
+    }
+
     /* Mobile menu --------------------------------------------------------- */
 
     const navToggle = $("[data-nav-toggle]");
@@ -270,6 +337,15 @@
 
         searchInput.addEventListener("input", filterSpecialties);
         searchInput.addEventListener("search", filterSpecialties);
+        searchInput.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape" || searchInput.value === "") {
+                return;
+            }
+
+            event.preventDefault();
+            searchInput.value = "";
+            filterSpecialties();
+        });
     }
 
     /* Doctor directory ---------------------------------------------------- */

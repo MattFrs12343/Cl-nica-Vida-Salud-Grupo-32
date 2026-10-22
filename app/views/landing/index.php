@@ -135,9 +135,10 @@ $especialidadesConMedicos = array_values(array_filter(
                     type="search"
                     placeholder="Buscar especialidad"
                     autocomplete="off"
+                    aria-describedby="specialty-count"
                     data-specialty-search
                 >
-                <span class="search-count" data-specialty-count><?= count($especialidades) ?> especialidades</span>
+                <span class="search-count" id="specialty-count" role="status" aria-live="polite" aria-atomic="true" data-specialty-count><?= count($especialidades) ?> especialidades</span>
             </div>
         </div>
 
@@ -200,7 +201,7 @@ $especialidadesConMedicos = array_values(array_filter(
 
             <div class="doctors-status-row">
                 <span class="doctors-status"><span class="status-dot" aria-hidden="true"></span><span data-doctors-count><?= count($medicos) ?> médicos activos</span></span>
-                <button class="link-button" type="button" data-doctors-reset hidden>Ver todos</button>
+                <button class="link-button" type="button" data-doctors-reset aria-controls="directorio-medicos" hidden>Ver todos</button>
             </div>
 
             <a class="btn btn-outline" href="<?= e(url('/reservar')) ?>">
@@ -212,7 +213,7 @@ $especialidadesConMedicos = array_values(array_filter(
         <div class="doctors-directory">
             <?php if ($especialidadesConMedicos !== []): ?>
                 <div class="doctor-filters" role="group" aria-label="Filtrar médicos por especialidad">
-                    <button class="doctor-filter is-active" type="button" data-doctor-filter="all" aria-pressed="true">
+                    <button class="doctor-filter is-active" type="button" data-doctor-filter="all" aria-pressed="true" aria-controls="directorio-medicos">
                         Todos
                         <span class="doctor-filter-count"><?= count($medicos) ?></span>
                     </button>
@@ -224,6 +225,7 @@ $especialidadesConMedicos = array_values(array_filter(
                             data-doctor-filter="<?= e($especialidad['id']) ?>"
                             data-doctor-filter-name="<?= e($especialidad['nombre']) ?>"
                             aria-pressed="false"
+                            aria-controls="directorio-medicos"
                         >
                             <?= e($especialidad['nombre']) ?>
                             <span class="doctor-filter-count"><?= e($cantidad) ?></span>
@@ -232,7 +234,7 @@ $especialidadesConMedicos = array_values(array_filter(
                 </div>
             <?php endif; ?>
 
-            <div class="doctors-list" data-doctor-grid aria-live="polite">
+            <div class="doctors-list" id="directorio-medicos" data-doctor-grid aria-live="polite" aria-busy="false">
                 <?php if ($medicos === []): ?>
                     <div class="empty-state empty-state-inline">
                         <strong>El directorio está cargando.</strong>

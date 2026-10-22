@@ -28,7 +28,8 @@
     --white: #fcfdfb;
     --ink: #10221e;
     --ink-soft: #43564f;
-    --muted: #66756e;
+    --ink-on-accent: #0b1a16;
+    --muted: #5f6d66;
     --line: rgba(16, 34, 30, 0.12);
     --line-strong: rgba(16, 34, 30, 0.2);
     --pine: #0b3d35;
@@ -520,8 +521,13 @@ main {
     color: var(--ink);
 }
 
-.desktop-nav a:hover::after {
+.desktop-nav a:hover::after,
+.desktop-nav a[aria-current="location"]::after {
     transform: scaleX(1);
+}
+
+.desktop-nav a[aria-current="location"] {
+    color: var(--ink);
 }
 
 .nav-actions {
@@ -663,6 +669,10 @@ main {
     display: flex;
     flex-direction: column;
     margin: 8vh 0 auto;
+}
+
+.mobile-nav a[aria-current="location"] {
+    color: var(--mint);
 }
 
 .mobile-nav a {

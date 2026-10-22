@@ -114,11 +114,11 @@ $jsonLd = [
                 </a>
 
                 <nav class="desktop-nav" aria-label="Navegación principal">
-                    <a href="<?= e(url('/#especialidades')) ?>">Especialidades</a>
-                    <a href="<?= e(url('/#medicos')) ?>">Médicos</a>
-                    <a href="<?= e(url('/#nosotros')) ?>">Nosotros</a>
-                    <a href="<?= e(url('/#kiosco')) ?>">Kiosco</a>
-                    <a href="<?= e(url('/#contacto')) ?>">Contacto</a>
+                    <a href="<?= e(url('/#especialidades')) ?>" data-nav-section="especialidades">Especialidades</a>
+                    <a href="<?= e(url('/#medicos')) ?>" data-nav-section="medicos">Médicos</a>
+                    <a href="<?= e(url('/#nosotros')) ?>" data-nav-section="nosotros">Nosotros</a>
+                    <a href="<?= e(url('/#kiosco')) ?>" data-nav-section="kiosco">Kiosco</a>
+                    <a href="<?= e(url('/#contacto')) ?>" data-nav-section="contacto">Contacto</a>
                 </nav>
 
                 <div class="nav-actions">
@@ -154,11 +154,11 @@ $jsonLd = [
         </div>
 
         <nav class="mobile-nav" aria-label="Navegación móvil">
-            <a href="<?= e(url('/#especialidades')) ?>" style="--i:0">Especialidades</a>
-            <a href="<?= e(url('/#medicos')) ?>" style="--i:1">Médicos</a>
-            <a href="<?= e(url('/#nosotros')) ?>" style="--i:2">Nosotros</a>
-            <a href="<?= e(url('/#kiosco')) ?>" style="--i:3">Kiosco</a>
-            <a href="<?= e(url('/#contacto')) ?>" style="--i:4">Contacto</a>
+            <a href="<?= e(url('/#especialidades')) ?>" style="--i:0" data-nav-section="especialidades">Especialidades</a>
+            <a href="<?= e(url('/#medicos')) ?>" style="--i:1" data-nav-section="medicos">Médicos</a>
+            <a href="<?= e(url('/#nosotros')) ?>" style="--i:2" data-nav-section="nosotros">Nosotros</a>
+            <a href="<?= e(url('/#kiosco')) ?>" style="--i:3" data-nav-section="kiosco">Kiosco</a>
+            <a href="<?= e(url('/#contacto')) ?>" style="--i:4" data-nav-section="contacto">Contacto</a>
         </nav>
 
         <div class="mobile-menu-foot">
