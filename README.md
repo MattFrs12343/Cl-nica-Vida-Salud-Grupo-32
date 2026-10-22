@@ -24,7 +24,7 @@ copy .env.example .env        # Windows
 # 2. Levantar PHP/Apache, PostgreSQL y Mailpit
 docker compose up -d --build
 
-# 3. Instalar dependencias PHP (cuando existan)
+# 3. Instalar dependencias PHP (PHPMailer, etc.)
 docker compose exec app composer install
 
 # 4. Crear las tablas y cargar datos demo
@@ -94,10 +94,14 @@ Después de ejecutar los seeders:
 
 ```bash
 docker compose exec app php bin/db-migrate.php   # aplica migraciones
-docker compose exec app php bin/db-seed.php      # carga datos demo
+docker compose exec app php bin/db-seed.php      # carga/actualiza datos demo
+docker compose exec app php bin/db-reset.php     # borra datos y recarga demo (destructivo)
+docker compose exec app php bin/test-auth.php    # pruebas de login, bloqueo, reset y middlewares
 docker compose exec app php -l archivo.php       # lint de un archivo
 docker compose logs -f app                       # logs de Apache/PHP
 ```
+
+La recuperación de contraseña se envía a Mailpit (`http://localhost:8025`). Si el SMTP falla, el correo queda en `cola_correos`.
 
 ## Convenciones
 
@@ -110,6 +114,8 @@ docker compose logs -f app                       # logs de Apache/PHP
 
 ## Estado del proyecto
 
-Fase 0 completada: esqueleto, Docker, core, contratos, migración de usuarios y seeders demo.
-El login real, las migraciones clínicas, la landing y los paneles se construyen en las fases siguientes.
+- **Fase 0 completada:** esqueleto, Docker, core, contratos, migración de usuarios y seeders demo.
+- **Fase 1 backend completada:** modelo de datos 001–010, RLS, seeders, auth real (login por usuario/email/CI, bloqueo, reset, activación), middlewares y correo con PHPMailer/Mailpit.
+- **Pendiente de Lucas:** vistas de autenticación (`app/views/auth/*`), paneles y su integración visual. Mientras no existan, los GET de auth devuelven `501 VIEW_NOT_AVAILABLE` en JSON.
+
 Las fases y tareas están en [`docs/equipo/PLAN-TRABAJO.md`](docs/equipo/PLAN-TRABAJO.md).

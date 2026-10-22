@@ -28,7 +28,7 @@ final class Request
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
         $query = $_GET;
         $body = $_POST;
-        $contentType = strtolower((string) ($_SERVER['CONTENT_TYPE'] ?? ''));
+        $contentType = strtolower((string) ($_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? ''));
 
         if (str_contains($contentType, 'application/json')) {
             $raw = file_get_contents('php://input');

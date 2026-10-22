@@ -112,7 +112,9 @@ POST /auth/login
       "id": 5,
       "rol": "medico",
       "nombre": "Dra. Ana Pérez",
-      "medico_id": 3
+      "medico_id": 3,
+      "medico_ids": [3],
+      "paciente_id": null
     },
     "redirect": "/medico"
   },
@@ -121,7 +123,9 @@ POST /auth/login
 }
 ```
 
-Errores: credenciales inválidas (`401`, mensaje genérico), cuenta bloqueada (`423` o `403` con código `ACCOUNT_LOCKED`), cuenta inactiva (`403`), demasiados intentos (`429`).
+`medico_ids` contiene uno o más médicos para `recepcionista_medico`; para los demás roles es `[]` o el médico propio. `paciente_id` solo se completa para pacientes.
+
+Errores: credenciales inválidas (`401`, mensaje genérico), cuenta bloqueada (`423` o `403` con código `ACCOUNT_LOCKED`), cuenta inactiva (`403`, `ACCOUNT_INACTIVE`), paciente sin activar (`403`, `ACCOUNT_NOT_ACTIVE`). Los errores de validación incluyen `fields` con el detalle por campo.
 
 ### 2.2 Recuperación
 
@@ -130,7 +134,18 @@ POST /auth/recuperar
 { "email": "usuario@vidasalud.test" }
 ```
 
-Siempre responde `200` con mensaje genérico, exista o no el correo.
+Siempre responde `200` con mensaje genérico, exista o no el correo. Si existe, genera un token de 30 minutos y envía el enlace por correo.
+
+```json
+POST /auth/reset
+{
+  "token": "token-recibido-por-correo",
+  "password": "NuevaClave1",
+  "password_confirmation": "NuevaClave1"
+}
+```
+
+Respuesta `200` con `data.redirect = "/login"`. Token inválido o expirado: `422`, `TOKEN_INVALID`.
 
 ### 2.3 Activación de paciente
 
@@ -140,9 +155,20 @@ POST /auth/activar
   "ci": "12345678",
   "telefono": "71234567",
   "password": "NuevaClave1",
+  "password_confirmation": "NuevaClave1",
   "email": "opcional@correo.com"
 }
 ```
+
+La CI y el teléfono deben coincidir con un paciente registrado en kiosco que aún no tenga cuenta. Respuesta `200` con `data.redirect = "/login"`. Si no coincide: `404`, `ACTIVATION_NOT_FOUND`; si ya está activo: `409`, `ACCOUNT_ALREADY_ACTIVE`.
+
+### 2.4 Logout
+
+```json
+POST /auth/logout
+```
+
+Requiere sesión y CSRF. Responde `200` con `message = "Sesión cerrada."` y elimina la cookie de sesión.
 
 ---
 

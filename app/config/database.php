@@ -10,4 +10,5 @@ return [
     'username' => env('DB_USERNAME', 'clinica'),
     'password' => env('DB_PASSWORD', 'clinica'),
     'sslmode' => env('DB_SSLMODE', 'prefer'),
+    'app_role' => env('DB_APP_ROLE', 'clinica_app'),
 ];

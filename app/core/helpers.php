@@ -144,6 +144,19 @@ function has_role(string ...$roles): bool
     return $user !== null && in_array((string) ($user['rol'] ?? ''), $roles, true);
 }
 
+function role_home(?string $role = null): string
+{
+    $role ??= (string) (auth()['rol'] ?? '');
+
+    return match ($role) {
+        'super_admin', 'admin' => '/admin',
+        'recepcionista', 'recepcionista_medico' => '/recepcion',
+        'medico' => '/medico',
+        'paciente' => '/portal',
+        default => '/login',
+    };
+}
+
 function csrf_token(): string
 {
     return Session::csrfToken();

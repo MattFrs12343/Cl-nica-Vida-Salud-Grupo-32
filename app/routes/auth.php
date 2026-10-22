@@ -5,23 +5,23 @@ declare(strict_types=1);
 /**
  * Rutas de autenticación (Fase 1).
  *
- * Los endpoints definitivos están documentados en docs/api/contract.md.
- * El login todavía no está implementado; esta ruta existe para que el
- * frontend tenga un destino mientras se construye la pantalla real.
+ * Contrato: docs/api/contract.md §2.
+ * Las vistas (`app/views/auth/*`) son responsabilidad de Lucas; si todavía
+ * no existen, los GET devuelven 501 VIEW_NOT_AVAILABLE en JSON.
  */
 
-use App\Core\Response;
+use App\Controllers\AuthController;
 
-$notImplemented = static function (): Response {
-    return json_error(
-        'NOT_IMPLEMENTED',
-        'El login se implementa en la Fase 1.',
-        [],
-        501
-    );
-};
+$router->get('/login', [AuthController::class, 'showLogin']);
+$router->post('/auth/login', [AuthController::class, 'login'], ['csrf']);
 
-$router->get('/login', $notImplemented);
+$router->post('/auth/logout', [AuthController::class, 'logout'], ['auth', 'csrf']);
 
-// Ruta provisional con CSRF para verificar el middleware en Fase 0.
-$router->post('/auth/login', $notImplemented, ['csrf']);
+$router->get('/recuperar', [AuthController::class, 'showRecuperar']);
+$router->post('/auth/recuperar', [AuthController::class, 'recuperar'], ['csrf']);
+
+$router->get('/reset', [AuthController::class, 'showReset']);
+$router->post('/auth/reset', [AuthController::class, 'reset'], ['csrf']);
+
+$router->get('/activar', [AuthController::class, 'showActivar']);
+$router->post('/auth/activar', [AuthController::class, 'activar'], ['csrf']);

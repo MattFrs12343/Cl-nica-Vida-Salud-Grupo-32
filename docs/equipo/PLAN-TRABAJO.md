@@ -272,14 +272,14 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 
 #### Matias
 
-- [ ] **M-07 · Migraciones 001–004** — usuarios, pacientes, médicos, especialidades, `medico_especialidad`, `recepcionista_medico`, horarios, bloqueos y cupos. · *Deps:* M-02.
-- [ ] **M-08 · Migraciones 005–008** — citas, historial de estados, fichas, consultas, recetas/detalle, documentos, órdenes, pagos, auditoría y cola de correos. · *Deps:* M-07.
-- [ ] **M-09 · Constraints, índices y triggers** — unicidad de CI/códigos, índice anti-superposición, checks, `updated_at`, generación de códigos y trigger de auditoría `SECURITY DEFINER`. · *Deps:* M-08.
-- [ ] **M-10 · RLS y settings** — policies por rol, `app.usuario_id`, `app.rol`, `app.ip`; el wrapper de DB setea las variables por request. · *Deps:* M-09. · *DoD:* cada rol ve solo lo suyo; admin ve todo.
-- [ ] **M-11 · Seeders demo + reset** — especialidades (3 destacadas), médicos, horarios con cupos 50/50, pacientes, citas pasadas/futuras, fichas y pagos; `db:reset` y `database/README.md` con ERD. · *Deps:* M-10.
-- [ ] **M-12 · Auth + middlewares** — login por usuario/email/CI, logout, bloqueo a los 3 intentos, reset de 30 min, activación de paciente; `AuthMiddleware` y `RoleMiddleware` con redirección por rol. · *Deps:* M-07, M-10.
-- [ ] **M-13 · Correo** — `MailService` con PHPMailer, Brevo y Mailpit local; fallback a log/cola; plantillas de reset, confirmación y cancelación. · *Deps:* M-12. · *DoD:* el reset llega a Mailpit y el flujo se completa.
-- [ ] **M-14 · Pruebas de auth** — 6 roles, bloqueo/desbloqueo, token expirado, activación, sesión y redirects; `GET /api/me` y `GET /api/csrf` para el panel. · *Deps:* M-12, M-13.
+- [x] **M-07 · Migraciones 001–004** — usuarios, pacientes, médicos, especialidades, `medico_especialidad`, `recepcionista_medico`, horarios, bloqueos y cupos. · *Deps:* M-02.
+- [x] **M-08 · Migraciones 005–008** — citas, historial de estados, fichas, consultas, recetas/detalle, documentos, órdenes, pagos, auditoría y cola de correos. · *Deps:* M-07.
+- [x] **M-09 · Constraints, índices y triggers** — unicidad de CI/códigos, índice anti-superposición, checks, `updated_at`, generación de códigos y trigger de auditoría `SECURITY DEFINER`. · *Deps:* M-08.
+- [x] **M-10 · RLS y settings** — policies por rol, `app.usuario_id`, `app.rol`, `app.ip`; el wrapper de DB setea las variables por request. · *Deps:* M-09. · *DoD:* cada rol ve solo lo suyo; admin ve todo.
+- [x] **M-11 · Seeders demo + reset** — especialidades (3 destacadas), médicos, horarios con cupos 50/50, pacientes, citas pasadas/futuras, fichas y pagos; `db:reset` y `database/README.md` con ERD. · *Deps:* M-10.
+- [x] **M-12 · Auth + middlewares** — login por usuario/email/CI, logout, bloqueo a los 3 intentos, reset de 30 min, activación de paciente; `AuthMiddleware` y `RoleMiddleware` con redirección por rol. · *Deps:* M-07, M-10.
+- [x] **M-13 · Correo** — `MailService` con PHPMailer, Brevo y Mailpit local; fallback a log/cola; plantillas de reset, confirmación y cancelación. · *Deps:* M-12. · *DoD:* el reset llega a Mailpit y el flujo se completa.
+- [x] **M-14 · Pruebas de auth** — 6 roles, bloqueo/desbloqueo, token expirado, activación, sesión y redirects; `GET /api/me` y `GET /api/csrf` para el panel. · *Deps:* M-12, M-13.
 
 #### Lucas
 

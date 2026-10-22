@@ -17,6 +17,8 @@ final class Router
     /** @var array<string, class-string> */
     private array $middlewareAliases = [
         'csrf' => \App\Middlewares\CsrfMiddleware::class,
+        'auth' => \App\Middlewares\AuthMiddleware::class,
+        'role' => \App\Middlewares\RoleMiddleware::class,
     ];
 
     public function get(string $path, mixed $handler, array $middlewares = []): void
@@ -188,7 +190,15 @@ final class Router
         $resolved = [];
 
         foreach ($definitions as $definition) {
-            if ($definition instanceof MiddlewareInterface || is_callable($definition)) {
+            if ($definition instanceof MiddlewareInterface) {
+                $resolved[] = $definition;
+                continue;
+            }
+
+            // Los callables deben ser objetos/Closure. Un string como "auth"
+            // también es callable porque existe la función helper auth();
+            // por eso los strings se resuelven siempre como alias o clase.
+            if (!is_string($definition) && is_callable($definition)) {
                 $resolved[] = $definition;
                 continue;
             }

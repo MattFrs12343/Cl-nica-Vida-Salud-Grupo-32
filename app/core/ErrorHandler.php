@@ -35,9 +35,10 @@ final class ErrorHandler
         $status = $exception instanceof HttpException ? $exception->statusCode() : 500;
         $headers = $exception instanceof HttpException ? $exception->headers() : [];
         $errorCode = $exception instanceof HttpException ? $exception->errorCode() : null;
+        $fields = $exception instanceof HttpException ? $exception->fields() : [];
 
         self::log($exception);
-        self::render($status, self::messageFor($exception), $headers, $exception, $errorCode);
+        self::render($status, self::messageFor($exception), $headers, $exception, $errorCode, $fields);
     }
 
     public static function handleShutdown(): void
@@ -105,13 +106,17 @@ final class ErrorHandler
         }
     }
 
-    /** @param array<string, string> $headers */
+    /**
+     * @param array<string, string> $headers
+     * @param array<string, string> $fields
+     */
     private static function render(
         int $status,
         string $message,
         array $headers = [],
         ?Throwable $exception = null,
-        ?string $errorCode = null
+        ?string $errorCode = null,
+        array $fields = []
     ): void
     {
         if (self::$handled) {
@@ -134,7 +139,7 @@ final class ErrorHandler
                 'error' => [
                     'code' => $errorCode ?? self::codeFor($status),
                     'message' => $message,
-                    'fields' => (object) [],
+                    'fields' => $fields === [] ? (object) [] : $fields,
                 ],
             ];
 
