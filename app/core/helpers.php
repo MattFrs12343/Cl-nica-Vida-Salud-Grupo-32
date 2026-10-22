@@ -106,14 +106,14 @@ function redirect(string $target, int $status = 302): Response
 }
 
 /** @param array<string, mixed> $meta */
-function json_ok(mixed $data = [], array $meta = [], ?string $message = null): Response
+function json_ok(mixed $data = [], array $meta = [], ?string $message = null, int $status = 200): Response
 {
     return Response::json([
         'ok' => true,
         'data' => $data,
         'message' => $message,
         'meta' => $meta === [] ? (object) [] : $meta,
-    ]);
+    ], $status);
 }
 
 /** @param array<string, string> $fields */

@@ -97,6 +97,7 @@ docker compose exec app php bin/db-migrate.php   # aplica migraciones
 docker compose exec app php bin/db-seed.php      # carga/actualiza datos demo
 docker compose exec app php bin/db-reset.php     # borra datos y recarga demo (destructivo)
 docker compose exec app php bin/test-auth.php    # pruebas de login, bloqueo, reset y middlewares
+docker compose exec app php bin/test-public.php  # pruebas de catálogo público, disponibilidad y reserva web
 docker compose exec app php -l archivo.php       # lint de un archivo
 docker compose logs -f app                       # logs de Apache/PHP
 ```
@@ -116,6 +117,8 @@ La recuperación de contraseña se envía a Mailpit (`http://localhost:8025`). S
 
 - **Fase 0 completada:** esqueleto, Docker, core, contratos, migración de usuarios y seeders demo.
 - **Fase 1 backend completada:** modelo de datos 001–010, RLS, seeders, auth real (login por usuario/email/CI, bloqueo, reset, activación), middlewares y correo con PHPMailer/Mailpit.
+- **Fase 2 backend en curso:** catálogo público (`/api/public/especialidades`, `/medicos`, `/disponibilidad`), reserva web con cupo, ficha y correo (`POST /api/public/reservar`), landing PHP en `/`, `/reservar`, `/kiosco` y 404 con layout propio.
 - **Pendiente de Lucas:** vistas de autenticación (`app/views/auth/*`), paneles y su integración visual. Mientras no existan, los GET de auth devuelven `501 VIEW_NOT_AVAILABLE` en JSON.
+- **Pendiente de Matias:** UI/JS completos de la landing (M-18/M-19) y APIs de administración (M-20 en adelante).
 
 Las fases y tareas están en [`docs/equipo/PLAN-TRABAJO.md`](docs/equipo/PLAN-TRABAJO.md).

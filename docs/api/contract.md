@@ -225,6 +225,60 @@ Respuesta `201`:
 
 Errores: `401` sin sesión, `409` slot ocupado/cupo agotado, `422` datos inválidos, `403` paciente no elegible por sexo/edad.
 
+### 3.2 Catálogo público (implementado en M-15)
+
+```json
+GET /api/public/especialidades
+{
+  "ok": true,
+  "data": [
+    {
+      "id": 1,
+      "nombre": "Medicina General",
+      "descripcion": "Atención integral para adultos y familias.",
+      "sexo_permitido": "ambos",
+      "edad_min": null,
+      "edad_max": null,
+      "destacada": true,
+      "icono": "stethoscope",
+      "estado": "activo"
+    }
+  ],
+  "message": null,
+  "meta": { "page": 1, "per_page": 50, "total": 1 }
+}
+```
+
+`GET /api/public/medicos?especialidad=1` devuelve médicos activos. Cada ítem incluye `id`, `codigo`, `nombres`, `apellidos`, `nombre_completo`, `registro_profesional`, `duracion_cita_min`, `estado`, `especialidades[]` y `qr_url`. Si `especialidad` no existe o está inactiva: `404 NOT_FOUND`.
+
+`GET /api/public/disponibilidad?medico=3&fecha=2026-11-20` devuelve todos los bloques generados para el canal web; el cliente debe filtrar `disponible=true`:
+
+```json
+{
+  "ok": true,
+  "data": {
+    "fecha": "2026-11-20",
+    "medico_id": 3,
+    "canal": "web",
+    "duracion_cita_min": 30,
+    "slots": [
+      { "hora": "08:00", "hora_inicio": "08:00", "hora_fin": "08:30", "disponible": true, "cupo_restante": 50 },
+      { "hora": "08:30", "hora_inicio": "08:30", "hora_fin": "09:00", "disponible": false, "cupo_restante": 0 }
+    ]
+  },
+  "message": null,
+  "meta": {}
+}
+```
+
+Reglas de los endpoints públicos:
+
+- Solo se listan especialidades y médicos con `estado=activo`.
+- `disponibilidad` excluye fechas pasadas, bloqueos, citas activas y franjas sin cupo web.
+- Sin sesión, los endpoints de catálogo son de solo lectura y no requieren CSRF.
+- `POST /api/public/reservar` exige sesión `paciente`; el rol se valida con `RoleMiddleware`.
+- La reserva web revalida la disponibilidad dentro de una transacción y responde `409 SLOT_TAKEN` si el bloque se ocupó mientras el paciente completaba el formulario.
+
 ---
 
 ## 4. Kiosco

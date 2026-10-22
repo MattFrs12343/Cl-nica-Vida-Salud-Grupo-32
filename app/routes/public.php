@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Controllers\PublicController;
 use App\Core\Response;
-use App\Core\View;
 
-$router->get('/', static function (): Response {
-    return Response::html(View::render('system/welcome', [
-        'title' => 'Clínica Vida Salud',
-    ]));
-});
+$router->get('/', [PublicController::class, 'index']);
+$router->get('/reservar', [PublicController::class, 'reservar']);
+$router->get('/kiosco', [PublicController::class, 'kiosco']);
 
 $router->get('/health', static function (): Response {
     return json_ok([
@@ -18,4 +16,3 @@ $router->get('/health', static function (): Response {
         'time' => date(DATE_ATOM),
     ]);
 });
-

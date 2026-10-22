@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Clínica Vida Salud">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a6ebd"/>
+      <stop offset="1" stop-color="#0f9d8a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1050" cy="90" r="260" fill="#ffffff" opacity=".08"/>
+  <circle cx="140" cy="560" r="220" fill="#ffffff" opacity=".07"/>
+  <g fill="#ffffff">
+    <rect x="90" y="220" width="64" height="64" rx="18" opacity=".9"/>
+    <path d="M122 236v32M106 252h32" stroke="#0a6ebd" stroke-width="8" stroke-linecap="round"/>
+    <text x="180" y="250" font-family="Inter, Segoe UI, sans-serif" font-size="34" font-weight="700">Clínica Vida Salud</text>
+    <text x="180" y="300" font-family="Inter, Segoe UI, sans-serif" font-size="24" opacity=".8">Agenda tu cita médica online</text>
+    <text x="90" y="460" font-family="Inter, Segoe UI, sans-serif" font-size="58" font-weight="800">Tu salud, con la atención</text>
+    <text x="90" y="530" font-family="Inter, Segoe UI, sans-serif" font-size="58" font-weight="800">que mereces.</text>
+  </g>
+</svg>

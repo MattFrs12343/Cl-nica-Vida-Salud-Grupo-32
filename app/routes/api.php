@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Controllers\Api\PublicApiController;
 use App\Core\Response;
 
 $router->get('/api/health', static function (): Response {
@@ -26,4 +27,10 @@ $router->get('/api/me', static function (): Response {
 
     return json_ok($user);
 });
+
+// Landing / reserva web (M-15, M-16)
+$router->get('/api/public/especialidades', [PublicApiController::class, 'especialidades']);
+$router->get('/api/public/medicos', [PublicApiController::class, 'medicos']);
+$router->get('/api/public/disponibilidad', [PublicApiController::class, 'disponibilidad']);
+$router->post('/api/public/reservar', [PublicApiController::class, 'reservar'], ['role:paciente']);
 

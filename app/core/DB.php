@@ -110,6 +110,30 @@ final class DB
         }
     }
 
+    /**
+     * Registra el usuario/IP para los triggers de auditoría sin cambiar el rol
+     * actual. Útil en operaciones que corren como propietario (por ejemplo, la
+     * reserva web, que necesita ver toda la agenda del médico).
+     */
+    public static function setAuditContext(int $usuarioId, string $ip = ''): void
+    {
+        $pdo = self::connection();
+
+        try {
+            $statement = $pdo->prepare(
+                "SELECT
+                    set_config('app.usuario_id', :usuario_id, false),
+                    set_config('app.ip', :ip, false)"
+            );
+            $statement->execute([
+                'usuario_id' => (string) $usuarioId,
+                'ip' => $ip,
+            ]);
+        } catch (PDOException $exception) {
+            throw new RuntimeException('No se pudo establecer el contexto de auditoría.', 0, $exception);
+        }
+    }
+
     public static function transaction(callable $callback): mixed
     {
         $pdo = self::connection();

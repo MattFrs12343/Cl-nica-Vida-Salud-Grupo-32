@@ -2,7 +2,7 @@
 
 > **Última actualización:** 2026-10-21
 > **Fuente funcional de verdad:** `docs/specs/`
-> **Estado del repo:** Fase 0 (esqueleto backend) implementada y verificada. Falta la revisión de Lucas sobre los contratos y el auth real (Fase 1).
+> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 backend en curso: APIs públicas, reserva web y landing servida por PHP listas (M-15–M-17); pendientes las vistas de auth y paneles de Lucas.
 
 Este documento define **quién hace qué**, **qué archivos puede tocar cada uno** y **en qué orden**. La meta es que Matias y Lucas puedan trabajar en paralelo sin pisarse.
 
@@ -299,9 +299,9 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 
 #### Matias
 
-- [ ] **M-15 · APIs públicas** — especialidades activas, médicos por especialidad y disponibilidad web; validaciones y solo activos. · *Deps:* M-11.
-- [ ] **M-16 · Reserva web** — `POST /api/public/reservar` con sesión de paciente, cupo web, revalidación de disponibilidad, creación de cita + ficha web + correo. · *Deps:* M-15, M-13.
-- [ ] **M-17 · Landing backend** — rutas `/`, `/reservar`, 404, layout `base.php`, SEO/OG y assets. · *Deps:* M-03. · *DoD:* landing servida por PHP.
+- [x] **M-15 · APIs públicas** — especialidades activas, médicos por especialidad y disponibilidad web; validaciones y solo activos. · *Deps:* M-11.
+- [x] **M-16 · Reserva web** — `POST /api/public/reservar` con sesión de paciente, cupo web, revalidación de disponibilidad, creación de cita + ficha web + correo. · *Deps:* M-15, M-13.
+- [x] **M-17 · Landing backend** — rutas `/`, `/reservar`, 404, layout `base.php`, SEO/OG y assets. · *Deps:* M-03. · *DoD:* landing servida por PHP.
 - [ ] **M-18 · Landing UI** — hero/slider, nosotros, especialidades, médicos, noticias, contacto, footer; responsive y accesible. · *Deps:* M-17.
 - [ ] **M-19 · Landing JS** — buscador, filtros, wizard de reserva, validaciones y estados de carga/error. · *Deps:* M-15, M-16, M-18.
 - [ ] **M-20 · APIs admin** — usuarios (CRUD, activar, desbloquear, roles), médicos/especialidades (CRUD, asignaciones, QR, restricciones), horarios/cupos/bloqueos. · *Deps:* M-11, M-12.

@@ -160,11 +160,19 @@ final class ErrorHandler
         }
 
         try {
-            $body = View::render('errors/error', [
-                'status' => $status,
-                'message' => $message,
-                'title' => 'Error ' . $status,
-            ]);
+            $vista404 = $status === 404 && View::exists('errors/404');
+            $body = View::render(
+                $vista404 ? 'errors/404' : 'errors/error',
+                [
+                    'status' => $status,
+                    'message' => $message,
+                    'title' => $vista404 ? 'Página no encontrada — Clínica Vida Salud' : 'Error ' . $status,
+                    'description' => 'La página que buscas no existe o fue movida.',
+                    'canonical' => url('/'),
+                    'bodyClass' => 'landing',
+                ],
+                $vista404 ? 'layouts/base' : null
+            );
         } catch (Throwable) {
             $body = '<!doctype html><html lang="es"><meta charset="utf-8"><title>Error ' . $status
                 . '</title><body style="font-family:system-ui;padding:3rem"><h1>Error ' . $status
