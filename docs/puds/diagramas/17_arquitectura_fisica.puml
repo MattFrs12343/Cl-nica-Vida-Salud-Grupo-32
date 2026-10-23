@@ -1,0 +1,90 @@
+﻿@startuml
+top to bottom direction
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam rectangle {
+  BackgroundColor #FBFDFF
+  BorderColor #8FB8D8
+  FontColor #0B3C5D
+  FontSize 11
+}
+skinparam node {
+  BackgroundColor #F7FBFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 11
+}
+skinparam artifact {
+  BackgroundColor #FFFFFF
+  BorderColor #B8D4EA
+  FontColor #0B3C5D
+  FontSize 9
+}
+skinparam database {
+  BackgroundColor #E8F7F4
+  BorderColor #1AA6A6
+  FontColor #0B3C5D
+}
+skinparam cloud {
+  BackgroundColor #FFF7E8
+  BorderColor #E67E22
+  FontColor #0B3C5D
+}
+
+rectangle "Zona pública (Internet)" as PUB {
+  node "Paciente\nPC / móvil" as PAC {
+    artifact "Navegador web\nHTTPS 443"
+  }
+  node "Personal remoto\n(opcional)" as REM {
+    artifact "Navegador web\nHTTPS 443"
+  }
+}
+
+rectangle "Servicios externos (SaaS)" as SAAS {
+  cloud "Brevo SMTP\nsmtp.brevo.com:587" as SMTP
+  cloud "WhatsApp\nwa.me" as WA
+  cloud "GitHub\nrepositorio" as GH
+}
+
+node "Firewall / WAF\n80 y 443" as FW
+
+rectangle "Zona de aplicación (hosting cPanel)" as APPZONE {
+  node "Servidor web\nApache 2.4 + PHP 8.1 FPM\n2 vCPU · 2 GB RAM · 20 GB SSD" as APPSRV {
+    artifact "public/index.php\nrouter frontal"
+    artifact "app/ (MVC)\ncontroladores, servicios,\nmodelos y vistas"
+    artifact "uploads / assets"
+  }
+}
+
+rectangle "Zona de datos" as DATAZONE {
+  node "PostgreSQL 16 gestionado\nNeon / Railway\nTLS obligatorio" as DBSRV {
+    database "clinica_vida_salud\nRLS + triggers" as DB
+  }
+  node "Respaldo diario\nsnapshot gestionado" as BACKUP
+}
+
+rectangle "Red local de la clínica (LAN)" as LAN {
+  node "PC de recepción\nWindows 11 + Chrome" as REC
+  node "iPad kiosco\niPadOS + Safari" as KIOSK
+  node "Impresora de fichas\n(opcional)" as PRINT
+}
+
+PAC --> FW : HTTPS 443
+REM --> FW : HTTPS 443
+REC --> FW : HTTPS 443
+KIOSK --> FW : HTTPS 443
+FW --> APPSRV : HTTPS 443
+APPSRV --> DBSRV : pdo_pgsql 5432 / TLS
+APPSRV --> SMTP : SMTP 587 / TLS
+APPSRV ..> WA : enlace wa.me
+APPSRV ..> GH : git push / SSH 22
+DBSRV --> BACKUP : respaldo diario
+PUB -[hidden]right-> LAN
+APPZONE -[hidden]right-> DATAZONE
+DATAZONE -[hidden]right-> SAAS
+PUB -[hidden]right-> LAN
+
+@enduml
+
+

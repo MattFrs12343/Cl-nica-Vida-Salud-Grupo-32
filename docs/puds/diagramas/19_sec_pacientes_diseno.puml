@@ -1,0 +1,43 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0A6EBD
+  ActorBorderColor #0A6EBD
+  LifeLineBorderColor #9CC3E5
+  LifeLineBackgroundColor #F7FBFF
+  ParticipantBorderColor #0A6EBD
+  ParticipantBackgroundColor #EAF4FB
+  FontSize 10
+}
+autonumber
+actor "Recepcionista" as U
+participant "PacientesView" as V
+participant "Router" as R
+participant "RoleMiddleware" as MW
+participant "PacienteController" as C
+participant "PacienteService" as S
+participant "PacienteModel" as M
+database "PostgreSQL" as DB
+U -> V : completar formulario de paciente
+V -> R : POST /api/pacientes + CSRF
+R -> MW : resolver ruta protegida
+MW -> C : sesión y rol recepción/admin válidos
+C -> C : validar campos obligatorios y formato de CI
+C -> S : registrar(datos)
+S -> M : buscarPorCi(ci)
+M -> DB : SELECT ... WHERE ci = :ci
+DB --> M : paciente existente o null
+alt CI duplicada
+  S --> C : error de unicidad
+  C --> V : 409 y mensaje explicativo
+else CI disponible
+  S -> M : crear(datos)
+  M -> DB : INSERT ... RETURNING codigo
+  DB --> M : paciente creado
+  M --> S : entidad paciente
+  S --> C : paciente registrado
+  C --> V : 201 y ficha del paciente
+end
+note right of S : Desactivar no elimina el registro;\nse conserva el historial (RN11).
+@enduml

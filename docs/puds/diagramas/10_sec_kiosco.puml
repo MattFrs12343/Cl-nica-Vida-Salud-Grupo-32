@@ -1,0 +1,55 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #1AA6A6
+  ActorBorderColor #1AA6A6
+  LifeLineBorderColor #9CC3E5
+  LifeLineBackgroundColor #F7FBFF
+  ParticipantBorderColor #1AA6A6
+  ParticipantBackgroundColor #E8F7F4
+  FontSize 10
+}
+autonumber
+actor "Paciente\nen kiosco" as P
+participant "KioscoUI" as K
+participant "KioscoController" as C
+participant "KioscoService" as S
+participant "CitaService" as CS
+participant "FichaService" as FS
+database "PostgreSQL" as DB
+P -> K : tocar "Sacar ficha"
+K -> C : POST /api/kiosco/sesion
+C -> C : firmar token HMAC (10 min)
+C --> K : token de sesión
+P -> K : ingresar CI
+K -> C : POST /api/kiosco/identificar
+C -> S : buscarPaciente(ci)
+S -> DB : SELECT paciente
+alt paciente existe
+  DB --> S : datos
+  S --> C : paciente
+  C --> K : nombre + "escaneo facial"
+else paciente nuevo
+  C --> K : formulario rápido
+  P -> K : CI, nombres, apellidos,\nfecha nac., sexo, teléfono
+  K -> C : POST /api/kiosco/registrar
+  C -> S : crearPacienteSinCuenta()
+  S -> DB : INSERT paciente
+end
+P -> K : elegir especialidad / médico / horario
+K -> C : GET especialidades, médicos,\ndisponibilidad (cupo kiosco)
+C -> S : validar elegibilidad y cupo
+S -> DB : consultar catálogos y slots
+C --> K : opciones compatibles
+P -> K : confirmar
+K -> C : POST /api/kiosco/reservar
+C -> CS : registrarCita(origen=kiosco)
+CS -> DB : INSERT cita
+K -> C : POST /api/kiosco/ficha
+C -> FS : emitirFicha(cita)
+FS -> DB : INSERT ficha + confirmar cita
+FS --> C : ficha (FIC-####, acceso)
+C --> K : ficha + QR
+K --> P : pantalla de ficha / imprimir
+@enduml

@@ -1,0 +1,40 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #E67E22
+  ActorBorderColor #E67E22
+  LifeLineBorderColor #F5CBA7
+  LifeLineBackgroundColor #FFF7E8
+  ParticipantBorderColor #E67E22
+  ParticipantBackgroundColor #FFF2E0
+  FontSize 10
+}
+autonumber
+actor "Paciente /\nRecepcionista" as U
+participant "Panel / Portal" as V
+participant "CitaController" as C
+participant "CitaService" as S
+participant "EstadoCitaService" as E
+participant "MailService" as M
+database "PostgreSQL" as DB
+U -> V : seleccionar cita y "Cancelar"
+V -> C : PATCH /api/citas/{id}/cancelar
+C -> S : cancelar(id, motivo)
+S -> DB : SELECT cita
+DB --> S : cita
+alt estado no cancelable
+  S --> C : 422 "Estado inválido"
+else fecha de cita <= hoy
+  S --> C : 422 "Solo hasta el día anterior"
+else válido
+  S -> E : validarTransicion(actual, cancelada)
+  E --> S : permitida
+  S -> DB : UPDATE estado=cancelada, motivo
+  S -> DB : INSERT citas_estado_historial
+  S -> M : notificarCancelacion()
+  S --> C : cita actualizada
+  C --> V : confirmación
+  V --> U : "Cita cancelada"
+end
+@enduml

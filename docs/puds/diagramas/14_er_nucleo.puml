@@ -1,0 +1,139 @@
+﻿@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor #F7FBFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 9
+}
+hide methods
+hide stereotypes
+entity "usuarios" as usuarios {
+  * id : integer <<PK>>
+  --
+  * username : varchar(60) <<UQ>>
+  * email : varchar(120) <<UQ>>
+  * password_hash : varchar(255)
+  * rol : rol_usuario
+  * activo : boolean
+  * intentos_fallidos : smallint
+  * bloqueado : boolean
+  * ultimo_acceso : timestamptz
+}
+entity "pacientes" as pacientes {
+  * id : integer <<PK>>
+  --
+  * codigo : varchar(20) <<UQ>>
+  o usuario_id : integer <<FK>>
+  * ci : varchar(20) <<UQ>>
+  * nombres : varchar(100)
+  * apellidos : varchar(100)
+  * fecha_nacimiento : date
+  * sexo : sexo
+  * telefono : varchar(20)
+  * estado : estado_paciente
+}
+entity "medicos" as medicos {
+  * id : integer <<PK>>
+  --
+  * codigo : varchar(20) <<UQ>>
+  o usuario_id : integer <<FK>>
+  * registro_profesional : varchar(50) <<UQ>>
+  * nombres : varchar(100)
+  * apellidos : varchar(100)
+  * duracion_cita_min : smallint
+  * qr_imagen : varchar(255)
+  * estado : estado_paciente
+}
+entity "especialidades" as especialidades {
+  * id : integer <<PK>>
+  --
+  * nombre : varchar(80) <<UQ>>
+  * sexo_permitido : sexo_permitido
+  o edad_min : smallint
+  o edad_max : smallint
+  * destacada : boolean
+  * estado : estado_paciente
+}
+entity "medico_especialidad" as me {
+  * medico_id : integer <<PK,FK>>
+  * especialidad_id : integer <<PK,FK>>
+}
+entity "recepcionista_medico" as rm {
+  * usuario_id : integer <<PK,FK>>
+  * medico_id : integer <<PK,FK>>
+}
+entity "horarios" as horarios {
+  * id : integer <<PK>>
+  --
+  * medico_id : integer <<FK>>
+  * dia_semana : smallint
+  * hora_inicio : time
+  * hora_fin : time
+  * cupos_web : smallint
+  * cupos_kiosco : smallint
+  * activo : boolean
+}
+entity "bloqueos" as bloqueos {
+  * id : integer <<PK>>
+  --
+  * medico_id : integer <<FK>>
+  * fecha : date
+  o hora_inicio : time
+  o hora_fin : time
+  o motivo : varchar(120)
+}
+entity "citas" as citas {
+  * id : integer <<PK>>
+  --
+  * codigo : varchar(20) <<UQ>>
+  * paciente_id : integer <<FK>>
+  * medico_id : integer <<FK>>
+  * especialidad_id : integer <<FK>>
+  * fecha : date
+  * hora_inicio : time
+  * hora_fin : time
+  * estado : estado_cita
+  * origen : origen_cita
+  * es_prioritaria : boolean
+  * es_reconsulta : boolean
+  o reconsulta_tipo : tipo_reconsulta
+  o cita_origen_id : integer <<FK>>
+}
+entity "fichas" as fichas {
+  * id : integer <<PK>>
+  --
+  * codigo : varchar(20) <<UQ>>
+  * cita_id : integer <<UQ,FK>>
+  * canal : canal_ficha
+  * codigo_acceso : varchar(4)
+  * verificacion_biometrica : boolean
+  * emitida_at : timestamptz
+}
+entity "citas_estado_historial" as hist {
+  * id : integer <<PK>>
+  --
+  * cita_id : integer <<FK>>
+  o estado_anterior : estado_cita
+  * estado_nuevo : estado_cita
+  o usuario_id : integer <<FK>>
+  o observacion : varchar(200)
+  * fecha : timestamptz
+}
+usuarios ||--o| pacientes
+usuarios ||--o| medicos
+usuarios ||--o{ rm
+medicos ||--o{ rm
+medicos ||--o{ me
+especialidades ||--o{ me
+medicos ||--o{ horarios
+medicos ||--o{ bloqueos
+pacientes ||--o{ citas
+medicos ||--o{ citas
+especialidades ||--o{ citas
+citas ||--o| fichas
+citas ||--o{ hist
+@enduml
+

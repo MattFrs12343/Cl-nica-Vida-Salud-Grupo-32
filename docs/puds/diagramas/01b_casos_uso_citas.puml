@@ -1,0 +1,52 @@
+@startuml
+left to right direction
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  ArrowColor #0A6EBD
+  FontSize 11
+  FontColor #0B3C5D
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #9CC3E5
+  FontColor #0A6EBD
+}
+actor "Recepcionista" as REC
+actor "Recepcionista\nde médico" as RM
+actor "Médico" as MED
+REC <|-- RM
+rectangle "Operación de citas y agenda" {
+  usecase "Gestionar pacientes" as UC08
+  usecase "Programar cita" as UC09
+  usecase "Reprogramar cita" as UC10
+  usecase "Cancelar cita\n(recepción)" as UC11
+  usecase "Controlar asistencia" as UC12
+  usecase "Gestionar reconsultas" as UC13
+  usecase "Consultar agenda\ne historial" as UC14
+}
+REC --> UC08
+REC --> UC09
+REC --> UC10
+REC --> UC11
+REC --> UC12
+REC --> UC13
+REC --> UC14
+MED --> UC12
+MED --> UC13
+MED --> UC14
+UC09 .> UC14 : <<include>>
+UC10 .> UC14 : <<include>>
+note bottom of REC
+  El Administrador y el Superadministrador
+  heredan todos los casos de uso.
+end note
+@enduml

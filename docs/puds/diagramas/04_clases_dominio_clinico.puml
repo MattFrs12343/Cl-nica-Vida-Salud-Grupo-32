@@ -1,0 +1,119 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #F7FBFF
+  BorderColor #1AA6A6
+  ArrowColor #1AA6A6
+  FontColor #0B3C5D
+  FontSize 11
+  AttributeFontSize 10
+}
+class Cita {
+  - id : int
+  - codigo : varchar
+  - fecha : date
+  - estado : EstadoCita
+}
+class Consulta {
+  - id : int
+  - motivo : varchar
+  - anamnesis : text
+  - signos_vitales : jsonb
+  - examen_fisico : text
+  - diagnostico : text
+  - tratamiento : text
+  - indicaciones : text
+  - fecha : timestamptz
+}
+class Receta {
+  - id : int
+  - codigo : varchar
+  - codigo_acceso : varchar(4)
+  - enviado_whatsapp : boolean
+  - fecha : timestamptz
+}
+class RecetaDetalle {
+  - id : int
+  - medicamento : varchar
+  - dosis : varchar
+  - via : varchar
+  - frecuencia : varchar
+  - duracion : varchar
+  - instrucciones : varchar
+}
+class Documento {
+  - id : int
+  - codigo : varchar
+  - codigo_acceso : varchar(4)
+  - tipo : TipoDocumento
+  - contenido : text
+  - enviado_whatsapp : boolean
+}
+class Orden {
+  - id : int
+  - codigo : varchar
+  - codigo_acceso : varchar(4)
+  - tipo : TipoOrden
+  - enviado_whatsapp : boolean
+}
+class OrdenDetalle {
+  - id : int
+  - estudio : varchar
+  - observaciones : varchar
+}
+class Resultado {
+  - id : int
+  - archivo : varchar
+  - texto : text
+  - revisado : boolean
+  - fecha : timestamptz
+}
+class Paciente {
+  - id : int
+  - codigo : varchar
+  - nombres : varchar
+  - apellidos : varchar
+}
+class Medico {
+  - id : int
+  - codigo : varchar
+  - nombres : varchar
+  - apellidos : varchar
+}
+class Usuario {
+  - id : int
+  - rol : RolUsuario
+}
+class Pago {
+  - id : int
+  - monto : numeric(10,2)
+  - metodo : MetodoPago
+  - referencia_paciente : varchar
+  - fecha : timestamptz
+}
+class Auditoria {
+  - id : int
+  - ip : inet
+  - tabla_afectada : varchar
+  - accion : AccionAuditoria
+  - registro_id : bigint
+  - datos_antes : jsonb
+  - datos_despues : jsonb
+  - fecha : timestamptz
+}
+
+Cita "1" -- "0..1" Consulta : genera
+Consulta "1" -- "0..*" Receta : emite
+Receta "1" -- "1..*" RecetaDetalle : contiene
+Consulta "1" -- "0..*" Documento : emite
+Consulta "1" -- "0..*" Orden : solicita
+Orden "1" -- "1..*" OrdenDetalle : contiene
+Orden "1" -- "0..*" Resultado : recibe
+Paciente "1" -- "0..*" Pago : registra
+Medico "1" -- "0..*" Pago : recibe
+Usuario "1" -- "0..*" Auditoria : ejecuta
+Paciente "1" -- "0..*" Consulta
+Medico "1" -- "0..*" Consulta
+@enduml

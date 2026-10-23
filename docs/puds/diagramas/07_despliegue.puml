@@ -1,0 +1,39 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam node {
+  BackgroundColor #F7FBFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 11
+}
+skinparam database {
+  BackgroundColor #E8F7F4
+  BorderColor #1AA6A6
+  FontColor #0B3C5D
+}
+skinparam cloud {
+  BackgroundColor #FFF7E8
+  BorderColor #E67E22
+  FontColor #0B3C5D
+}
+node "Cliente web\nPC / móvil" as WEB {
+  artifact "Landing y paneles\nHTTPS"
+}
+node "iPad kiosco\n(clínica)" as KIOSK {
+  artifact "Kiosco web\nHTTPS"
+}
+node "Hosting cPanel\nApache + PHP 8.2" as APP {
+  artifact "Aplicación PHP MVC\npdo_pgsql"
+}
+database "PostgreSQL 16\nNeon / Railway" as DB
+cloud "Brevo SMTP" as SMTP
+cloud "WhatsApp\nwa.me" as WA
+cloud "GitHub\nrepositorio" as GH
+WEB --> APP : HTTPS
+KIOSK --> APP : HTTPS
+APP --> DB : pdo_pgsql + SSL
+APP --> SMTP : SMTP / TLS
+APP ..> WA : deep link
+APP ..> GH : código fuente
+@enduml

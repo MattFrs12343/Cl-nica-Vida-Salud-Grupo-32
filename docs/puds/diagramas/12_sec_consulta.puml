@@ -1,0 +1,43 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #2E8B57
+  ActorBorderColor #2E8B57
+  LifeLineBorderColor #A9DFBF
+  LifeLineBackgroundColor #F3FBF6
+  ParticipantBorderColor #2E8B57
+  ParticipantBackgroundColor #E8F7EE
+  FontSize 10
+}
+autonumber
+actor "Médico" as M
+participant "Panel médico" as V
+participant "ConsultaController" as C
+participant "ConsultaService" as CS
+participant "RecetaService" as RS
+participant "PedidoService" as PS
+database "PostgreSQL" as DB
+M -> V : abrir cita confirmada
+V -> C : GET /api/citas/{id}
+C -> DB : SELECT cita + paciente
+DB --> C : datos
+C --> V : formulario de consulta
+M -> V : registrar motivo, signos,\nexamen, diagnóstico y tratamiento
+V -> C : POST /api/citas/{id}/consulta
+C -> CS : crearConsulta()
+CS -> DB : INSERT consulta
+CS -> DB : UPDATE cita estado=atendida
+CS --> C : consulta creada
+M -> V : agregar medicamentos
+V -> C : POST /api/consultas/{id}/recetas
+C -> RS : crearReceta(detalle)
+RS -> DB : INSERT receta + detalle
+RS --> C : receta (RSV-XXXXXX, acceso)
+M -> V : enviar por WhatsApp / imprimir
+V -> C : POST /api/pedidos/receta/{id}/enviar
+C -> PS : construirMensaje()
+PS -> DB : UPDATE enviado_whatsapp=true
+PS --> C : URL wa.me
+C --> V : abrir WhatsApp
+@enduml

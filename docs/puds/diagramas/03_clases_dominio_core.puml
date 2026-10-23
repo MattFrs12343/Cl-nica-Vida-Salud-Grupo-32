@@ -1,0 +1,120 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #F7FBFF
+  BorderColor #0A6EBD
+  ArrowColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 11
+  AttributeFontSize 10
+}
+class Usuario {
+  - id : int
+  - username : varchar
+  - email : varchar
+  - password_hash : varchar
+  - rol : RolUsuario
+  - activo : boolean
+  - intentos_fallidos : smallint
+  - bloqueado : boolean
+}
+class Paciente {
+  - id : int
+  - codigo : varchar
+  - ci : varchar
+  - nombres : varchar
+  - apellidos : varchar
+  - fecha_nacimiento : date
+  - sexo : Sexo
+  - telefono : varchar
+  - email : varchar
+  - estado : Estado
+}
+class Medico {
+  - id : int
+  - codigo : varchar
+  - registro_profesional : varchar
+  - nombres : varchar
+  - apellidos : varchar
+  - duracion_cita_min : smallint
+  - qr_imagen : varchar
+  - estado : Estado
+}
+class Especialidad {
+  - id : int
+  - nombre : varchar
+  - sexo_permitido : SexoPermitido
+  - edad_min : smallint
+  - edad_max : smallint
+  - destacada : boolean
+  - estado : Estado
+}
+class Horario {
+  - id : int
+  - dia_semana : smallint
+  - hora_inicio : time
+  - hora_fin : time
+  - cupos_web : smallint
+  - cupos_kiosco : smallint
+  - activo : boolean
+}
+class Bloqueo {
+  - id : int
+  - fecha : date
+  - hora_inicio : time
+  - hora_fin : time
+  - motivo : varchar
+}
+class Cita {
+  - id : int
+  - codigo : varchar
+  - fecha : date
+  - hora_inicio : time
+  - hora_fin : time
+  - estado : EstadoCita
+  - origen : OrigenCita
+  - es_prioritaria : boolean
+  - es_reconsulta : boolean
+  - motivo : varchar
+}
+class Ficha {
+  - id : int
+  - codigo : varchar
+  - canal : CanalFicha
+  - codigo_acceso : varchar(4)
+  - emitida_at : timestamptz
+}
+class CitasEstadoHistorial {
+  - id : int
+  - estado_anterior : EstadoCita
+  - estado_nuevo : EstadoCita
+  - observacion : varchar
+  - fecha : timestamptz
+}
+class MedicoEspecialidad {
+  - medico_id : int
+  - especialidad_id : int
+}
+class RecepcionistaMedico {
+  - usuario_id : int
+  - medico_id : int
+}
+
+Usuario "1" -- "0..1" Paciente : cuenta
+Usuario "1" -- "0..1" Medico : cuenta
+Usuario "1" -- "0..*" RecepcionistaMedico
+Medico "1" -- "0..*" RecepcionistaMedico
+Medico "1..*" -- "1..*" Especialidad : medico_especialidad
+MedicoEspecialidad "*" -- "1" Medico
+MedicoEspecialidad "*" -- "1" Especialidad
+Medico "1" -- "0..*" Horario : atiende
+Medico "1" -- "0..*" Bloqueo : bloquea
+Paciente "1" -- "0..*" Cita : solicita
+Medico "1" -- "0..*" Cita : atiende
+Especialidad "1" -- "0..*" Cita : clasifica
+Cita "1" -- "0..1" Ficha : genera
+Cita "1" -- "0..*" CitasEstadoHistorial : registra
+Cita "0..1" -- "0..*" Cita : reconsulta
+@enduml

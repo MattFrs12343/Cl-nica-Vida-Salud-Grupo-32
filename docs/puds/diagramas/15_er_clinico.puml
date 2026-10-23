@@ -1,0 +1,145 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor #F3FBF6
+  BorderColor #2E8B57
+  FontColor #0B3C5D
+  FontSize 9
+}
+hide methods
+hide stereotypes
+entity "usuarios" as usuarios {
+  * id : integer <<PK>>
+  --
+  * username : varchar(60) <<UQ>>
+  * rol : rol_usuario
+  * activo : boolean
+}
+entity "pacientes" as pacientes {
+  * id : integer <<PK>>
+  --
+  * codigo : varchar(20) <<UQ>>
+  * ci : varchar(20) <<UQ>>
+  * nombres : varchar(100)
+  * apellidos : varchar(100)
+}
+entity "medicos" as medicos {
+  * id : integer <<PK>>
+  --
+  * codigo : varchar(20) <<UQ>>
+  * registro_profesional : varchar(50) <<UQ>>
+  * nombres : varchar(100)
+  * apellidos : varchar(100)
+}
+entity "citas" as citas {
+  * id : integer <<PK>>
+  * codigo : varchar(20) <<UQ>>
+  * paciente_id : integer <<FK>>
+  * medico_id : integer <<FK>>
+}
+entity "consultas" as consultas {
+  * id : integer <<PK>>
+  --
+  * cita_id : integer <<FK>>
+  * paciente_id : integer <<FK>>
+  * medico_id : integer <<FK>>
+  o motivo : varchar(200)
+  o anamnesis : text
+  o signos_vitales : jsonb
+  o examen_fisico : text
+  o diagnostico : text
+  o tratamiento : text
+  o indicaciones : text
+  * fecha : timestamptz
+}
+entity "recetas" as recetas {
+  * id : integer <<PK>>
+  --
+  * codigo : varchar(20) <<UQ>>
+  * codigo_acceso : varchar(4)
+  * consulta_id : integer <<FK>>
+  * paciente_id : integer <<FK>>
+  * medico_id : integer <<FK>>
+  * enviado_whatsapp : boolean
+}
+entity "receta_detalle" as rd {
+  * id : integer <<PK>>
+  --
+  * receta_id : integer <<FK>>
+  * medicamento : varchar(150)
+  o dosis : varchar(80)
+  o via : varchar(50)
+  o frecuencia : varchar(80)
+  o duracion : varchar(50)
+}
+entity "documentos" as documentos {
+  * id : integer <<PK>>
+  --
+  * codigo : varchar(20) <<UQ>>
+  * codigo_acceso : varchar(4)
+  * consulta_id : integer <<FK>>
+  * tipo : tipo_documento
+  o contenido : text
+  * enviado_whatsapp : boolean
+}
+entity "ordenes" as ordenes {
+  * id : integer <<PK>>
+  --
+  * codigo : varchar(20) <<UQ>>
+  * codigo_acceso : varchar(4)
+  * consulta_id : integer <<FK>>
+  * tipo : tipo_orden
+  * enviado_whatsapp : boolean
+}
+entity "orden_detalle" as od {
+  * id : integer <<PK>>
+  --
+  * orden_id : integer <<FK>>
+  * estudio : varchar(150)
+  o observaciones : varchar(200)
+}
+entity "resultados" as resultados {
+  * id : integer <<PK>>
+  --
+  * orden_id : integer <<FK>>
+  o archivo : varchar(255)
+  o texto : text
+  * revisado : boolean
+}
+entity "pagos" as pagos {
+  * id : integer <<PK>>
+  --
+  * paciente_id : integer <<FK>>
+  * medico_id : integer <<FK>>
+  * registrado_por : integer <<FK>>
+  * monto : numeric(10,2)
+  * metodo : metodo_pago
+  o referencia_paciente : varchar(150)
+}
+entity "auditoria" as auditoria {
+  * id : integer <<PK>>
+  --
+  o usuario_id : integer <<FK>>
+  o ip : inet
+  * tabla_afectada : varchar(60)
+  * accion : accion_auditoria
+  o registro_id : bigint
+  o datos_antes : jsonb
+  o datos_despues : jsonb
+}
+citas ||--o| consultas
+consultas ||--o{ recetas
+recetas ||--o{ rd
+consultas ||--o{ documentos
+consultas ||--o{ ordenes
+ordenes ||--o{ od
+ordenes ||--o{ resultados
+pacientes ||--o{ consultas
+medicos ||--o{ consultas
+pacientes ||--o{ pagos
+medicos ||--o{ pagos
+usuarios ||--o{ pagos
+usuarios ||--o{ auditoria
+@enduml
