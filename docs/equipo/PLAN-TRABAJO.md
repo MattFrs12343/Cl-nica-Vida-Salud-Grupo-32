@@ -2,7 +2,7 @@
 
 > **Última actualización:** 2026-10-23
 > **Fuente funcional de verdad:** `docs/specs/`
-> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 en curso: APIs públicas, reserva web, landing pública, APIs admin y pruebas de integración (M-15–M-22) listas; pendientes las vistas de auth y paneles de Lucas.
+> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 backend terminada (M-15–M-22). Fase 3 en curso: token de kiosco (M-23) listo; pendientes las APIs de kiosco/recepción y las vistas de auth y paneles de Lucas.
 
 Este documento define **quién hace qué**, **qué archivos puede tocar cada uno** y **en qué orden**. La meta es que Matias y Lucas puedan trabajar en paralelo sin pisarse.
 
@@ -328,7 +328,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 
 #### Matias
 
-- [ ] **M-23 · Token de kiosco** — HMAC, `KioskMiddleware`, expiración de 10 min y `POST /api/kiosco/sesion`. · *Deps:* M-03.
+- [x] **M-23 · Token de kiosco** — HMAC, `KioskMiddleware`, expiración de 10 min y `POST /api/kiosco/sesion`. · *Deps:* M-03. · *DoD:* token firmado con TTL configurable de 10 min, validación por header `X-Kiosk-Token` y endpoint de sesión con device key verificados con `bin/test-kiosco.php`; suites previas en verde.
 - [ ] **M-24 · APIs de kiosco** — identificar por CI, alta rápida, especialidades, médicos, disponibilidad kiosco, reservar y ficha. · *Deps:* M-23, M-15, M-16.
 - [ ] **M-25 · FichaService** — código `FIC-####`, código de acceso de 4 dígitos, QR, confirmación de cita y datos para impresión. · *Deps:* M-24.
 - [ ] **M-26 · Kiosco UI** — bienvenida, CI, alta rápida, especialidad, médico, horario, verificación facial simulada, ficha con QR/print y reset por inactividad. Touch-friendly. · *Deps:* M-24, M-25.

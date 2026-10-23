@@ -8,6 +8,7 @@ use App\Controllers\Api\CitaApiController;
 use App\Controllers\Api\DisponibilidadApiController;
 use App\Controllers\Api\EspecialidadApiController;
 use App\Controllers\Api\HorarioApiController;
+use App\Controllers\Api\KioscoApiController;
 use App\Controllers\Api\MedicoApiController;
 use App\Controllers\Api\PublicApiController;
 use App\Controllers\Api\ReporteApiController;
@@ -42,6 +43,9 @@ $router->get('/api/public/especialidades', [PublicApiController::class, 'especia
 $router->get('/api/public/medicos', [PublicApiController::class, 'medicos']);
 $router->get('/api/public/disponibilidad', [PublicApiController::class, 'disponibilidad']);
 $router->post('/api/public/reservar', [PublicApiController::class, 'reservar'], ['role:paciente']);
+
+// Kiosco (M-23). Las rutas protegidas usan el middleware `kiosk`.
+$router->post('/api/kiosco/sesion', [KioscoApiController::class, 'sesion']);
 
 // APIs administrativas (M-20). Las escrituras exigen CSRF.
 $router->group('/api', static function ($router): void {

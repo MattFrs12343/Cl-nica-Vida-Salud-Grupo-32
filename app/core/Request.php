@@ -6,6 +6,9 @@ namespace App\Core;
 
 final class Request
 {
+    /** @var array<string, mixed> */
+    private array $attributes = [];
+
     /**
      * @param array<string, mixed> $queryParams
      * @param array<string, mixed> $bodyParams
@@ -190,6 +193,19 @@ final class Request
     public function ip(): string
     {
         return $this->clientIp;
+    }
+
+    public function withAttribute(string $key, mixed $value): self
+    {
+        $clone = clone $this;
+        $clone->attributes[$key] = $value;
+
+        return $clone;
+    }
+
+    public function attribute(string $key, mixed $default = null): mixed
+    {
+        return $this->attributes[$key] ?? $default;
     }
 
     public function isJson(): bool

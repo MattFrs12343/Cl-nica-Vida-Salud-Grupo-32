@@ -19,6 +19,7 @@ final class Router
         'csrf' => \App\Middlewares\CsrfMiddleware::class,
         'auth' => \App\Middlewares\AuthMiddleware::class,
         'role' => \App\Middlewares\RoleMiddleware::class,
+        'kiosk' => \App\Middlewares\KioskMiddleware::class,
     ];
 
     public function get(string $path, mixed $handler, array $middlewares = []): void
