@@ -1,8 +1,8 @@
 # Plan de trabajo y reparto — Clínica Vida Salud
 
-> **Última actualización:** 2026-10-22
+> **Última actualización:** 2026-10-23
 > **Fuente funcional de verdad:** `docs/specs/`
-> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 en curso: APIs públicas, reserva web, landing pública y APIs admin (M-15–M-21) listas; pendientes las pruebas de integración M-22 y las vistas de auth y paneles de Lucas.
+> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 en curso: APIs públicas, reserva web, landing pública, APIs admin y pruebas de integración (M-15–M-22) listas; pendientes las vistas de auth y paneles de Lucas.
 
 Este documento define **quién hace qué**, **qué archivos puede tocar cada uno** y **en qué orden**. La meta es que Matias y Lucas puedan trabajar en paralelo sin pisarse.
 
@@ -306,7 +306,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 - [x] **M-19 · Landing JS** — buscador, filtros, directorio y wizard de reserva en 3 pasos con validaciones, carga, éxito y manejo de `401`/`409`/`422`. · *Deps:* M-15, M-16, M-18. · *DoD:* reserva real, búsqueda/filtros y alertas verificados en navegador; `bin/test-public.php` y `bin/test-auth.php` en verde.
 - [x] **M-20 · APIs admin** — usuarios (CRUD, activar, desbloquear, roles), médicos/especialidades (CRUD, asignaciones, QR, restricciones), horarios/cupos/bloqueos. · *Deps:* M-11, M-12. · *DoD:* CRUDs, permisos y CSRF verificados con `bin/test-admin.php`; `bin/test-public.php` y `bin/test-auth.php` en verde.
 - [x] **M-21 · APIs admin de citas, reportes y auditoría** — listados con filtros, detalle, agenda, historial de paciente, reportes agregados, dashboard admin y bitácora. Las escrituras de citas (reprogramar/cancelar) quedan para M-27. · *Deps:* M-20. · *DoD:* permisos por rol, filtros, agregados y auditoría verificados con `bin/test-reportes.php`; `bin/test-admin.php`, `bin/test-public.php` y `bin/test-auth.php` en verde.
-- [ ] **M-22 · Pruebas landing + admin** — reserva real, cupo web, correo, CRUDs y reportes con datos seed. · *Deps:* M-19, M-21.
+- [x] **M-22 · Pruebas landing + admin** — reserva real, cupo web, correo, CRUDs y reportes con datos seed. · *Deps:* M-19, M-21. · *DoD:* flujo landing → reserva → cupo → correo → admin → reportes y CRUD temporal verificados con `bin/test-integracion.php`; `bin/test-auth.php`, `bin/test-public.php`, `bin/test-admin.php` y `bin/test-reportes.php` en verde.
 
 #### Lucas
 

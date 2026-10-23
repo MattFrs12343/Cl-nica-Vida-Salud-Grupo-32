@@ -96,10 +96,13 @@ Después de ejecutar los seeders:
 docker compose exec app php bin/db-migrate.php   # aplica migraciones
 docker compose exec app php bin/db-seed.php      # carga/actualiza datos demo
 docker compose exec app php bin/db-reset.php     # borra datos y recarga demo (destructivo)
-docker compose exec app php bin/test-auth.php    # pruebas de login, bloqueo, reset y middlewares
-docker compose exec app php bin/test-public.php  # pruebas de catálogo público, disponibilidad y reserva web
-docker compose exec app php -l archivo.php       # lint de un archivo
-docker compose logs -f app                       # logs de Apache/PHP
+docker compose exec app php bin/test-auth.php         # pruebas de login, bloqueo, reset y middlewares
+docker compose exec app php bin/test-public.php       # pruebas de catálogo público, disponibilidad y reserva web
+docker compose exec app php bin/test-admin.php        # pruebas de CRUDs administrativos, permisos y CSRF
+docker compose exec app php bin/test-reportes.php     # pruebas de citas, agenda, reportes y auditoría
+docker compose exec app php bin/test-integracion.php  # flujo landing → reserva → cupo → correo → admin → reportes
+docker compose exec app php -l archivo.php            # lint de un archivo
+docker compose logs -f app                            # logs de Apache/PHP
 ```
 
 La recuperación de contraseña se envía a Mailpit (`http://localhost:8025`). Si el SMTP falla, el correo queda en `cola_correos`.
