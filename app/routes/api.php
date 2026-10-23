@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Controllers\Api\AgendaApiController;
+use App\Controllers\Api\AuditoriaApiController;
+use App\Controllers\Api\CitaApiController;
 use App\Controllers\Api\DisponibilidadApiController;
 use App\Controllers\Api\EspecialidadApiController;
 use App\Controllers\Api\HorarioApiController;
 use App\Controllers\Api\MedicoApiController;
 use App\Controllers\Api\PublicApiController;
+use App\Controllers\Api\ReporteApiController;
 use App\Controllers\Api\UsuarioApiController;
 use App\Core\Response;
 
@@ -76,5 +80,26 @@ $router->group('/api', static function ($router): void {
 
     // Disponibilidad interna
     $router->get('/disponibilidad', [DisponibilidadApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+
+    // Citas, agenda, reportes y auditoría (M-21)
+    $router->get('/citas', [CitaApiController::class, 'index'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->get('/citas/{id}/historial-estados', [CitaApiController::class, 'historial'], ['role:admin,super_admin']);
+    $router->get('/citas/{id}', [CitaApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+
+    $router->get('/medicos/{medico}/agenda', [AgendaApiController::class, 'medico'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->get('/medicos/{medico}/agenda/dia', [AgendaApiController::class, 'dia'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->get('/pacientes/{paciente}/historial', [AgendaApiController::class, 'historialPaciente'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico,paciente']);
+
+    $router->get('/reportes/citas', [ReporteApiController::class, 'citas'], ['role:admin,super_admin']);
+    $router->get('/reportes/citas-por-medico', [ReporteApiController::class, 'citasPorMedico'], ['role:admin,super_admin']);
+    $router->get('/reportes/citas-por-especialidad', [ReporteApiController::class, 'citasPorEspecialidad'], ['role:admin,super_admin']);
+    $router->get('/reportes/citas-por-estado', [ReporteApiController::class, 'citasPorEstado'], ['role:admin,super_admin']);
+    $router->get('/reportes/pacientes', [ReporteApiController::class, 'pacientes'], ['role:admin,super_admin']);
+    $router->get('/reportes/asistencia', [ReporteApiController::class, 'asistencia'], ['role:admin,super_admin']);
+    $router->get('/reportes/agenda-diaria', [ReporteApiController::class, 'agendaDiaria'], ['role:admin,super_admin']);
+    $router->get('/dashboard/admin', [ReporteApiController::class, 'dashboardAdmin'], ['role:admin,super_admin']);
+
+    $router->get('/auditoria', [AuditoriaApiController::class, 'index'], ['role:admin,super_admin']);
+    $router->get('/auditoria/{id}', [AuditoriaApiController::class, 'show'], ['role:admin,super_admin']);
 }, ['auth']);
 

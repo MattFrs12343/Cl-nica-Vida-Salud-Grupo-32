@@ -9,6 +9,8 @@ use App\Core\DB;
 use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
+use App\Services\DisponibilidadService;
+use DateTimeImmutable;
 use PDOException;
 
 abstract class AdminApiController extends Controller
@@ -81,6 +83,89 @@ abstract class AdminApiController extends Controller
         }
 
         return $boolean;
+    }
+
+    protected function queryDate(Request $request, string $key): ?string
+    {
+        $value = $request->query($key);
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_scalar($value) || DisponibilidadService::normalizarFecha(trim((string) $value)) === null) {
+            throw new HttpException(
+                422,
+                'Revisa los filtros enviados.',
+                [],
+                'VALIDATION_ERROR',
+                [$key => 'Usa el formato YYYY-MM-DD.']
+            );
+        }
+
+        return trim((string) $value);
+    }
+
+    protected function queryId(Request $request, string $key): ?int
+    {
+        $value = $request->query($key);
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_scalar($value) || !ctype_digit((string) $value) || (int) $value <= 0) {
+            throw new HttpException(
+                422,
+                'Revisa los filtros enviados.',
+                [],
+                'VALIDATION_ERROR',
+                [$key => 'Debe ser un identificador numérico.']
+            );
+        }
+
+        return (int) $value;
+    }
+
+    protected function validarRango(?string $desde, ?string $hasta): void
+    {
+        if ($desde !== null && $hasta !== null && $desde > $hasta) {
+            throw new HttpException(
+                422,
+                'El rango de fechas no es válido.',
+                [],
+                'VALIDATION_ERROR',
+                ['hasta' => 'Debe ser igual o posterior a la fecha inicial.']
+            );
+        }
+    }
+
+    /** @return array{desde: string, hasta: string} */
+    protected function rangoMesActual(): array
+    {
+        $hoy = new DateTimeImmutable('today');
+
+        return [
+            'desde' => $hoy->format('Y-m-01'),
+            'hasta' => $hoy->format('Y-m-t'),
+        ];
+    }
+
+    /** @param string ...$roles @return array<string, mixed> */
+    protected function asegurarRoles(string ...$roles): array
+    {
+        $usuario = $this->usuarioActual();
+
+        if (!in_array((string) ($usuario['rol'] ?? ''), $roles, true)) {
+            throw new HttpException(
+                403,
+                'No tienes permisos para esta sección.',
+                [],
+                'FORBIDDEN'
+            );
+        }
+
+        return $usuario;
     }
 
     protected function limpiarTexto(mixed $value): string

@@ -1,8 +1,8 @@
 # Plan de trabajo y reparto — Clínica Vida Salud
 
-> **Última actualización:** 2026-10-21
+> **Última actualización:** 2026-10-22
 > **Fuente funcional de verdad:** `docs/specs/`
-> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 en curso: APIs públicas, reserva web y landing pública completa (M-15–M-19) listas; pendientes las APIs admin (M-20/M-21) y las vistas de auth y paneles de Lucas.
+> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 en curso: APIs públicas, reserva web, landing pública y APIs admin (M-15–M-21) listas; pendientes las pruebas de integración M-22 y las vistas de auth y paneles de Lucas.
 
 Este documento define **quién hace qué**, **qué archivos puede tocar cada uno** y **en qué orden**. La meta es que Matias y Lucas puedan trabajar en paralelo sin pisarse.
 
@@ -305,7 +305,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 - [x] **M-18 · Landing UI** — hero editorial, nosotros, especialidades, médicos, noticias, contacto, footer; rediseño responsive y accesible. · *Deps:* M-17. · *DoD:* landing, kiosco y 404 verificados a 360–1440 px, sin overflow horizontal.
 - [x] **M-19 · Landing JS** — buscador, filtros, directorio y wizard de reserva en 3 pasos con validaciones, carga, éxito y manejo de `401`/`409`/`422`. · *Deps:* M-15, M-16, M-18. · *DoD:* reserva real, búsqueda/filtros y alertas verificados en navegador; `bin/test-public.php` y `bin/test-auth.php` en verde.
 - [x] **M-20 · APIs admin** — usuarios (CRUD, activar, desbloquear, roles), médicos/especialidades (CRUD, asignaciones, QR, restricciones), horarios/cupos/bloqueos. · *Deps:* M-11, M-12. · *DoD:* CRUDs, permisos y CSRF verificados con `bin/test-admin.php`; `bin/test-public.php` y `bin/test-auth.php` en verde.
-- [ ] **M-21 · APIs admin de citas, reportes y auditoría** — listados con filtros, detalle, reportes agregados y bitácora. · *Deps:* M-20.
+- [x] **M-21 · APIs admin de citas, reportes y auditoría** — listados con filtros, detalle, agenda, historial de paciente, reportes agregados, dashboard admin y bitácora. Las escrituras de citas (reprogramar/cancelar) quedan para M-27. · *Deps:* M-20. · *DoD:* permisos por rol, filtros, agregados y auditoría verificados con `bin/test-reportes.php`; `bin/test-admin.php`, `bin/test-public.php` y `bin/test-auth.php` en verde.
 - [ ] **M-22 · Pruebas landing + admin** — reserva real, cupo web, correo, CRUDs y reportes con datos seed. · *Deps:* M-19, M-21.
 
 #### Lucas
@@ -315,7 +315,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 - [ ] **L-15 · Médicos** — CRUD, especialidades, subida de QR, activar/desactivar y asignar recepcionista. · *Deps:* M-20.
 - [ ] **L-16 · Especialidades** — CRUD, restricciones de sexo/edad y destacadas. · *Deps:* M-20.
 - [ ] **L-17 · Horarios** — grilla semanal, cupos web/kiosco, bloqueos de agenda. · *Deps:* M-20.
-- [ ] **L-18 · Citas (admin)** — listado con filtros, detalle, reprogramar y cancelar. · *Deps:* M-21.
+- [ ] **L-18 · Citas (admin)** — listado con filtros, detalle, reprogramar y cancelar. · *Deps:* M-21 (lectura), M-27 (escrituras).
 - [ ] **L-19 · Reportes + auditoría** — tablas/gráficos, exportación CSV opcional y diff antes/después de auditoría. · *Deps:* M-21.
 
 **Criterio de salida Fase 2:** un paciente reserva desde la landing y un admin gestiona catálogos y ve reportes.
