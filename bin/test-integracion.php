@@ -334,7 +334,22 @@ try {
     comprobar('landing enlaza el flujo de reserva', str_contains($html, '/reservar'));
 
     $respuesta = $servidor->dispatch(Request::create('GET', '/kiosco'));
-    comprobar('pagina de kiosco responde 200', $respuesta->status() === 200
+    $htmlKiosco = $respuesta->body();
+    comprobar('aplicacion del kiosco responde 200', $respuesta->status() === 200
+        && str_contains($htmlKiosco, 'data-screen="welcome"')
+        && str_contains($htmlKiosco, 'kiosco/js/kiosco.js')
+        && str_contains($htmlKiosco, 'data-token="'));
+    comprobar('el kiosco no se cachea', ($respuesta->headers()['Cache-Control'] ?? '') === 'no-store');
+
+    $respuesta = $servidor->dispatch(Request::create('GET', '/kiosco/token'));
+    $datosToken = cuerpo($respuesta);
+    comprobar('el token del kiosco se renueva', $respuesta->status() === 200
+        && ($datosToken['ok'] ?? false) === true
+        && ($datosToken['data']['token'] ?? '') !== ''
+        && (int) ($datosToken['data']['expires_in'] ?? 0) === 600);
+
+    $respuesta = $servidor->dispatch(Request::create('GET', '/kiosco-como-funciona'));
+    comprobar('pagina informativa del kiosco responde 200', $respuesta->status() === 200
         && str_contains($respuesta->body(), 'kiosco-ticket-card'));
 
     $respuesta = $servidor->dispatch(Request::create('GET', '/reservar'));

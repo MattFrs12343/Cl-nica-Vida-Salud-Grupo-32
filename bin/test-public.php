@@ -197,6 +197,7 @@ try {
                 'SELECT id FROM fichas WHERE cita_id = ' . $citaId
             )->fetchAll(PDO::FETCH_COLUMN);
 
+            $pdo->exec('DELETE FROM citas_estado_historial WHERE cita_id = ' . $citaId);
             $pdo->exec('DELETE FROM fichas WHERE cita_id = ' . $citaId);
             $pdo->exec('DELETE FROM citas WHERE id = ' . $citaId);
 

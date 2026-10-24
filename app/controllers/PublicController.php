@@ -10,15 +10,18 @@ use App\Core\Response;
 use App\Core\View;
 use App\Models\EspecialidadModel;
 use App\Models\MedicoModel;
+use App\Services\KioskTokenService;
 
 final class PublicController extends Controller
 {
     public function __construct(
         private ?EspecialidadModel $especialidades = null,
-        private ?MedicoModel $medicos = null
+        private ?MedicoModel $medicos = null,
+        private ?KioskTokenService $kioskTokens = null
     ) {
         $this->especialidades ??= new EspecialidadModel();
         $this->medicos ??= new MedicoModel();
+        $this->kioskTokens ??= new KioskTokenService();
     }
 
     public function index(Request $request): Response
@@ -60,10 +63,31 @@ final class PublicController extends Controller
 
     public function kiosco(Request $request): Response
     {
+        // El token se emite en el servidor: la clave del dispositivo no se
+        // publica en el HTML. El cliente lo renueva en /kiosco/token.
+        return Response::html(View::render('kiosco/index', [
+            'title' => 'Kiosco de fichas — Clínica Vida Salud',
+            'kiosk' => $this->kioskTokens->issue(),
+        ], 'layouts/kiosco'), 200, ['Cache-Control' => 'no-store']);
+    }
+
+    /**
+     * Renueva el token de la página del kiosco. La app es un terminal
+     * presencial: en producción el acceso a `/kiosco` y a este endpoint debe
+     * limitarse a la red o a los dispositivos autorizados del kiosco.
+     */
+    public function kioscoToken(Request $request): Response
+    {
+        return json_ok($this->kioskTokens->issue())
+            ->withHeader('Cache-Control', 'no-store');
+    }
+
+    public function kioscoInfo(Request $request): Response
+    {
         return Response::html(View::render('landing/kiosco', [
             'title' => 'Kiosco de fichas — Clínica Vida Salud',
             'description' => 'Conoce cómo sacar tu ficha de atención en el kiosco presencial de la clínica.',
-            'canonical' => url('/kiosco'),
+            'canonical' => url('/kiosco-como-funciona'),
             'bodyClass' => 'landing landing-kiosco',
         ], 'layouts/base'));
     }

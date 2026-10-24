@@ -29,13 +29,15 @@ final class KioscoService
         private ?MedicoModel $medicos = null,
         private ?EspecialidadModel $especialidades = null,
         private ?CitaModel $citas = null,
-        private ?DisponibilidadService $disponibilidad = null
+        private ?DisponibilidadService $disponibilidad = null,
+        private ?FichaService $fichas = null
     ) {
         $this->pacientes ??= new PacienteModel();
         $this->medicos ??= new MedicoModel();
         $this->especialidades ??= new EspecialidadModel();
         $this->citas ??= new CitaModel();
         $this->disponibilidad ??= new DisponibilidadService();
+        $this->fichas ??= new FichaService();
     }
 
     /**
@@ -415,6 +417,58 @@ final class KioscoService
             'medico' => trim((string) $medico['nombres'] . ' ' . (string) $medico['apellidos']),
             'especialidad' => (string) $especialidad['nombre'],
         ];
+    }
+
+    /**
+     * Emite la ficha de una cita reservada en el kiosco. La emisión confirma
+     * la cita y registra el cambio de estado (RFK-H).
+     *
+     * @return array<string, mixed>
+     */
+    public function emitirFicha(mixed $citaId, bool $verificacionBiometrica, string $ip = ''): array
+    {
+        if (!is_scalar($citaId) || !ctype_digit((string) $citaId) || (int) $citaId <= 0) {
+            throw new HttpException(
+                422,
+                'Revisa los datos de la ficha.',
+                [],
+                'VALIDATION_ERROR',
+                ['cita_id' => 'Selecciona una cita válida.']
+            );
+        }
+
+        // La ficha no tiene usuario asociado; el historial queda con
+        // usuario_id nulo y la IP del kiosco en la auditoría.
+        DB::setAuditContext(0, $ip);
+
+        return $this->fichas->emitir(
+            (int) $citaId,
+            'kiosco',
+            $verificacionBiometrica,
+            'Ficha emitida en el kiosco'
+        );
+    }
+
+    /**
+     * Reconsulta una ficha por su código visible.
+     *
+     * @return array<string, mixed>
+     */
+    public function ficha(string $codigo): array
+    {
+        $codigo = strtoupper(trim($codigo));
+
+        if (preg_match('/^FIC-\d{1,20}$/', $codigo) !== 1) {
+            throw new HttpException(404, 'La ficha no existe.', [], 'FICHA_NOT_FOUND');
+        }
+
+        $ficha = $this->fichas->porCodigo($codigo);
+
+        if ($ficha === null) {
+            throw new HttpException(404, 'La ficha no existe.', [], 'FICHA_NOT_FOUND');
+        }
+
+        return $ficha;
     }
 
     /**

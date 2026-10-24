@@ -54,6 +54,8 @@ $router->group('/api/kiosco', static function ($router): void {
     $router->get('/medicos', [KioscoApiController::class, 'medicos']);
     $router->get('/disponibilidad', [KioscoApiController::class, 'disponibilidad']);
     $router->post('/reservar', [KioscoApiController::class, 'reservar']);
+    $router->post('/ficha', [KioscoApiController::class, 'ficha']);
+    $router->get('/ficha/{codigo}', [KioscoApiController::class, 'verFicha']);
 }, ['kiosk']);
 
 // APIs administrativas (M-20). Las escrituras exigen CSRF.

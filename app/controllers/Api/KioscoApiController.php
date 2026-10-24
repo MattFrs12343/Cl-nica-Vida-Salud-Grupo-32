@@ -121,6 +121,44 @@ final class KioscoApiController extends Controller
         return $this->sinCache(json_ok($resultado, [], 'Cita reservada.', 201));
     }
 
+    public function ficha(Request $request): Response
+    {
+        $body = $request->body();
+        $verificacion = filter_var(
+            $body['verificacion_biometrica'] ?? false,
+            FILTER_VALIDATE_BOOL
+        );
+
+        $resultado = $this->comoKiosco(
+            fn (): array => $this->kiosco->emitirFicha(
+                $body['cita_id'] ?? null,
+                $verificacion,
+                $request->ip()
+            )
+        );
+
+        $esNueva = (bool) ($resultado['nueva'] ?? false);
+        unset($resultado['nueva']);
+
+        return $this->sinCache(json_ok(
+            $resultado,
+            [],
+            $esNueva ? 'Ficha emitida.' : 'Ficha recuperada.',
+            $esNueva ? 201 : 200
+        ));
+    }
+
+    public function verFicha(Request $request, array $params): Response
+    {
+        $codigo = rawurldecode((string) ($params['codigo'] ?? ''));
+
+        $ficha = $this->comoKiosco(
+            fn (): array => $this->kiosco->ficha($codigo)
+        );
+
+        return $this->sinCache(json_ok($ficha));
+    }
+
     /**
      * `paciente_id` es opcional en los catálogos: permite filtrar por las
      * restricciones de sexo/edad del paciente identificado.

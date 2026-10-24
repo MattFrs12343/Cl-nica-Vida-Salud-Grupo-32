@@ -416,16 +416,64 @@ Crea la cita con `origen = kiosco` y `estado = programada`. Revalida el cupo kio
 
 Errores: `422 VALIDATION_ERROR`, `403 NOT_ELIGIBLE`, `403 PATIENT_INACTIVE`, `404 NOT_FOUND`, `409 SLOT_TAKEN`.
 
-### 4.6 Emitir ficha (M-25)
-
-Pendiente de implementación en M-25. Contrato previsto:
+### 4.6 Emitir ficha
 
 ```json
 POST /api/kiosco/ficha
-{ "cita_id": 120 }
+{ "cita_id": 120, "verificacion_biometrica": true }
 ```
 
-Respuesta: `{ "codigo": "FIC-0120", "codigo_acceso": "4821", "qr": "data:image/png;base64,..." }`. Emitir la ficha confirma la cita (`programada → confirmada`).
+Emite la ficha de una cita de kiosco o recupera la existente (idempotente por cita). La emisión confirma la cita (`programada → confirmada`), registra el cambio en `citas_estado_historial` y devuelve los datos para pantalla e impresión. `verificacion_biometrica` es opcional (por defecto `false`) y refleja la verificación facial simulada.
+
+Respuesta `201` si la ficha es nueva y `200` si ya existía:
+
+```json
+{
+  "ok": true,
+  "data": {
+    "codigo": "FIC-0120",
+    "codigo_acceso": "4821",
+    "canal": "kiosco",
+    "verificacion_biometrica": true,
+    "emitida_at": "2026-10-24T09:15:00-04:00",
+    "qr_contenido": "VIDASALUD|FIC-0120|CM-0120",
+    "cita": {
+      "id": 120, "codigo": "CM-0120", "fecha": "2026-11-02",
+      "hora_inicio": "08:00", "hora_fin": "08:30",
+      "estado": "confirmada", "origen": "kiosco"
+    },
+    "paciente": {
+      "id": 2, "codigo": "PAC-0002", "ci": "87654321",
+      "nombre_completo": "María Gómez"
+    },
+    "medico": { "id": 1, "nombre_completo": "Dr(a). Carlos Méndez" },
+    "especialidad": { "id": 1, "nombre": "Medicina General" },
+    "impresion": {
+      "clinica": "Clínica Vida Salud",
+      "titulo": "Ficha de atención",
+      "paciente": "María Gómez",
+      "ci": "87654321",
+      "especialidad": "Medicina General",
+      "medico": "Dr(a). Carlos Méndez",
+      "fecha": "02/11/2026",
+      "hora": "08:00",
+      "codigo": "FIC-0120",
+      "codigo_acceso": "4821",
+      "instrucciones": "Presenta esta ficha en recepción. Sin ficha no se atiende."
+    }
+  }
+}
+```
+
+`qr_contenido` es el texto que se codifica en el QR (`VIDASALUD|FIC-####|CM-####`); el cliente del kiosco lo dibuja con la librería vendorizada, sin depender de servicios externos.
+
+Consulta y reimpresión:
+
+```http
+GET /api/kiosco/ficha/{codigo}
+```
+
+Devuelve el mismo `data`. Errores: `404 CITA_NOT_FOUND`, `404 FICHA_NOT_FOUND`, `409 CITA_CANCELLED`, `422 VALIDATION_ERROR`, `401 UNAUTHENTICATED`.
 
 ---
 

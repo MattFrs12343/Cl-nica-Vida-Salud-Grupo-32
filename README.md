@@ -90,6 +90,20 @@ Después de ejecutar los seeders:
 
 > Solo para desarrollo. Nunca usar estas cuentas en producción.
 
+## Kiosco de fichas
+
+La app táctil está en <http://localhost:8080/kiosco>. La vista informativa anterior
+quedó en <http://localhost:8080/kiosco-como-funciona>.
+
+- Usa la CI `10000001` (Juan Pérez) para el flujo con paciente existente, o una CI
+  nueva para el alta rápida. El botón **Probar con CI 10000001** del modo
+  demostración completa la identificación.
+- La ficha se genera con QR y clave de acceso, se puede imprimir en A5 y la
+  pantalla se reinicia sola a los 30 segundos.
+- En producción, `/kiosco` debe quedar restringido a los dispositivos del kiosco
+  (red/IP o aprovisionamiento). El token de la página es de corta duración y el
+  endpoint de dispositivo `POST /api/kiosco/sesion` sigue disponible.
+
 ## Comandos útiles
 
 ```bash
@@ -103,6 +117,7 @@ docker compose exec app php bin/test-reportes.php     # pruebas de citas, agenda
 docker compose exec app php bin/test-integracion.php  # flujo landing → reserva → cupo → correo → admin → reportes
 docker compose exec app php bin/test-kiosco.php       # pruebas de token HMAC y middleware del kiosco
 docker compose exec app php bin/test-kiosco-api.php   # flujo de kiosco: identificar, alta, catálogos, cupo y reserva
+docker compose exec app php bin/test-kiosco-ficha.php # ficha: emisión idempotente, QR, confirmación y reconsulta
 docker compose exec app php -l archivo.php            # lint de un archivo
 docker compose logs -f app                            # logs de Apache/PHP
 ```
@@ -123,8 +138,8 @@ La recuperación de contraseña se envía a Mailpit (`http://localhost:8025`). S
 - **Fase 0 completada:** esqueleto, Docker, core, contratos, migración de usuarios y seeders demo.
 - **Fase 1 backend completada:** modelo de datos 001–010, RLS, seeders, auth real (login por usuario/email/CI, bloqueo, reset, activación), middlewares y correo con PHPMailer/Mailpit.
 - **Fase 2 backend completada:** catálogo público (`/api/public/especialidades`, `/medicos`, `/disponibilidad`), reserva web con cupo, ficha y correo (`POST /api/public/reservar`), landing PHP en `/`, `/reservar`, `/kiosco`, APIs administrativas (M-20/M-21) y pruebas de integración (M-22).
-- **Fase 3 backend en curso:** token HMAC de kiosco, `KioskMiddleware`, `POST /api/kiosco/sesion` (M-23) y APIs de identificación, alta rápida, catálogos, disponibilidad y reserva (M-24) listos; siguen la ficha (M-25) y las APIs de recepción.
+- **Fase 3 en curso:** kiosco completo (M-23–M-26): token HMAC, APIs de identificación/alta/catálogos/cupo/reserva, ficha con QR y confirmación de cita, y app táctil en `/kiosco` (la vista informativa vive en `/kiosco-como-funciona`). Siguen las APIs de recepción (M-27 en adelante).
 - **Pendiente de Lucas:** vistas de autenticación (`app/views/auth/*`), paneles y su integración visual. Mientras no existan, los GET de auth devuelven `501 VIEW_NOT_AVAILABLE` en JSON.
-- **Pendiente de Matias:** ficha de kiosco (M-25 en adelante).
+- **Pendiente de Matias:** APIs de recepción (M-27 en adelante).
 
 Las fases y tareas están en [`docs/equipo/PLAN-TRABAJO.md`](docs/equipo/PLAN-TRABAJO.md).
