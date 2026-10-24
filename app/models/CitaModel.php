@@ -92,13 +92,64 @@ final class CitaModel
         string $horaFin,
         string $motivo
     ): array {
+        return $this->crearConOrigen(
+            'web',
+            $pacienteId,
+            $medicoId,
+            $especialidadId,
+            $fecha,
+            $horaInicio,
+            $horaFin,
+            $motivo
+        );
+    }
+
+    /**
+     * Reserva creada desde el kiosco (RFK-G).
+     *
+     * @return array<string, mixed>
+     */
+    public function crearKiosco(
+        int $pacienteId,
+        int $medicoId,
+        int $especialidadId,
+        string $fecha,
+        string $horaInicio,
+        string $horaFin,
+        string $motivo
+    ): array {
+        return $this->crearConOrigen(
+            'kiosco',
+            $pacienteId,
+            $medicoId,
+            $especialidadId,
+            $fecha,
+            $horaInicio,
+            $horaFin,
+            $motivo
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function crearConOrigen(
+        string $origen,
+        int $pacienteId,
+        int $medicoId,
+        int $especialidadId,
+        string $fecha,
+        string $horaInicio,
+        string $horaFin,
+        string $motivo
+    ): array {
         $statement = $this->pdo->prepare(
             "INSERT INTO citas (
                  paciente_id, medico_id, especialidad_id, fecha, hora_inicio, hora_fin,
                  estado, origen, motivo
              ) VALUES (
                  :paciente_id, :medico_id, :especialidad_id, :fecha, :hora_inicio, :hora_fin,
-                 'programada', 'web', :motivo
+                 'programada', CAST(:origen AS origen_cita), :motivo
              )
              RETURNING id, codigo, paciente_id, medico_id, especialidad_id, fecha,
                        hora_inicio, hora_fin, estado, origen, motivo"
@@ -110,6 +161,7 @@ final class CitaModel
             'fecha' => $fecha,
             'hora_inicio' => $horaInicio,
             'hora_fin' => $horaFin,
+            'origen' => $origen,
             'motivo' => $motivo !== '' ? $motivo : null,
         ]);
 

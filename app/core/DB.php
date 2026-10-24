@@ -126,7 +126,7 @@ final class DB
                     set_config('app.ip', :ip, false)"
             );
             $statement->execute([
-                'usuario_id' => (string) $usuarioId,
+                'usuario_id' => $usuarioId > 0 ? (string) $usuarioId : '',
                 'ip' => $ip,
             ]);
         } catch (PDOException $exception) {
@@ -137,6 +137,25 @@ final class DB
     public static function transaction(callable $callback): mixed
     {
         $pdo = self::connection();
+
+        // Transacción anidada (por ejemplo, un test que envuelve el request):
+        // se usa un savepoint para no abortar la transacción externa.
+        if ($pdo->inTransaction()) {
+            $savepoint = 'sp_' . bin2hex(random_bytes(6));
+            $pdo->exec('SAVEPOINT ' . $savepoint);
+
+            try {
+                $result = $callback($pdo);
+                $pdo->exec('RELEASE SAVEPOINT ' . $savepoint);
+
+                return $result;
+            } catch (Throwable $exception) {
+                $pdo->exec('ROLLBACK TO SAVEPOINT ' . $savepoint);
+
+                throw $exception;
+            }
+        }
+
         $pdo->beginTransaction();
 
         try {

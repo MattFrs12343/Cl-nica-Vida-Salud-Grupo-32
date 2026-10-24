@@ -306,6 +306,8 @@ POST /api/kiosco/sesion
 
 Respuesta: `{ "ok": true, "data": { "token": "...", "expires_in": 600 } }`.
 
+El token va en el header `X-Kiosk-Token` de todas las demás rutas. Si falta, es inválido o expiró: `401 UNAUTHENTICATED` y el kiosco reinicia el flujo.
+
 ### 4.2 Identificar / registrar
 
 ```json
@@ -313,8 +315,32 @@ POST /api/kiosco/identificar
 { "ci": "12345678" }
 ```
 
-Respuesta si existe: `{ "existe": true, "paciente": { ... } }`.
-Si no: `{ "existe": false, "requiere_registro": true }`.
+Respuesta si existe:
+
+```json
+{
+  "ok": true,
+  "data": {
+    "existe": true,
+    "requiere_registro": false,
+    "paciente": {
+      "id": 1,
+      "codigo": "PAC-0001",
+      "ci": "12345678",
+      "nombres": "Juan",
+      "apellidos": "Pérez",
+      "nombre_completo": "Juan Pérez",
+      "fecha_nacimiento": "1985-05-12",
+      "edad": 41,
+      "sexo": "masculino",
+      "telefono": "70020001",
+      "estado": "activo"
+    }
+  }
+}
+```
+
+Si no existe: `{ "existe": false, "requiere_registro": true }`. La respuesta no incluye correo, alergias ni otros datos clínicos.
 
 ```json
 POST /api/kiosco/registrar
@@ -328,14 +354,78 @@ POST /api/kiosco/registrar
 }
 ```
 
-### 4.3 Emitir ficha
+Reglas:
+
+- CI de 5 a 10 dígitos con complemento opcional (`12345678-1A`); se normaliza a mayúsculas.
+- Nombres/apellidos de 2 a 100 caracteres; fecha no futura ni mayor a 120 años; teléfono de 7 a 15 dígitos.
+- El paciente se crea con `usuario_id = null` y `estado = activo`.
+- Respuesta `201` con el mismo shape de `paciente`. Errores: `422 VALIDATION_ERROR` con `fields`, `409 CI_TAKEN`.
+
+### 4.3 Catálogos
+
+```http
+GET /api/kiosco/especialidades?paciente_id=1
+GET /api/kiosco/medicos?especialidad=1&paciente_id=1
+```
+
+`paciente_id` es opcional. Si se envía, se aplican las restricciones de sexo/edad de la especialidad (RX02/RX03) y se excluyen las no elegibles; en `medicos` una especialidad no elegible responde `403 NOT_ELIGIBLE`. Ambas respuestas usan el envelope con `meta.page/per_page/total`.
+
+Errores: `422 VALIDATION_ERROR` si `especialidad` o `paciente_id` no son numéricos; `404 NOT_FOUND` si la especialidad no existe o está inactiva.
+
+### 4.4 Disponibilidad
+
+```http
+GET /api/kiosco/disponibilidad?medico=1&fecha=2026-11-02
+```
+
+Descuenta bloqueos, citas activas y el cupo del canal `kiosco`. Respuesta:
+
+```json
+{
+  "ok": true,
+  "data": {
+    "fecha": "2026-11-02",
+    "medico_id": 1,
+    "medico": "Carlos Méndez",
+    "canal": "kiosco",
+    "duracion_cita_min": 30,
+    "slots": [
+      { "hora": "08:00", "hora_inicio": "08:00", "hora_fin": "08:30", "disponible": true, "cupo_restante": 49 }
+    ]
+  }
+}
+```
+
+Errores: `422` con `fields.fecha` (formato o fecha pasada) o `fields.medico`; `404` si el médico no existe o está inactivo.
+
+### 4.5 Reservar
+
+```json
+POST /api/kiosco/reservar
+{
+  "paciente_id": 1,
+  "medico_id": 1,
+  "especialidad_id": 1,
+  "fecha": "2026-11-02",
+  "hora": "08:00",
+  "motivo": "Consulta general"
+}
+```
+
+Crea la cita con `origen = kiosco` y `estado = programada`. Revalida el cupo kiosco dentro de una transacción y bloquea al médico para evitar dobles reservas. Respuesta `201` con `id`, `codigo`, `fecha`, `hora_inicio`, `hora_fin`, `estado`, `origen`, `paciente`, `medico` y `especialidad`.
+
+Errores: `422 VALIDATION_ERROR`, `403 NOT_ELIGIBLE`, `403 PATIENT_INACTIVE`, `404 NOT_FOUND`, `409 SLOT_TAKEN`.
+
+### 4.6 Emitir ficha (M-25)
+
+Pendiente de implementación en M-25. Contrato previsto:
 
 ```json
 POST /api/kiosco/ficha
 { "cita_id": 120 }
 ```
 
-Respuesta: `{ "codigo": "FIC-0120", "codigo_acceso": "4821", "qr": "data:image/png;base64,..." }`.
+Respuesta: `{ "codigo": "FIC-0120", "codigo_acceso": "4821", "qr": "data:image/png;base64,..." }`. Emitir la ficha confirma la cita (`programada → confirmada`).
 
 ---
 

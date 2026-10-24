@@ -44,8 +44,17 @@ $router->get('/api/public/medicos', [PublicApiController::class, 'medicos']);
 $router->get('/api/public/disponibilidad', [PublicApiController::class, 'disponibilidad']);
 $router->post('/api/public/reservar', [PublicApiController::class, 'reservar'], ['role:paciente']);
 
-// Kiosco (M-23). Las rutas protegidas usan el middleware `kiosk`.
+// Kiosco (M-23, M-24). Las rutas protegidas usan el middleware `kiosk`.
 $router->post('/api/kiosco/sesion', [KioscoApiController::class, 'sesion']);
+
+$router->group('/api/kiosco', static function ($router): void {
+    $router->post('/identificar', [KioscoApiController::class, 'identificar']);
+    $router->post('/registrar', [KioscoApiController::class, 'registrar']);
+    $router->get('/especialidades', [KioscoApiController::class, 'especialidades']);
+    $router->get('/medicos', [KioscoApiController::class, 'medicos']);
+    $router->get('/disponibilidad', [KioscoApiController::class, 'disponibilidad']);
+    $router->post('/reservar', [KioscoApiController::class, 'reservar']);
+}, ['kiosk']);
 
 // APIs administrativas (M-20). Las escrituras exigen CSRF.
 $router->group('/api', static function ($router): void {

@@ -72,6 +72,40 @@ final class PacienteModel
         return $row === false ? null : $row;
     }
 
+    /**
+     * Alta de paciente sin cuenta (kiosco/recepción). El código PAC-#### lo
+     * genera el trigger de base de datos.
+     *
+     * @param array{ci: string, nombres: string, apellidos: string, fecha_nacimiento: string, sexo: string, telefono: ?string} $datos
+     * @return array<string, mixed>
+     */
+    public function crear(array $datos): array
+    {
+        $statement = $this->pdo->prepare(
+            'INSERT INTO pacientes (
+                 ci, nombres, apellidos, fecha_nacimiento, sexo, telefono
+             ) VALUES (
+                 :ci, :nombres, :apellidos,
+                 CAST(:fecha_nacimiento AS date),
+                 CAST(:sexo AS sexo),
+                 :telefono
+             )
+             RETURNING *'
+        );
+        $statement->execute([
+            'ci' => $datos['ci'],
+            'nombres' => $datos['nombres'],
+            'apellidos' => $datos['apellidos'],
+            'fecha_nacimiento' => $datos['fecha_nacimiento'],
+            'sexo' => $datos['sexo'],
+            'telefono' => $datos['telefono'],
+        ]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? [] : $row;
+    }
+
     public function vincularUsuario(int $pacienteId, int $usuarioId): void
     {
         $statement = $this->pdo->prepare(

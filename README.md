@@ -102,6 +102,7 @@ docker compose exec app php bin/test-admin.php        # pruebas de CRUDs adminis
 docker compose exec app php bin/test-reportes.php     # pruebas de citas, agenda, reportes y auditoría
 docker compose exec app php bin/test-integracion.php  # flujo landing → reserva → cupo → correo → admin → reportes
 docker compose exec app php bin/test-kiosco.php       # pruebas de token HMAC y middleware del kiosco
+docker compose exec app php bin/test-kiosco-api.php   # flujo de kiosco: identificar, alta, catálogos, cupo y reserva
 docker compose exec app php -l archivo.php            # lint de un archivo
 docker compose logs -f app                            # logs de Apache/PHP
 ```
@@ -122,8 +123,8 @@ La recuperación de contraseña se envía a Mailpit (`http://localhost:8025`). S
 - **Fase 0 completada:** esqueleto, Docker, core, contratos, migración de usuarios y seeders demo.
 - **Fase 1 backend completada:** modelo de datos 001–010, RLS, seeders, auth real (login por usuario/email/CI, bloqueo, reset, activación), middlewares y correo con PHPMailer/Mailpit.
 - **Fase 2 backend completada:** catálogo público (`/api/public/especialidades`, `/medicos`, `/disponibilidad`), reserva web con cupo, ficha y correo (`POST /api/public/reservar`), landing PHP en `/`, `/reservar`, `/kiosco`, APIs administrativas (M-20/M-21) y pruebas de integración (M-22).
-- **Fase 3 backend en curso:** token HMAC de kiosco, `KioskMiddleware` y `POST /api/kiosco/sesion` (M-23) listos; siguen las APIs de kiosco y recepción.
+- **Fase 3 backend en curso:** token HMAC de kiosco, `KioskMiddleware`, `POST /api/kiosco/sesion` (M-23) y APIs de identificación, alta rápida, catálogos, disponibilidad y reserva (M-24) listos; siguen la ficha (M-25) y las APIs de recepción.
 - **Pendiente de Lucas:** vistas de autenticación (`app/views/auth/*`), paneles y su integración visual. Mientras no existan, los GET de auth devuelven `501 VIEW_NOT_AVAILABLE` en JSON.
-- **Pendiente de Matias:** APIs de kiosco y recepción (M-24 en adelante).
+- **Pendiente de Matias:** ficha de kiosco (M-25 en adelante).
 
 Las fases y tareas están en [`docs/equipo/PLAN-TRABAJO.md`](docs/equipo/PLAN-TRABAJO.md).
