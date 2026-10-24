@@ -118,6 +118,7 @@ $router->group('/api', static function ($router): void {
     $router->put('/pacientes/{id}', [PacienteApiController::class, 'update'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
     $router->patch('/pacientes/{id}/estado', [PacienteApiController::class, 'estado'], ['role:admin,super_admin', 'csrf']);
     $router->get('/pacientes/{paciente}/citas', [AgendaApiController::class, 'historialPaciente'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->get('/pacientes/{paciente}/historia', [PacienteApiController::class, 'historia'], ['role:medico,paciente']);
 
     // Fichas y pagos (M-28)
     $router->get('/fichas', [FichaApiController::class, 'index'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
@@ -143,6 +144,7 @@ $router->group('/api', static function ($router): void {
     $router->get('/reportes/asistencia', [ReporteApiController::class, 'asistencia'], ['role:admin,super_admin']);
     $router->get('/reportes/agenda-diaria', [ReporteApiController::class, 'agendaDiaria'], ['role:admin,super_admin']);
     $router->get('/dashboard/admin', [ReporteApiController::class, 'dashboardAdmin'], ['role:admin,super_admin']);
+    $router->get('/dashboard/medico', [ReporteApiController::class, 'dashboardMedico'], ['role:medico']);
 
     $router->get('/auditoria', [AuditoriaApiController::class, 'index'], ['role:admin,super_admin']);
     $router->get('/auditoria/{id}', [AuditoriaApiController::class, 'show'], ['role:admin,super_admin']);

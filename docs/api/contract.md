@@ -508,7 +508,7 @@ Payload de creación:
 
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
-| GET | `/api/pacientes?q=&estado=&page=&per_page=` | admin, super_admin, recepcionista, recepcionista_medico, medico | Listar/buscar con paginación. |
+| GET | `/api/pacientes?q=&estado=&atendidos=&page=&per_page=` | admin, super_admin, recepcionista, recepcionista_medico, medico | Listar/buscar con paginación; `atendidos=1` limita a pacientes con al menos una cita atendida. |
 | GET | `/api/pacientes/buscar?q=&estado=` | admin, super_admin, recepcionista, recepcionista_medico, medico | Alias de búsqueda por CI/nombre/apellido. |
 | GET | `/api/pacientes/{id}` | admin, super_admin, recepcionista, recepcionista_medico, medico | Detalle e historial resumido. |
 | POST | `/api/pacientes` | admin, super_admin, recepcionista, recepcionista_medico | Crear paciente. |
@@ -524,6 +524,7 @@ Alcance por rol:
 - `admin` y `recepcionista` acceden a todos los pacientes.
 - `medico` y `recepcionista_medico` solo acceden a pacientes con citas de sus médicos asignados. La sesión de `recepcionista_medico` lleva `medico_ids`; un paciente sin citas con esos médicos responde `403 FORBIDDEN`.
 - El paciente solo puede consultar su propio perfil e historial; no puede crear ni editar pacientes.
+- `GET /api/pacientes?atendidos=1` devuelve solo pacientes con al menos una cita en estado `atendida`; para médico/recepción médica la cita debe pertenecer a sus médicos. `atendidos=0` o el parámetro omitido mantiene el comportamiento anterior.
 
 Payload de creación:
 
@@ -552,7 +553,7 @@ Campos obligatorios en el alta: `ci`, `nombres`, `apellidos`, `fecha_nacimiento`
 `ci`: 5-10 dígitos con sufijo opcional de 1-2 caracteres (`87654321`, `87654321-1A`).
 `sexo`: `masculino` o `femenino`; `fecha_nacimiento` no puede ser futura ni superar 120 años.
 
-`GET /api/pacientes/{id}` agrega `citas` con el total de citas del paciente. El listado devuelve `nombre_completo`, `edad` y `ultima_cita`, y respeta `page`/`per_page` (máximo 100).
+`GET /api/pacientes/{id}` agrega `citas` con el total de citas del paciente. El listado devuelve `nombre_completo`, `edad`, `ultima_cita` y `ultima_atencion` (última cita atendida), y respeta `page`/`per_page` (máximo 100).
 
 `PATCH /api/pacientes/{id}/estado` acepta `estado` (`activo`/`inactivo`) o `activo` booleano. La respuesta incluye `meta.citas_futuras`; desactivar no cancela citas existentes, pero impide agendar nuevas.
 
@@ -846,6 +847,73 @@ Errores: `404 FICHA_NOT_FOUND`, `403 FORBIDDEN`, `403 CSRF_TOKEN_MISMATCH`, `422
 
 `tipo` de pedido: `receta`, `documento`, `orden`.
 
+Respuesta de `GET /api/pacientes/{id}/historia` (M-30):
+
+```json
+{
+  "ok": true,
+  "data": {
+    "paciente": {
+      "id": 1,
+      "codigo": "PAC-DEMO-001",
+      "ci": "10000001",
+      "nombre_completo": "Juan Pérez",
+      "fecha_nacimiento": "1985-05-12",
+      "sexo": "masculino",
+      "telefono": "70020001",
+      "email": "juan.perez@example.test",
+      "estado": "activo",
+      "ultima_cita": null,
+      "ultima_atencion": null
+    },
+    "consultas": [
+      {
+        "id": 12,
+        "cita_id": 64,
+        "paciente_id": 1,
+        "medico_id": 1,
+        "motivo": "Control de presión arterial",
+        "anamnesis": "Paciente refiere cefalea ocasional.",
+        "signos_vitales": {
+          "pa": "130/85",
+          "fc": 78,
+          "temp": 36.6,
+          "peso": 82.5,
+          "spo2": 98,
+          "talla": 175
+        },
+        "examen_fisico": "Consciente, orientado, afebril.",
+        "diagnostico": "Hipertensión arterial leve controlada.",
+        "tratamiento": "Continuar losartán 50 mg cada 12 horas.",
+        "indicaciones": "Control en 30 días.",
+        "fecha": "2026-10-17 09:00:00-04",
+        "cita": {
+          "id": 64,
+          "codigo": "CM-DEMO-001",
+          "fecha": "2026-10-17",
+          "hora_inicio": "09:00",
+          "estado": "atendida"
+        },
+        "medico": {
+          "id": 1,
+          "codigo": "MED-DEMO-001",
+          "nombre_completo": "Dr. Carlos Méndez"
+        },
+        "especialidad": {
+          "id": 1,
+          "nombre": "Medicina General"
+        }
+      }
+    ],
+    "total": 1
+  },
+  "message": null,
+  "meta": {}
+}
+```
+
+`signos_vitales` se devuelve como objeto JSON (`null` si no se registró). La historia se ordena por `fecha` descendente. El médico recibe solo sus propias consultas y el paciente todas las consultas de su historia (RLS). La creación de consultas, recetas, documentos y órdenes queda para M-31.
+
 Payload de consulta:
 
 ```json
@@ -990,7 +1058,7 @@ Errores: `404 NOT_FOUND`, `403 FORBIDDEN`, `403 CSRF_TOKEN_MISMATCH`, `422 VALID
 | GET | `/api/reportes/asistencia?desde=&hasta=` | admin | Atendidas/canceladas/inasistencias. |
 | GET | `/api/reportes/agenda-diaria?medico=&fecha=` | admin | Agenda diaria. |
 | GET | `/api/dashboard/admin` | admin, super_admin | Métricas del dashboard admin. |
-| GET | `/api/dashboard/medico` | médico | Métricas del dashboard médico. |
+| GET | `/api/dashboard/medico?fecha=` | médico | Métricas y agenda del día para el médico autenticado. |
 | GET | `/api/reportes/{tipo}/csv` | admin | Exportación CSV (opcional). |
 
 Respuesta de dashboard admin (resumen):
@@ -1009,6 +1077,45 @@ Respuesta de dashboard admin (resumen):
   "meta": {}
 }
 ```
+
+Respuesta de dashboard médico (M-30):
+
+```json
+{
+  "ok": true,
+  "data": {
+    "medico_id": 1,
+    "fecha": "2099-12-31",
+    "citas_hoy": 3,
+    "en_espera": 1,
+    "atendidas": 1,
+    "proximas": 2,
+    "pendientes": 1,
+    "inasistencias": 0,
+    "siguiente_cita": {
+      "hora": "08:00",
+      "paciente": "Juan Pérez",
+      "motivo": "Control de presión arterial"
+    },
+    "agenda": [
+      {
+        "id": 70,
+        "codigo": "CM-0070",
+        "hora": "08:00",
+        "hora_fin": "08:30",
+        "paciente_id": 1,
+        "paciente": "Juan Pérez",
+        "estado": "confirmada",
+        "motivo": "Control de presión arterial"
+      }
+    ]
+  },
+  "message": null,
+  "meta": {}
+}
+```
+
+`fecha` es opcional y por defecto usa el día actual. `en_espera` cuenta las citas `confirmada`; `pendientes` las `programada`; `proximas` suma ambas; `siguiente_cita` es la primera cita pendiente del día. Solo el rol `medico` puede consultar su propio dashboard.
 
 ---
 

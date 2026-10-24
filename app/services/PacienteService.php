@@ -38,7 +38,7 @@ final class PacienteService
     }
 
     /**
-     * @param array{q?: string, estado?: string|null} $filtros
+     * @param array{q?: string, estado?: string|null, atendidos?: bool} $filtros
      * @param array<int, int>|null $medicoIds
      * @return array{data: array<int, array<string, mixed>>, total: int}
      */
@@ -233,6 +233,7 @@ final class PacienteService
         $row['nombre_completo'] = trim($nombres . ' ' . $apellidos);
         $row['edad'] = $edad;
         $row['ultima_cita'] = $row['ultima_cita'] ?? null;
+        $row['ultima_atencion'] = $row['ultima_atencion'] ?? null;
 
         return $row;
     }

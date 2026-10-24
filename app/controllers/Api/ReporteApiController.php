@@ -150,6 +150,74 @@ final class ReporteApiController extends AdminApiController
         return json_ok($this->reportes->dashboardAdmin(date('Y-m-d')));
     }
 
+    public function dashboardMedico(Request $request): Response
+    {
+        $usuario = $this->asegurarRoles('medico');
+        $medicoId = (int) ($usuario['medico_id'] ?? 0);
+
+        if ($medicoId <= 0) {
+            throw new HttpException(
+                403,
+                'La cuenta no tiene un médico asociado.',
+                [],
+                'FORBIDDEN'
+            );
+        }
+
+        $medico = $this->comoPropietario(fn (): ?array => $this->medicos->findById($medicoId));
+
+        if ($medico === null) {
+            throw new HttpException(404, 'El médico solicitado no existe.', [], 'NOT_FOUND');
+        }
+
+        $fecha = $this->queryDate($request, 'fecha') ?? date('Y-m-d');
+        $citas = $this->comoPropietario(
+            fn (): array => $this->citas->agenda($medicoId, $fecha, $fecha)
+        );
+        $contadores = $this->comoPropietario(
+            fn (): array => $this->citas->contadoresAgenda($medicoId, $fecha, $fecha)
+        );
+
+        $agenda = [];
+        $siguiente = null;
+
+        foreach ($citas as $cita) {
+            $paciente = (string) ($cita['paciente']['nombre_completo'] ?? '');
+
+            $agenda[] = [
+                'id' => (int) $cita['id'],
+                'codigo' => (string) $cita['codigo'],
+                'hora' => (string) $cita['hora_inicio'],
+                'hora_fin' => (string) $cita['hora_fin'],
+                'paciente_id' => (int) $cita['paciente_id'],
+                'paciente' => $paciente,
+                'estado' => (string) $cita['estado'],
+                'motivo' => $cita['motivo'],
+            ];
+
+            if ($siguiente === null && in_array((string) $cita['estado'], ['programada', 'confirmada'], true)) {
+                $siguiente = [
+                    'hora' => (string) $cita['hora_inicio'],
+                    'paciente' => $paciente,
+                    'motivo' => $cita['motivo'],
+                ];
+            }
+        }
+
+        return json_ok([
+            'medico_id' => $medicoId,
+            'fecha' => $fecha,
+            'citas_hoy' => $contadores['total'],
+            'en_espera' => $contadores['confirmadas'],
+            'atendidas' => $contadores['atendidas'],
+            'proximas' => $contadores['programadas'] + $contadores['confirmadas'],
+            'pendientes' => $contadores['programadas'],
+            'inasistencias' => $contadores['inasistencias'],
+            'siguiente_cita' => $siguiente,
+            'agenda' => $agenda,
+        ]);
+    }
+
     /** @return array{desde: string, hasta: string} */
     private function rango(Request $request): array
     {

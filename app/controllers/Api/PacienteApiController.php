@@ -8,6 +8,7 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\CitaModel;
+use App\Models\ConsultaModel;
 use App\Models\PacienteModel;
 use App\Services\PacienteService;
 
@@ -18,11 +19,13 @@ final class PacienteApiController extends AdminApiController
     public function __construct(
         private ?PacienteService $pacientes = null,
         private ?PacienteModel $modelo = null,
-        private ?CitaModel $citas = null
+        private ?CitaModel $citas = null,
+        private ?ConsultaModel $consultas = null
     ) {
         $this->pacientes ??= new PacienteService();
         $this->modelo ??= new PacienteModel();
         $this->citas ??= new CitaModel();
+        $this->consultas ??= new ConsultaModel();
     }
 
     public function index(Request $request): Response
@@ -46,11 +49,13 @@ final class PacienteApiController extends AdminApiController
 
         $paginacion = $this->pagination($request);
         $medicoIds = $this->medicoIdsDe($usuario);
+        $atendidos = $this->queryBool($request, 'atendidos');
 
         $resultado = $this->comoPropietario(
             fn (): array => $this->pacientes->listar([
                 'q' => $this->queryText($request, 'q'),
                 'estado' => $estado === '' ? null : $estado,
+                'atendidos' => $atendidos === true,
             ], $paginacion['page'], $paginacion['per_page'], $medicoIds)
         );
 
@@ -78,6 +83,29 @@ final class PacienteApiController extends AdminApiController
         );
 
         return json_ok($paciente);
+    }
+
+    /** @param array<string, string> $params */
+    public function historia(Request $request, array $params): Response
+    {
+        $id = $this->idParam($params, 'paciente');
+        $paciente = $this->comoPropietario(fn (): ?array => $this->pacientes->obtener($id));
+
+        if ($paciente === null) {
+            throw new HttpException(404, 'Paciente no encontrado.', [], 'NOT_FOUND');
+        }
+
+        $this->autorizarPaciente($paciente);
+
+        // La consulta se ejecuta con el contexto RLS del usuario: el médico
+        // obtiene sus propias consultas y el paciente únicamente las suyas.
+        $consultas = $this->consultas->historiaPaciente($id);
+
+        return json_ok([
+            'paciente' => $paciente,
+            'consultas' => $consultas,
+            'total' => count($consultas),
+        ]);
     }
 
     public function store(Request $request): Response

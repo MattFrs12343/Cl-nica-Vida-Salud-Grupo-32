@@ -355,7 +355,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 
 #### Matias
 
-- [ ] **M-30 · APIs del médico** — agenda, resumen diario, pacientes atendidos e historia clínica. · *Deps:* M-27.
+- [x] **M-30 · APIs del médico** — agenda, resumen diario, pacientes atendidos e historia clínica. · *Deps:* M-27. · *DoD:* agenda y resumen existentes, `GET /api/dashboard/medico`, filtro `atendidos=1` con `ultima_atencion`, `GET /api/pacientes/{id}/historia` con signos vitales y RLS por médico/paciente verificados con `bin/test-medico.php`; suites previas en verde.
 - [ ] **M-31 · Consultas y pedidos** — consultas con signos vitales, recetas, documentos y órdenes; vistas imprimibles; URL `wa.me` y página pública de pedido. · *Deps:* M-30.
 - [ ] **M-32 · Pagos y QR del médico** — registrar/listar pagos propios y subir/ver QR. · *Deps:* M-28.
 - [ ] **M-33 · APIs del portal paciente** — mis citas, historial, perfil, cambio de contraseña y cancelación con la regla del día anterior. · *Deps:* M-21.

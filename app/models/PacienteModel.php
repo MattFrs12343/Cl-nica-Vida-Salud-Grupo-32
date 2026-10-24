@@ -70,9 +70,9 @@ final class PacienteModel
     /**
      * Listado administrativo de pacientes. `medico_ids` restringe a pacientes
      * con alguna cita con esos profesionales (alcance de médico/recepción
-     * médica).
+     * médica) y `atendidos` exige al menos una cita en estado `atendida`.
      *
-     * @param array{q?: string, estado?: string|null, medico_ids?: array<int, int>|null} $filtros
+     * @param array{q?: string, estado?: string|null, atendidos?: bool, medico_ids?: array<int, int>|null} $filtros
      * @return array{data: array<int, array<string, mixed>>, total: int}
      */
     public function listarAdmin(array $filtros, int $page, int $perPage): array
@@ -94,27 +94,43 @@ final class PacienteModel
             $parametros['estado'] = $filtros['estado'];
         }
 
-        if (array_key_exists('medico_ids', $filtros) && $filtros['medico_ids'] !== null) {
-            $ids = array_values(array_unique(array_filter(
-                array_map('intval', (array) $filtros['medico_ids']),
-                static fn (int $id): bool => $id > 0
-            )));
+        $tieneScopeMedico = array_key_exists('medico_ids', $filtros) && $filtros['medico_ids'] !== null;
+        $soloAtendidos = (bool) ($filtros['atendidos'] ?? false);
 
-            if ($ids === []) {
+        if ($tieneScopeMedico || $soloAtendidos) {
+            $ids = [];
+
+            if ($tieneScopeMedico) {
+                $ids = array_values(array_unique(array_filter(
+                    array_map('intval', (array) $filtros['medico_ids']),
+                    static fn (int $id): bool => $id > 0
+                )));
+            }
+
+            if ($tieneScopeMedico && $ids === []) {
                 $where[] = '1 = 0';
             } else {
-                $placeholders = [];
-                foreach ($ids as $index => $id) {
-                    $name = 'scope_medico_' . $index;
-                    $placeholders[] = ':' . $name;
-                    $parametros[$name] = $id;
+                $condiciones = ['c.paciente_id = p.id'];
+
+                if ($tieneScopeMedico) {
+                    $placeholders = [];
+                    foreach ($ids as $index => $id) {
+                        $name = 'scope_medico_' . $index;
+                        $placeholders[] = ':' . $name;
+                        $parametros[$name] = $id;
+                    }
+
+                    $condiciones[] = 'c.medico_id IN (' . implode(', ', $placeholders) . ')';
+                }
+
+                if ($soloAtendidos) {
+                    $condiciones[] = "c.estado = 'atendida'";
                 }
 
                 $where[] = 'EXISTS (
                     SELECT 1
                     FROM citas c
-                    WHERE c.paciente_id = p.id
-                      AND c.medico_id IN (' . implode(', ', $placeholders) . ')
+                    WHERE ' . implode(' AND ', $condiciones) . '
                 )';
             }
         }
@@ -127,7 +143,11 @@ final class PacienteModel
 
         $offset = ($page - 1) * $perPage;
         $sql = 'SELECT p.*,
-                       (SELECT MAX(c.fecha) FROM citas c WHERE c.paciente_id = p.id) AS ultima_cita
+                       (SELECT MAX(c.fecha) FROM citas c WHERE c.paciente_id = p.id) AS ultima_cita,
+                       (SELECT MAX(c.fecha)
+                        FROM citas c
+                        WHERE c.paciente_id = p.id
+                          AND c.estado = \'atendida\') AS ultima_atencion
                 FROM pacientes p'
             . $whereSql
             . ' ORDER BY p.apellidos ASC, p.nombres ASC, p.id ASC
