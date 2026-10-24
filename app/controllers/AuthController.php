@@ -173,7 +173,8 @@ final class AuthController extends Controller
             'title' => $title,
             'csrfToken' => csrf_token(),
             'csrf_token' => csrf_token(),
-        ], $data)));
+            'flashes' => flashes(),
+        ], $data), 'layouts/auth'));
     }
 
     private function respondError(Request $request, HttpException $exception, string $fallback): Response

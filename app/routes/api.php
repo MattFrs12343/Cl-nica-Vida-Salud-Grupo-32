@@ -7,10 +7,12 @@ use App\Controllers\Api\AuditoriaApiController;
 use App\Controllers\Api\CitaApiController;
 use App\Controllers\Api\DisponibilidadApiController;
 use App\Controllers\Api\EspecialidadApiController;
+use App\Controllers\Api\FichaApiController;
 use App\Controllers\Api\HorarioApiController;
 use App\Controllers\Api\KioscoApiController;
 use App\Controllers\Api\MedicoApiController;
 use App\Controllers\Api\PacienteApiController;
+use App\Controllers\Api\PagoApiController;
 use App\Controllers\Api\PublicApiController;
 use App\Controllers\Api\ReporteApiController;
 use App\Controllers\Api\UsuarioApiController;
@@ -116,6 +118,14 @@ $router->group('/api', static function ($router): void {
     $router->put('/pacientes/{id}', [PacienteApiController::class, 'update'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
     $router->patch('/pacientes/{id}/estado', [PacienteApiController::class, 'estado'], ['role:admin,super_admin', 'csrf']);
     $router->get('/pacientes/{paciente}/citas', [AgendaApiController::class, 'historialPaciente'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+
+    // Fichas y pagos (M-28)
+    $router->get('/fichas', [FichaApiController::class, 'index'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->get('/fichas/{codigo}', [FichaApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->post('/fichas/{codigo}/reimprimir', [FichaApiController::class, 'reimprimir'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico', 'csrf']);
+    $router->get('/pagos', [PagoApiController::class, 'index'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->post('/pagos', [PagoApiController::class, 'store'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico', 'csrf']);
+    $router->get('/pagos/{id}', [PagoApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
 
     // Perfil del paciente (Spec 02)
     $router->get('/me/perfil', [PacienteApiController::class, 'perfil'], ['role:paciente']);

@@ -757,11 +757,73 @@ Errores de cupo/agenda: `409 SLOT_TAKEN`, `422 SCHEDULE_OUTSIDE`, `422 CANCELLAT
 
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
-| GET | `/api/fichas?q=&fecha=` | recepción | Buscar fichas. |
-| GET | `/api/fichas/{codigo}` | recepción | Detalle/reimpresión. |
-| POST | `/api/fichas/{codigo}/reimprimir` | recepción | Registrar reimpresión. |
+| GET | `/api/fichas?q=&fecha=&page=&per_page=` | admin, super_admin, recepción, médico | Buscar fichas. |
+| GET | `/api/fichas/{codigo}` | admin, super_admin, recepción, médico | Detalle de la ficha. |
+| POST | `/api/fichas/{codigo}/reimprimir` | admin, super_admin, recepción, médico | Registrar reimpresión. |
 
 La emisión se hace por el kiosco (`POST /api/kiosco/ficha`). La ficha confirma la cita.
+
+Filtros del listado:
+
+- `q`: código de ficha, código de cita, CI, código de paciente o nombre del paciente.
+- `fecha`: fecha de la cita (`YYYY-MM-DD`).
+- `page` (1 por defecto) y `per_page` (15 por defecto, máximo 100).
+- `recepcionista_medico` y `medico` solo ven fichas de sus médicos asignados; el filtro se aplica antes de paginar.
+
+`POST /api/fichas/{codigo}/reimprimir` incrementa `fichas.reimpresiones`, actualiza `fichas.ultima_reimpresion_at` y devuelve la ficha actualizada. No modifica la cita ni el contenido original.
+
+Respuesta del listado (`GET /api/fichas`):
+
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": 55,
+      "codigo": "FIC-0055",
+      "cita_id": 64,
+      "cita_codigo": "CM-0064",
+      "cita_estado": "confirmada",
+      "fecha": "2026-10-26",
+      "hora_inicio": "11:00",
+      "hora_fin": "11:30",
+      "origen": "kiosco",
+      "canal": "kiosco",
+      "codigo_acceso": "4821",
+      "verificacion_biometrica": false,
+      "emitida_at": "2026-10-24 01:17:05-04",
+      "reimpresiones": 0,
+      "ultima_reimpresion_at": null,
+      "paciente": {
+        "id": 12,
+        "codigo": "PAC-0012",
+        "ci": "14558242",
+        "nombre_completo": "Matias Franco Salvatierra",
+        "telefono": "77712345"
+      },
+      "medico": {
+        "id": 3,
+        "codigo": "MED-003",
+        "nombre_completo": "Dr(a). Jorge Salazar"
+      },
+      "especialidad": {
+        "id": 2,
+        "nombre": "Cardiología"
+      }
+    }
+  ],
+  "message": null,
+  "meta": {
+    "page": 1,
+    "per_page": 15,
+    "total": 10
+  }
+}
+```
+
+`GET /api/fichas/{codigo}` devuelve el mismo objeto en `data`. `POST /api/fichas/{codigo}/reimprimir` devuelve `data.ficha`.
+
+Errores: `404 FICHA_NOT_FOUND`, `403 FORBIDDEN`, `403 CSRF_TOKEN_MISMATCH`, `422 VALIDATION_ERROR`.
 
 ---
 
@@ -840,9 +902,9 @@ Respuesta de envío:
 
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
-| POST | `/api/pagos` | recep_medico, médico | Registrar pago. |
-| GET | `/api/pagos?medico=&desde=&hasta=` | recep_medico, médico | Listar. |
-| GET | `/api/pagos/{id}` | recep_medico, médico | Detalle. |
+| POST | `/api/pagos` | admin, super_admin, recepción, recepción médica, médico | Registrar pago. |
+| GET | `/api/pagos?medico=&desde=&hasta=&page=&per_page=` | admin, super_admin, recepción, recepción médica, médico | Listar movimientos. |
+| GET | `/api/pagos/{id}` | admin, super_admin, recepción, recepción médica, médico | Detalle del pago. |
 
 Payload:
 
@@ -856,7 +918,63 @@ Payload:
 }
 ```
 
-`metodo`: `efectivo`, `visa`, `mastercard`. La tarjeta es solo UI; no hay pasarela.
+Validaciones:
+
+- `paciente_id` y `medico_id` deben existir; el médico debe estar activo.
+- `monto` debe ser mayor a cero y tener hasta dos decimales.
+- `metodo`: `efectivo`, `visa` o `mastercard`. La tarjeta es solo una etiqueta de UI; no hay pasarela.
+- `referencia_paciente` es opcional y admite hasta 150 caracteres.
+- `recepcionista_medico` solo puede registrar pagos de los médicos en `medico_ids`.
+- `medico` solo puede registrar y consultar sus propios pagos.
+
+Filtros:
+
+- `medico`: id del médico.
+- `desde` y `hasta`: fechas inclusivas (`YYYY-MM-DD`).
+- `page` (1 por defecto) y `per_page` (20 por defecto, máximo 100).
+
+Respuesta (`POST /api/pagos`):
+
+```json
+{
+  "ok": true,
+  "data": {
+    "id": 3,
+    "paciente_id": 10,
+    "medico_id": 3,
+    "registrado_por_id": 3,
+    "monto": 150,
+    "metodo": "efectivo",
+    "referencia_paciente": "Consulta general",
+    "fecha": "2026-10-24",
+    "creado_at": "2026-10-24 09:30:00-04",
+    "paciente": {
+      "id": 10,
+      "codigo": "PAC-0010",
+      "ci": "12345678",
+      "nombre_completo": "Ana Pérez",
+      "telefono": "77712345"
+    },
+    "medico": {
+      "id": 3,
+      "codigo": "MED-003",
+      "nombre_completo": "Dr(a). Jorge Salazar"
+    },
+    "registrado_por": {
+      "id": 3,
+      "username": "recepcion",
+      "nombre_completo": "recepcion"
+    },
+    "especialidad": null
+  },
+  "message": "Pago registrado.",
+  "meta": {}
+}
+```
+
+`GET /api/pagos` devuelve `data` como arreglo y `meta` con la paginación. `GET /api/pagos/{id}` devuelve un solo pago en `data`.
+
+Errores: `404 NOT_FOUND`, `403 FORBIDDEN`, `403 CSRF_TOKEN_MISMATCH`, `422 VALIDATION_ERROR`.
 
 ---
 

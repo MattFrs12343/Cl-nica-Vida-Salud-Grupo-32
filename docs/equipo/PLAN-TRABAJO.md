@@ -2,7 +2,7 @@
 
 > **Última actualización:** 2026-10-24
 > **Fuente funcional de verdad:** `docs/specs/`
-> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 backend terminada (M-15–M-22). Fase 3 en curso: kiosco completo (M-23–M-26) y APIs de recepción (M-27); pendientes fichas/pagos (M-28) y pruebas cruzadas (M-29).
+> **Estado del repo:** Fase 1 y Fase 2 backend terminadas (M-07–M-22). Fase 3 backend terminada: kiosco (M-23–M-26), APIs de recepción (M-27), fichas/pagos (M-28) y pruebas cruzadas (M-29). UI de autenticación, shell de paneles y panel de recepción completos; módulos admin restantes y secciones médico/portal quedan como placeholders estilizados.
 
 Este documento define **quién hace qué**, **qué archivos puede tocar cada uno** y **en qué orden**. La meta es que Matias y Lucas puedan trabajar en paralelo sin pisarse.
 
@@ -255,12 +255,12 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 #### Lucas
 
 - [ ] **L-01 · Lectura y dudas** — lee `docs/specs/00`, `01`, `02`–`15` (en diagonal) y este plan; anota dudas antes de tocar código. · *DoD:* dudas resueltas con Matias.
-- [ ] **L-02 · Spike Gentelella v4 ↔ PHP** — entiende que es Vite + vanilla JS (no Bootstrap/jQuery), decide cómo integrarla: assets compilados + shell PHP, o convertir `production/*.html`. Documenta en `docs/equipo/gentelella-integracion.md`. · *Timebox:* 4 horas. · *DoD:* decisión escrita y probada en una página.
-- [ ] **L-03 · Pipeline de assets del panel** — build reproducible de Gentelella hacia `public/assets/panel/**`; ignora `node_modules/` y `dist/`. · *DoD:* `npm run build` + copia funciona desde cero.
-- [ ] **L-04 · Layout de panel** — `app/views/layouts/gentelella.php` + partials: sidebar, topbar, breadcrumbs, flash, menú de usuario, meta CSRF. Menú distinto por rol. · *DoD:* `/admin`, `/recepcion`, `/medico` y `/portal` renderizan shell con el menú correcto.
-- [ ] **L-05 · Kit de componentes** — cards, tablas, paginación, badges de estado, modales, toasts, formularios, empty/loading/error, confirmación. · *DoD:* catálogo interno en una vista demo.
-- [ ] **L-06 · Rutas y controlador de panel** — `app/routes/panels.php` + `PanelController.php` que solo resuelve vista y permisos; páginas 403/404. · *DoD:* una ruta demo por rol renderiza su vista.
-- [ ] **L-07 · JS base del panel** — `apiFetch()` con CSRF, manejo de 401/403/422, toasts, modales y helpers de tabla. · *DoD:* un fetch demo muestra éxito y error de validación.
+- [x] **L-02 · Spike Gentelella v4 ↔ PHP** — **Descartado:** Gentelella v4 es Vite + vanilla JS y no trae `dist` compilado; se optó por un panel propio liviano con los tokens, fuentes y componentes de landing/kiosco. La decisión quedó aplicada en L-04..L-07.
+- [x] **L-03 · Pipeline de assets del panel** — **Reemplazado:** sin build de Gentelella; assets propios modulares en `public/assets/panel/**` (CSS con `@import` y módulos ES por página). No requiere `node_modules/` ni `dist/`.
+- [x] **L-04 · Layout de panel** — shell propio en `app/views/layouts/gentelella.php` + `app/views/layouts/menu.php` (sidebar, topbar, menú de usuario, meta CSRF y flashes). Menú distinto por rol; `/admin`, `/recepcion`, `/medico` y `/portal` renderizan su shell. *DoD:* login real redirige al home de cada rol sin 404.
+- [x] **L-05 · Kit de componentes** — cards, tablas, paginación, badges de estado, modales, toasts, formularios y estados empty/loading/error en `public/assets/panel/css/components.css` + `app.js`. *DoD:* reutilizado por admin y recepción.
+- [x] **L-06 · Rutas y controlador de panel** — `app/routes/panels.php` + `PanelController.php` con permisos por rol, shells y placeholders; páginas 403/404. *DoD:* una ruta real por rol renderiza su vista.
+- [x] **L-07 · JS base del panel** — `apiFetch()` con CSRF, manejo de 401/403/422, toasts, modales, debounce, formateo y helpers de tabla en `public/assets/panel/js/app.js`. *DoD:* auth y recepción lo usan contra endpoints reales.
 
 **Criterio de salida Fase 0:** backend base, contratos publicados, seed demo y mocks listos. El login real y los paneles se completan en la Fase 1 (M-12, L-08, L-09).
 
@@ -283,11 +283,11 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 
 #### Lucas
 
-- [ ] **L-08 · Vistas de autenticación** — login, recuperar, reset y activar; validación JS, estados de error y mensajes de bloqueo. · *Deps:* L-04, M-04. · *DoD:* funcionan con mock.
-- [ ] **L-09 · Integración de auth** — conecta las vistas a los endpoints reales, redirección por rol y manejo de errores. · *Deps:* M-12, M-13.
-- [ ] **L-10 · Layout final con sesión real** — usuario, menú, CSRF, flashes y logout. · *Deps:* M-12.
-- [ ] **L-11 · QA de auth y páginas de error** — 403/404/500, sesión expirada, cuenta bloqueada, formularios inválidos. · *Deps:* L-09, L-10.
-- [ ] **L-12 · Pass visual** — paleta azul médico/teal, tipografía, logo placeholder, responsive del shell. · *Deps:* L-10.
+- [x] **L-08 · Vistas de autenticación** — login, recuperar, reset y activar con validación JS, toggle de contraseña, estados de error y mensajes de bloqueo. *Deps:* L-04, M-04. *DoD:* flujo real probado en navegador.
+- [x] **L-09 · Integración de auth** — vistas conectadas a los endpoints reales, redirección por rol y manejo de errores. *Deps:* M-12, M-13.
+- [x] **L-10 · Layout final con sesión real** — usuario, menú por rol, CSRF, flashes y logout. *Deps:* M-12.
+- [x] **L-11 · QA de auth y páginas de error** — 403/404/500, sesión expirada, cuenta bloqueada y formularios inválidos. *Deps:* L-09, L-10.
+- [x] **L-12 · Pass visual** — paleta pine/terracota, tipografías Bricolage/DM Sans/DM Mono, logo, responsive del shell y del panel de recepción. *Deps:* L-10.
 
 **Criterio de salida Fase 1:** login real de los 6 roles, recuperación por correo en Mailpit y paneles con sesión válida.
 
@@ -310,7 +310,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 
 #### Lucas
 
-- [ ] **L-13 · Dashboard admin** — contadores, gráficos y accesos rápidos desde `/api/dashboard/admin`. · *Deps:* L-07, M-21.
+- [x] **L-13 · Dashboard admin** — contadores, gráficos y accesos rápidos desde `/api/dashboard/admin`. *Deps:* L-07, M-21.
 - [ ] **L-14 · Usuarios** — listado, filtros, alta/edición, activar/desactivar, desbloquear y asignar rol. · *Deps:* M-20.
 - [ ] **L-15 · Médicos** — CRUD, especialidades, subida de QR, activar/desactivar y asignar recepcionista. · *Deps:* M-20.
 - [ ] **L-16 · Especialidades** — CRUD, restricciones de sexo/edad y destacadas. · *Deps:* M-20.
@@ -333,17 +333,17 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 - [x] **M-25 · FichaService** — código `FIC-####`, código de acceso de 4 dígitos, QR, confirmación de cita y datos para impresión. · *Deps:* M-24. · *DoD:* emisión idempotente por cita, confirmación `programada → confirmada`, historial de estado, QR como texto `VIDASALUD|FIC-####|CM-####` y reconsulta por código verificados con `bin/test-kiosco-ficha.php`; contrato 4.6 actualizado.
 - [x] **M-26 · Kiosco UI** — bienvenida, CI, alta rápida, especialidad, médico, horario, verificación facial simulada, ficha con QR/print y reset por inactividad. Touch-friendly. · *Deps:* M-24, M-25. · *DoD:* `/kiosco` funciona a pantalla completa con token renovable, teclado táctil, catálogos reales, ficha imprimible y auto-reset; la vista informativa queda en `/kiosco-como-funciona`.
 - [x] **M-27 · APIs de recepción** — pacientes (CRUD, búsqueda, historial, desactivar), citas (crear, reprogramar, cancelar), agenda, asistencia/inasistencia y reconsultas. · *Deps:* M-11, M-21. · *DoD:* roles y CSRF en todas las mutaciones, escrituras transaccionales con bloqueo del médico, revalidación de cupo, reglas de cancelación del día anterior y reconsultas verificadas con `bin/test-recepcion.php`; suites previas e integración en verde.
-- [ ] **M-28 · APIs de recepción: fichas y pagos** — búsqueda/reimpresión de ficha, registrar/listar pagos. · *Deps:* M-25, M-27.
-- [ ] **M-29 · Pruebas kiosco + recepción** — token expirado, CI duplicada, cupo kiosco, ficha, transiciones de estado, reconsulta y pagos. · *Deps:* M-26, M-28.
+- [x] **M-28 · APIs de recepción: fichas y pagos** — búsqueda y detalle de fichas, reimpresión auditada, alta/listado/detalle de pagos con filtros y alcance por rol. *Deps:* M-25, M-27. *DoD:* migración 011 (`reimpresiones`, `ultima_reimpresion_at`), roles/CSRF, búsqueda por código/CI/nombre/fecha, contador persistente y pagos con `efectivo|visa|mastercard` verificados con `bin/test-fichas-pagos.php` (34 pruebas); suites previas en verde.
+- [x] **M-29 · Pruebas kiosco + recepción** — token expirado, CI duplicada, cupo kiosco, ficha, transiciones de estado, reconsulta y pagos. *Deps:* M-26, M-28. *DoD:* `bin/test-kiosco.php`, `bin/test-kiosco-api.php`, `bin/test-kiosco-ficha.php`, `bin/test-recepcion.php`, `bin/test-fichas-pagos.php` y `bin/test-integracion.php` en verde.
 
 #### Lucas
 
-- [ ] **L-20 · Dashboard recepción** — citas del día, en espera, fichas y accesos rápidos. · *Deps:* M-27.
-- [ ] **L-21 · Pacientes** — búsqueda, alta/edición, desactivar e historial. · *Deps:* M-27.
-- [ ] **L-22 · Citas de recepción** — wizard paciente/especialidad/médico/fecha/slot, aviso de duplicado, reprogramar y cancelar. · *Deps:* M-27.
-- [ ] **L-23 · Agenda diaria/semanal** — filtros por médico/fecha/estado y acciones de asistencia. · *Deps:* M-27.
-- [ ] **L-24 · Reconsultas + fichas** — modal de reconsulta (ausencia/seguimiento) y consulta/reimpresión de ficha. · *Deps:* M-27, M-28.
-- [ ] **L-25 · Pagos** — registrar pago, formulario de tarjeta solo visual, listado con filtros. · *Deps:* M-28.
+- [x] **L-20 · Dashboard recepción** — citas del día, en espera, fichas y accesos rápidos. *Deps:* M-27.
+- [x] **L-21 · Pacientes** — búsqueda, alta/edición, desactivar e historial. *Deps:* M-27.
+- [x] **L-22 · Citas de recepción** — wizard paciente/especialidad/médico/fecha/slot, aviso de duplicado, reprogramar y cancelar. *Deps:* M-27.
+- [x] **L-23 · Agenda diaria/semanal** — filtros por médico/fecha/estado y acciones de asistencia. *Deps:* M-27.
+- [x] **L-24 · Reconsultas + fichas** — modal de reconsulta (ausencia/seguimiento) y consulta/reimpresión de ficha. *Deps:* M-27, M-28.
+- [x] **L-25 · Pagos** — registrar pago, formulario de tarjeta solo visual, listado con filtros. *Deps:* M-28.
 
 **Criterio de salida Fase 3:** un paciente saca ficha en el kiosco y recepción completa el flujo hasta el pago.
 
@@ -406,9 +406,9 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 1. `git pull` y lee este documento completo.
 2. Lee `docs/specs/00-vision-general.md` y `01-autenticacion.md`; hojea `02`–`15`.
 3. Ejecuta **L-01** y anota dudas.
-4. Haz **L-02** (spike de Gentelella) y **L-03** (pipeline de assets).
-5. Espera o revisa **M-04/M-05**; si no están, usa `docs/specs/` y `gentelella/production/*.html` como referencia.
-6. Construye **L-04** (layout) y **L-05** (componentes) con datos mock.
+4. **L-02/L-03 quedaron descartados:** no se integra Gentelella v4; el panel usa assets propios en `public/assets/panel/**`.
+5. Revisa **M-04/M-05**; si falta un endpoint o un campo, se agrega al contrato.
+6. **L-04 y L-05 ya están implementados** como base reutilizable del panel; úsalos antes de crear componentes nuevos.
 7. Abre un PR borrador con una captura del shell.
 8. Reporta bloqueos con: tarea, archivo, endpoint o dato que falta.
 
@@ -481,7 +481,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 
 | # | Tema | Decisión / riesgo | Dueño |
 |---|---|---|---|
-| 1 | Gentelella v4 | Es Vite + vanilla JS, no un template PHP. Hay que definir assets compilados vs. convertir HTML. | Lucas (L-02) |
+| 1 | Gentelella v4 | **Resuelto:** no se integra. Es Vite + vanilla JS y no trae `dist`; se usa un panel propio liviano con tokens/fuentes de la landing. | Matias/Lucas (L-04) |
 | 2 | Registro público de paciente | Las specs definen activación desde kiosco, pero la landing habla de "registrarse". Definir si crea paciente+usuario o solo activa existentes. | Matias |
 | 3 | RLS con un solo usuario de BD | Hay que setear `app.usuario_id`/`app.rol` por request o las policies no funcionan. | Matias (M-10) |
 | 4 | Brevo free tier | Límite de correos; usar Mailpit en desarrollo y cola/log en fallos. | Matias (M-13) |
@@ -514,4 +514,4 @@ M-01/M-02/M-03 ──> M-04/M-05 ──> L-04/L-06/L-07 ──> paneles
 
 ## 12. Primer mensaje para Lucas
 
-> Lucas, el reparto está en `docs/equipo/PLAN-TRABAJO.md`. Empieza por **L-01, L-02 y L-03**; luego **L-04** (layout) y **L-05** (componentes) con mocks. No toques `database/`, `app/core/`, `app/models/`, `app/services/`, `app/controllers/Api/`, `public/index.php` ni las vistas de landing/kiosco. Si falta un endpoint o un campo, lo pides y se agrega al contrato. Tu primer PR debe ser el shell del panel con una captura.
+> Lucas, el reparto está en `docs/equipo/PLAN-TRABAJO.md`. La base del panel (L-04–L-12) y el panel de recepción (L-20–L-25) ya están implementados; el siguiente bloque es completar los módulos admin L-14–L-19 y las secciones médico/portal. No toques `database/`, `app/core/`, `app/models/`, `app/services/`, `app/controllers/Api/`, `public/index.php` ni las vistas de landing/kiosco. Si falta un endpoint o un campo, se pide y se agrega al contrato.
