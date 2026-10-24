@@ -10,6 +10,7 @@ use App\Controllers\Api\EspecialidadApiController;
 use App\Controllers\Api\HorarioApiController;
 use App\Controllers\Api\KioscoApiController;
 use App\Controllers\Api\MedicoApiController;
+use App\Controllers\Api\PacienteApiController;
 use App\Controllers\Api\PublicApiController;
 use App\Controllers\Api\ReporteApiController;
 use App\Controllers\Api\UsuarioApiController;
@@ -98,8 +99,27 @@ $router->group('/api', static function ($router): void {
 
     // Citas, agenda, reportes y auditoría (M-21)
     $router->get('/citas', [CitaApiController::class, 'index'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->post('/citas', [CitaApiController::class, 'store'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
     $router->get('/citas/{id}/historial-estados', [CitaApiController::class, 'historial'], ['role:admin,super_admin']);
     $router->get('/citas/{id}', [CitaApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->put('/citas/{id}/reprogramar', [CitaApiController::class, 'reprogramar'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
+    $router->patch('/citas/{id}/cancelar', [CitaApiController::class, 'cancelar'], ['role:admin,super_admin,recepcionista,recepcionista_medico,paciente', 'csrf']);
+    $router->patch('/citas/{id}/atender', [CitaApiController::class, 'atender'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico', 'csrf']);
+    $router->patch('/citas/{id}/inasistencia', [CitaApiController::class, 'inasistencia'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico', 'csrf']);
+    $router->post('/citas/{id}/reconsulta', [CitaApiController::class, 'reconsulta'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico', 'csrf']);
+
+    // Pacientes (M-27)
+    $router->get('/pacientes', [PacienteApiController::class, 'index'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->get('/pacientes/buscar', [PacienteApiController::class, 'buscar'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->post('/pacientes', [PacienteApiController::class, 'store'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
+    $router->get('/pacientes/{id}', [PacienteApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->put('/pacientes/{id}', [PacienteApiController::class, 'update'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
+    $router->patch('/pacientes/{id}/estado', [PacienteApiController::class, 'estado'], ['role:admin,super_admin', 'csrf']);
+    $router->get('/pacientes/{paciente}/citas', [AgendaApiController::class, 'historialPaciente'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+
+    // Perfil del paciente (Spec 02)
+    $router->get('/me/perfil', [PacienteApiController::class, 'perfil'], ['role:paciente']);
+    $router->put('/me/perfil', [PacienteApiController::class, 'actualizarPerfil'], ['role:paciente', 'csrf']);
 
     $router->get('/medicos/{medico}/agenda', [AgendaApiController::class, 'medico'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
     $router->get('/medicos/{medico}/agenda/dia', [AgendaApiController::class, 'dia'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);

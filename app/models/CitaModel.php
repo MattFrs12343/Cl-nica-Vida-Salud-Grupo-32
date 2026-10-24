@@ -33,22 +33,166 @@ final class CitaModel
      *
      * @return array<int, array<string, mixed>>
      */
-    public function activasDelDia(int $medicoId, string $fecha): array
+    public function activasDelDia(int $medicoId, string $fecha, ?int $excluirCitaId = null): array
     {
-        $statement = $this->pdo->prepare(
-            "SELECT id, hora_inicio, hora_fin, origen, es_reconsulta
-             FROM citas
-             WHERE medico_id = :medico_id
-               AND fecha = :fecha
-               AND estado <> 'cancelada'
-             ORDER BY hora_inicio ASC"
-        );
-        $statement->execute([
+        $sql = "SELECT id, hora_inicio, hora_fin, origen, es_reconsulta
+                FROM citas
+                WHERE medico_id = :medico_id
+                  AND fecha = :fecha
+                  AND estado <> 'cancelada'";
+        $parametros = [
             'medico_id' => $medicoId,
             'fecha' => $fecha,
-        ]);
+        ];
+
+        if ($excluirCitaId !== null && $excluirCitaId > 0) {
+            $sql .= ' AND id <> :excluir_cita_id';
+            $parametros['excluir_cita_id'] = $excluirCitaId;
+        }
+
+        $sql .= ' ORDER BY hora_inicio ASC';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($parametros);
 
         return $statement->fetchAll();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findRawById(int $id, bool $bloquear = false): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT * FROM citas WHERE id = :id'
+            . ($bloquear ? ' FOR UPDATE' : '')
+            . ' LIMIT 1'
+        );
+        $statement->execute(['id' => $id]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? null : $row;
+    }
+
+    /**
+     * Crea una cita desde recepción, incluyendo reconsultas prioritarias.
+     *
+     * @param array{
+     *     paciente_id: int,
+     *     medico_id: int,
+     *     especialidad_id: int,
+     *     fecha: string,
+     *     hora_inicio: string,
+     *     hora_fin: string,
+     *     motivo: ?string,
+     *     es_prioritaria?: bool,
+     *     es_reconsulta?: bool,
+     *     reconsulta_tipo?: string|null,
+     *     cita_origen_id?: int|null
+     * } $datos
+     * @return array<string, mixed>
+     */
+    public function crearRecepcion(array $datos): array
+    {
+        $statement = $this->pdo->prepare(
+            "INSERT INTO citas (
+                 paciente_id, medico_id, especialidad_id, fecha, hora_inicio, hora_fin,
+                 estado, origen, es_prioritaria, es_reconsulta, reconsulta_tipo,
+                 cita_origen_id, motivo
+             ) VALUES (
+                 :paciente_id, :medico_id, :especialidad_id, :fecha, :hora_inicio, :hora_fin,
+                 'programada', 'recepcion', CAST(:es_prioritaria AS boolean),
+                 CAST(:es_reconsulta AS boolean), CAST(:reconsulta_tipo AS tipo_reconsulta),
+                 :cita_origen_id, :motivo
+             )
+             RETURNING id"
+        );
+        $statement->execute([
+            'paciente_id' => $datos['paciente_id'],
+            'medico_id' => $datos['medico_id'],
+            'especialidad_id' => $datos['especialidad_id'],
+            'fecha' => $datos['fecha'],
+            'hora_inicio' => $datos['hora_inicio'],
+            'hora_fin' => $datos['hora_fin'],
+            'es_prioritaria' => ($datos['es_prioritaria'] ?? false) ? 'true' : 'false',
+            'es_reconsulta' => ($datos['es_reconsulta'] ?? false) ? 'true' : 'false',
+            'reconsulta_tipo' => $datos['reconsulta_tipo'] ?? null,
+            'cita_origen_id' => $datos['cita_origen_id'] ?? null,
+            'motivo' => $datos['motivo'] ?? null,
+        ]);
+
+        return $this->findRawById((int) $statement->fetchColumn()) ?? [];
+    }
+
+    public function actualizarSlot(
+        int $id,
+        string $fecha,
+        string $horaInicio,
+        string $horaFin,
+        ?string $motivo = null
+    ): void {
+        $asignaciones = [
+            'fecha = CAST(:fecha AS date)',
+            'hora_inicio = CAST(:hora_inicio AS time)',
+            'hora_fin = CAST(:hora_fin AS time)',
+        ];
+        $parametros = [
+            'id' => $id,
+            'fecha' => $fecha,
+            'hora_inicio' => $horaInicio,
+            'hora_fin' => $horaFin,
+        ];
+
+        if ($motivo !== null) {
+            $asignaciones[] = 'motivo = :motivo';
+            $parametros['motivo'] = $motivo;
+        }
+
+        $statement = $this->pdo->prepare(
+            'UPDATE citas SET ' . implode(', ', $asignaciones) . ' WHERE id = :id'
+        );
+        $statement->execute($parametros);
+    }
+
+    public function cambiarEstado(int $id, string $estado, ?string $motivoCancelacion = null): void
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE citas
+             SET estado = CAST(:estado AS estado_cita),
+                 motivo_cancelacion = :motivo_cancelacion
+             WHERE id = :id'
+        );
+        $statement->execute([
+            'id' => $id,
+            'estado' => $estado,
+            'motivo_cancelacion' => $motivoCancelacion,
+        ]);
+    }
+
+    public function registrarHistorial(
+        int $citaId,
+        ?string $estadoAnterior,
+        string $estadoNuevo,
+        ?int $usuarioId = null,
+        ?string $observacion = null
+    ): void {
+        $statement = $this->pdo->prepare(
+            'INSERT INTO citas_estado_historial (
+                 cita_id, estado_anterior, estado_nuevo, usuario_id, observacion
+             ) VALUES (
+                 :cita_id,
+                 CAST(:estado_anterior AS estado_cita),
+                 CAST(:estado_nuevo AS estado_cita),
+                 :usuario_id,
+                 :observacion
+             )'
+        );
+        $statement->execute([
+            'cita_id' => $citaId,
+            'estado_anterior' => $estadoAnterior,
+            'estado_nuevo' => $estadoNuevo,
+            'usuario_id' => $usuarioId,
+            'observacion' => $observacion,
+        ]);
     }
 
     public function contarCanalEnFranja(

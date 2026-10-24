@@ -8,20 +8,124 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\CitaModel;
+use App\Services\CitaService;
 
 final class CitaApiController extends AdminApiController
 {
     private const ESTADOS = ['programada', 'confirmada', 'atendida', 'cancelada', 'inasistencia'];
     private const ORIGENES = ['web', 'kiosco', 'recepcion'];
 
-    public function __construct(private ?CitaModel $citas = null)
-    {
+    public function __construct(
+        private ?CitaModel $citas = null,
+        private ?CitaService $servicio = null
+    ) {
         $this->citas ??= new CitaModel();
+        $this->servicio ??= new CitaService();
     }
 
     public function index(Request $request): Response
     {
         return $this->listar($request, false);
+    }
+
+    public function store(Request $request): Response
+    {
+        $this->asegurarRoles('super_admin', 'admin', 'recepcionista', 'recepcionista_medico');
+
+        $cita = $this->comoPropietario(
+            fn (): array => $this->servicio->crear($request->body(), $this->usuarioActual())
+        );
+
+        return json_ok($cita, [], 'Cita registrada.', 201);
+    }
+
+    /** @param array<string, string> $params */
+    public function reprogramar(Request $request, array $params): Response
+    {
+        $this->asegurarRoles('super_admin', 'admin', 'recepcionista', 'recepcionista_medico');
+        $id = $this->idParam($params);
+
+        $cita = $this->comoPropietario(
+            fn (): array => $this->servicio->reprogramar($id, $request->body(), $this->usuarioActual())
+        );
+
+        return json_ok($cita, [], 'Cita reprogramada.');
+    }
+
+    /** @param array<string, string> $params */
+    public function cancelar(Request $request, array $params): Response
+    {
+        $this->asegurarRoles(
+            'super_admin',
+            'admin',
+            'recepcionista',
+            'recepcionista_medico',
+            'paciente'
+        );
+        $id = $this->idParam($params);
+
+        $cita = $this->comoPropietario(
+            fn (): array => $this->servicio->cancelar($id, $request->body(), $this->usuarioActual())
+        );
+
+        return json_ok($cita, [], 'Cita cancelada.');
+    }
+
+    /** @param array<string, string> $params */
+    public function atender(Request $request, array $params): Response
+    {
+        $this->asegurarRoles(
+            'super_admin',
+            'admin',
+            'recepcionista',
+            'recepcionista_medico',
+            'medico'
+        );
+        $id = $this->idParam($params);
+
+        $cita = $this->comoPropietario(
+            fn (): array => $this->servicio->atender($id, $this->usuarioActual())
+        );
+
+        return json_ok($cita, [], 'Cita marcada como atendida.');
+    }
+
+    /** @param array<string, string> $params */
+    public function inasistencia(Request $request, array $params): Response
+    {
+        $this->asegurarRoles(
+            'super_admin',
+            'admin',
+            'recepcionista',
+            'recepcionista_medico',
+            'medico'
+        );
+        $id = $this->idParam($params);
+
+        $cita = $this->comoPropietario(
+            fn (): array => $this->servicio->inasistencia($id, $this->usuarioActual())
+        );
+
+        return json_ok($cita, [], 'Cita marcada como inasistencia.');
+    }
+
+    /** @param array<string, string> $params */
+    public function reconsulta(Request $request, array $params): Response
+    {
+        $this->asegurarRoles(
+            'super_admin',
+            'admin',
+            'recepcionista',
+            'recepcionista_medico',
+            'medico'
+        );
+        $id = $this->idParam($params);
+
+        $resultado = $this->comoPropietario(
+            fn (): array => $this->servicio->reconsulta($id, $request->body(), $this->usuarioActual())
+        );
+
+        return json_ok($resultado, [], 'Reconsulta registrada.', 201);
     }
 
     public function citasDelMes(Request $request): Response

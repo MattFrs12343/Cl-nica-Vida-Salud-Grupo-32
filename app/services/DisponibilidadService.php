@@ -31,7 +31,12 @@ final class DisponibilidadService
     /**
      * @return array<int, array{hora: string, hora_inicio: string, hora_fin: string, disponible: bool, cupo_restante: int}>
      */
-    public function slots(int $medicoId, string $fecha, string $canal = 'web'): array
+    public function slots(
+        int $medicoId,
+        string $fecha,
+        string $canal = 'web',
+        ?int $excluirCitaId = null
+    ): array
     {
         if (self::normalizarFecha($fecha) === null || !in_array($canal, ['web', 'kiosco', 'recepcion'], true)) {
             return [];
@@ -59,7 +64,7 @@ final class DisponibilidadService
 
         $duracion = max(5, (int) $medico['duracion_cita_min']);
         $bloqueos = $this->horarios->bloqueosDelDia($medicoId, $fecha);
-        $citas = $this->citas->activasDelDia($medicoId, $fecha);
+        $citas = $this->citas->activasDelDia($medicoId, $fecha, $excluirCitaId);
         $ahora = new DateTimeImmutable('now', new DateTimeZone((string) config('app.timezone', 'America/La_Paz')));
 
         $slots = [];
@@ -109,15 +114,20 @@ final class DisponibilidadService
         return $slots;
     }
 
-    public function slotDisponible(int $medicoId, string $fecha, string $hora, string $canal = 'web'): bool
-    {
+    public function slotDisponible(
+        int $medicoId,
+        string $fecha,
+        string $hora,
+        string $canal = 'web',
+        ?int $excluirCitaId = null
+    ): bool {
         $horaNormalizada = self::normalizarHora($hora);
 
         if ($horaNormalizada === null) {
             return false;
         }
 
-        foreach ($this->slots($medicoId, $fecha, $canal) as $slot) {
+        foreach ($this->slots($medicoId, $fecha, $canal, $excluirCitaId) as $slot) {
             if ($slot['hora'] === $horaNormalizada) {
                 return $slot['disponible'] === true;
             }

@@ -2,7 +2,7 @@
 
 > **Última actualización:** 2026-10-24
 > **Fuente funcional de verdad:** `docs/specs/`
-> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 backend terminada (M-15–M-22). Fase 3 en curso: kiosco completo (M-23–M-26) con ficha, QR e interfaz táctil; pendientes las APIs de recepción.
+> **Estado del repo:** Fase 1 backend (DB, RLS, auth y correo) terminada. Fase 2 backend terminada (M-15–M-22). Fase 3 en curso: kiosco completo (M-23–M-26) y APIs de recepción (M-27); pendientes fichas/pagos (M-28) y pruebas cruzadas (M-29).
 
 Este documento define **quién hace qué**, **qué archivos puede tocar cada uno** y **en qué orden**. La meta es que Matias y Lucas puedan trabajar en paralelo sin pisarse.
 
@@ -332,7 +332,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 - [x] **M-24 · APIs de kiosco** — identificar por CI, alta rápida, especialidades, médicos, disponibilidad kiosco y reserva con revalidación de cupo. La emisión de ficha pasa a M-25. · *Deps:* M-23, M-15, M-16. · *DoD:* identificación, alta sin cuenta, filtrado por sexo/edad, cupo kiosco exclusivo y reserva con `origen=kiosco` verificados con `bin/test-kiosco-api.php`; suites previas en verde.
 - [x] **M-25 · FichaService** — código `FIC-####`, código de acceso de 4 dígitos, QR, confirmación de cita y datos para impresión. · *Deps:* M-24. · *DoD:* emisión idempotente por cita, confirmación `programada → confirmada`, historial de estado, QR como texto `VIDASALUD|FIC-####|CM-####` y reconsulta por código verificados con `bin/test-kiosco-ficha.php`; contrato 4.6 actualizado.
 - [x] **M-26 · Kiosco UI** — bienvenida, CI, alta rápida, especialidad, médico, horario, verificación facial simulada, ficha con QR/print y reset por inactividad. Touch-friendly. · *Deps:* M-24, M-25. · *DoD:* `/kiosco` funciona a pantalla completa con token renovable, teclado táctil, catálogos reales, ficha imprimible y auto-reset; la vista informativa queda en `/kiosco-como-funciona`.
-- [ ] **M-27 · APIs de recepción** — pacientes (CRUD, búsqueda, historial, desactivar), citas (crear, reprogramar, cancelar), agenda, asistencia/inasistencia y reconsultas. · *Deps:* M-11, M-21.
+- [x] **M-27 · APIs de recepción** — pacientes (CRUD, búsqueda, historial, desactivar), citas (crear, reprogramar, cancelar), agenda, asistencia/inasistencia y reconsultas. · *Deps:* M-11, M-21. · *DoD:* roles y CSRF en todas las mutaciones, escrituras transaccionales con bloqueo del médico, revalidación de cupo, reglas de cancelación del día anterior y reconsultas verificadas con `bin/test-recepcion.php`; suites previas e integración en verde.
 - [ ] **M-28 · APIs de recepción: fichas y pagos** — búsqueda/reimpresión de ficha, registrar/listar pagos. · *Deps:* M-25, M-27.
 - [ ] **M-29 · Pruebas kiosco + recepción** — token expirado, CI duplicada, cupo kiosco, ficha, transiciones de estado, reconsulta y pagos. · *Deps:* M-26, M-28.
 

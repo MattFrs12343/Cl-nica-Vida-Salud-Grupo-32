@@ -64,7 +64,7 @@ Códigos HTTP:
 | `422` | Validación de campos. |
 | `500` | Error interno (mensaje genérico). |
 
-Códigos de error de negocio: `VALIDATION`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `SLOT_TAKEN`, `DUPLICATE_CI`, `INVALID_TRANSITION`, `CSRF_TOKEN_MISMATCH`, `RATE_LIMITED`, `SERVER_ERROR`.
+Códigos de error de negocio: `VALIDATION_ERROR`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `SLOT_TAKEN`, `DUPLICATE_CI`, `PATIENT_INACTIVE`, `INVALID_STATE`, `INVALID_TRANSITION`, `CANCELLATION_TOO_LATE`, `SCHEDULE_OUTSIDE`, `NOT_ELIGIBLE`, `CSRF_TOKEN_MISMATCH`, `RATE_LIMITED`, `SERVER_ERROR`.
 
 ### 1.3 Autenticación
 
@@ -508,15 +508,22 @@ Payload de creación:
 
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
-| GET | `/api/pacientes` | admin, recepción | Listar con `q`, `estado`, paginación. |
-| GET | `/api/pacientes/buscar?q=` | admin, recepción | Buscar por CI/nombre/apellido. |
-| GET | `/api/pacientes/{id}` | admin, recepción, médico | Detalle. |
-| POST | `/api/pacientes` | admin, recepción | Crear. |
-| PUT | `/api/pacientes/{id}` | admin, recepción | Editar. |
-| PATCH | `/api/pacientes/{id}/estado` | admin | Activar/desactivar. |
-| GET | `/api/pacientes/{id}/citas` | admin, recepción, médico | Historial de citas. |
+| GET | `/api/pacientes?q=&estado=&page=&per_page=` | admin, super_admin, recepcionista, recepcionista_medico, medico | Listar/buscar con paginación. |
+| GET | `/api/pacientes/buscar?q=&estado=` | admin, super_admin, recepcionista, recepcionista_medico, medico | Alias de búsqueda por CI/nombre/apellido. |
+| GET | `/api/pacientes/{id}` | admin, super_admin, recepcionista, recepcionista_medico, medico | Detalle e historial resumido. |
+| POST | `/api/pacientes` | admin, super_admin, recepcionista, recepcionista_medico | Crear paciente. |
+| PUT | `/api/pacientes/{id}` | admin, super_admin, recepcionista, recepcionista_medico | Editar; los campos omitidos conservan su valor. |
+| PATCH | `/api/pacientes/{id}/estado` | admin, super_admin | Activar/desactivar. |
+| GET | `/api/pacientes/{id}/citas` | admin, super_admin, recepcionista, recepcionista_medico, medico | Historial de citas (alias de `/historial`). |
+| GET | `/api/pacientes/{id}/historial?desde=&hasta=&estado=` | admin, super_admin, recepcionista, recepcionista_medico, medico, paciente (propio) | Historial de citas con filtros. |
 | GET | `/api/me/perfil` | paciente | Perfil propio. |
-| PUT | `/api/me/perfil` | paciente | Editar contacto/datos médicos propios. |
+| PUT | `/api/me/perfil` | paciente | Editar contacto y datos médicos propios. |
+
+Alcance por rol:
+
+- `admin` y `recepcionista` acceden a todos los pacientes.
+- `medico` y `recepcionista_medico` solo acceden a pacientes con citas de sus médicos asignados. La sesión de `recepcionista_medico` lleva `medico_ids`; un paciente sin citas con esos médicos responde `403 FORBIDDEN`.
+- El paciente solo puede consultar su propio perfil e historial; no puede crear ni editar pacientes.
 
 Payload de creación:
 
@@ -541,7 +548,17 @@ Payload de creación:
 }
 ```
 
-Errores: CI duplicada (`409`, `DUPLICATE_CI`), paciente inactivo no puede agendar (`409`).
+Campos obligatorios en el alta: `ci`, `nombres`, `apellidos`, `fecha_nacimiento` y `sexo`.
+`ci`: 5-10 dígitos con sufijo opcional de 1-2 caracteres (`87654321`, `87654321-1A`).
+`sexo`: `masculino` o `femenino`; `fecha_nacimiento` no puede ser futura ni superar 120 años.
+
+`GET /api/pacientes/{id}` agrega `citas` con el total de citas del paciente. El listado devuelve `nombre_completo`, `edad` y `ultima_cita`, y respeta `page`/`per_page` (máximo 100).
+
+`PATCH /api/pacientes/{id}/estado` acepta `estado` (`activo`/`inactivo`) o `activo` booleano. La respuesta incluye `meta.citas_futuras`; desactivar no cancela citas existentes, pero impide agendar nuevas.
+
+`PUT /api/me/perfil` solo permite `telefono`, `email`, `direccion`, `tipo_sangre`, `alergias`, `enfermedades_cronicas`, `medicamentos`, `antecedentes` y los datos de emergencia. No permite cambiar `ci`, nombres, apellidos, fecha de nacimiento ni sexo.
+
+Errores: `409 DUPLICATE_CI`, `409 PATIENT_INACTIVE`, `403 FORBIDDEN`, `404 NOT_FOUND`, `422 VALIDATION_ERROR`.
 
 ---
 
@@ -641,14 +658,18 @@ Payload de franja:
 |---|---|---|---|
 | GET | `/api/citas` | según rol | Listar con `fecha`, `medico`, `especialidad`, `estado`. |
 | GET | `/api/citas/{id}` | según rol | Detalle. |
-| POST | `/api/citas` | recepción, paciente, kiosco | Registrar. |
-| PUT | `/api/citas/{id}/reprogramar` | recepción | Cambiar fecha/hora. |
-| PATCH | `/api/citas/{id}/cancelar` | recepción, paciente | Cancelar con motivo. |
-| PATCH | `/api/citas/{id}/confirmar` | interno | Ficha → `confirmada`. |
-| PATCH | `/api/citas/{id}/atender` | recepción, médico | Marcar `atendida`. |
-| PATCH | `/api/citas/{id}/inasistencia` | recepción, médico | Marcar `inasistencia`. |
-| POST | `/api/citas/{id}/reconsulta` | recepción, médico | Crear reconsulta. |
-| GET | `/api/citas/{id}/historial-estados` | admin | Historial de estados. |
+| POST | `/api/citas` | admin, super_admin, recepcionista, recepcionista_medico | Registrar en recepción (`origen=recepcion`). |
+| PUT | `/api/citas/{id}/reprogramar` | admin, super_admin, recepcionista, recepcionista_medico | Cambiar fecha/hora. |
+| PATCH | `/api/citas/{id}/cancelar` | admin, super_admin, recepcionista, recepcionista_medico, paciente (propia) | Cancelar con motivo. |
+| PATCH | `/api/citas/{id}/confirmar` | interno | Sin endpoint HTTP: la emisión de ficha confirma la cita. |
+| PATCH | `/api/citas/{id}/atender` | admin, super_admin, recepcionista, recepcionista_medico, medico | Marcar `atendida`. |
+| PATCH | `/api/citas/{id}/inasistencia` | admin, super_admin, recepcionista, recepcionista_medico, medico | Marcar `inasistencia`. |
+| POST | `/api/citas/{id}/reconsulta` | admin, super_admin, recepcionista, recepcionista_medico, medico | Crear reconsulta. |
+| GET | `/api/citas/{id}/historial-estados` | admin, super_admin | Historial de estados. |
+
+La reserva pública (`/api/public/reservar`) y la del kiosco (`/api/kiosco/reservar`) no usan este endpoint; cada una conserva su propio origen y control de cupos.
+
+`POST /api/citas` con `origen=recepcion` no consume cupos web/kiosco: valida que el horario pertenezca a la agenda activa del médico y que no esté ocupado. Bloquea al médico dentro de una transacción para evitar dobles reservas.
 
 Payload de creación:
 
@@ -659,9 +680,34 @@ Payload de creación:
   "especialidad_id": 1,
   "fecha": "2026-11-20",
   "hora": "09:00",
-  "motivo": "Control general"
+  "motivo": "Control general",
+  "es_prioritaria": false
 }
 ```
+
+`es_prioritaria` es opcional (`false` por defecto).
+
+Payload de reprogramación:
+
+```json
+{
+  "fecha": "2026-11-21",
+  "hora": "10:30",
+  "motivo": "Reprogramación solicitada por el paciente"
+}
+```
+
+`motivo` es opcional; si se envía, se guarda en la cita.
+
+Payload de cancelación:
+
+```json
+{
+  "motivo": "El paciente no puede asistir"
+}
+```
+
+`atender` e `inasistencia` no requieren body.
 
 Payload de reconsulta:
 
@@ -676,8 +722,19 @@ Payload de reconsulta:
 
 `tipo`: `ausencia_medico` | `seguimiento`.
 
+Reglas de negocio:
+
+- `POST /api/citas`: paciente activo, médico activo con la especialidad, paciente elegible por sexo/edad y horario dentro de la agenda. Responde `409 PATIENT_INACTIVE` si el paciente está inactivo, `409 SLOT_TAKEN` si el horario se ocupó y `422 SCHEDULE_OUTSIDE` si no pertenece a la agenda.
+- `PUT /api/citas/{id}/reprogramar`: solo desde `programada` o `confirmada`. Revalida el cupo excluyendo la propia cita y mantiene el médico y la especialidad.
+- `PATCH /api/citas/{id}/cancelar`: solo desde `programada` o `confirmada`; el motivo es obligatorio. La cancelación normal se permite hasta el día anterior; el mismo día responde `422 CANCELLATION_TOO_LATE`. El paciente solo puede cancelar sus propias citas.
+- `PATCH /api/citas/{id}/atender`: solo desde `confirmada`.
+- `PATCH /api/citas/{id}/inasistencia`: desde `programada` o `confirmada`.
+- `POST /api/citas/{id}/reconsulta`: `ausencia_medico` cancela la cita origen (incluso el mismo día) y crea una cita prioritaria; `seguimiento` exige que el origen esté `atendida` y lo conserva. La nueva cita devuelve `es_reconsulta: true`, `es_prioritaria: true`, `reconsulta_tipo` y `cita_origen_id`.
+- Cada creación, reprogramación, cancelación, atención, inasistencia y reconsulta registra el cambio en `citas_estado_historial`.
+
 Estados: `programada`, `confirmada`, `atendida`, `cancelada`, `inasistencia`.
-Transiciones inválidas → `409` con `INVALID_TRANSITION`.
+Transiciones inválidas → `409 INVALID_TRANSITION`; estado incompatible con la operación → `409 INVALID_STATE`.
+Errores de cupo/agenda: `409 SLOT_TAKEN`, `422 SCHEDULE_OUTSIDE`, `422 CANCELLATION_TOO_LATE`, `409 PATIENT_INACTIVE`.
 
 ---
 
@@ -685,10 +742,14 @@ Transiciones inválidas → `409` con `INVALID_TRANSITION`.
 
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
-| GET | `/api/medicos/{id}/agenda?fecha=&estado=` | recepción, médico, admin | Agenda del día. |
-| GET | `/api/medicos/{id}/agenda?desde=&hasta=` | recepción, médico | Rango para calendario. |
-| GET | `/api/medicos/{id}/agenda/dia` | recepción, médico | Contadores del día. |
-| GET | `/api/pacientes/{id}/historial?desde=&hasta=&estado=` | recepción, médico, paciente (propio) | Historial de citas. |
+| GET | `/api/medicos/{id}/agenda?fecha=&estado=` | admin, super_admin, recepcionista, recepcionista_medico, medico | Agenda del día. |
+| GET | `/api/medicos/{id}/agenda?desde=&hasta=` | admin, super_admin, recepcionista, recepcionista_medico, medico | Rango para calendario. |
+| GET | `/api/medicos/{id}/agenda/dia` | admin, super_admin, recepcionista, recepcionista_medico, medico | Contadores del día. |
+| GET | `/api/pacientes/{id}/historial?desde=&hasta=&estado=` | admin, super_admin, recepcionista, recepcionista_medico, medico, paciente (propio) | Historial de citas. |
+| GET | `/api/pacientes/{id}/citas` | admin, super_admin, recepcionista, recepcionista_medico, medico | Alias del historial de citas. |
+| GET | `/api/citas?fecha=&desde=&hasta=&medico=&especialidad=&estado=&page=&per_page=` | admin, super_admin, recepcionista, recepcionista_medico, medico | Listado general con filtros y paginación. |
+
+`recepcionista_medico` y `medico` quedan limitados a sus médicos asignados. El paciente solo puede consultar su propio historial. El historial devuelve la ficha básica de la cita (fecha, hora, médico, especialidad, estado, origen y reconsulta) y respeta `desde`/`hasta`/`estado`.
 
 ---
 

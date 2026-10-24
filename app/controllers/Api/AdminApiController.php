@@ -240,8 +240,9 @@ abstract class AdminApiController extends Controller
     }
 
     /**
-     * Ejecuta una lectura sin RLS y restaura el contexto al terminar. Se usa
-     * solo después de autorizar explícitamente el acceso al médico solicitado.
+     * Ejecuta una operación sin RLS y restaura el contexto al terminar. Se usa
+     * solo después de autorizar explícitamente el acceso. En escrituras conserva
+     * el usuario/IP para que los triggers de auditoría registren al responsable.
      *
      * @template T
      * @param callable(): T $callback
@@ -255,12 +256,16 @@ abstract class AdminApiController extends Controller
             return $callback();
         }
 
+        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+
         DB::clearContext();
 
         try {
+            DB::setAuditContext((int) ($usuario['id'] ?? 0), $ip);
+
             return $callback();
         } finally {
-            DB::setContext($usuario, (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+            DB::setContext($usuario, $ip);
         }
     }
 
