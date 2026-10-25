@@ -1,0 +1,48 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0A6EBD
+  ActorBorderColor #0A6EBD
+  LifeLineBorderColor #9CC3E5
+  LifeLineBackgroundColor #F7FBFF
+  ParticipantBorderColor #0A6EBD
+  ParticipantBackgroundColor #EAF4FB
+  FontSize 10
+}
+autonumber
+actor "Paciente" as P
+participant "LandingView" as V
+participant "Router" as R
+participant "PublicApiController" as C
+participant "DisponibilidadService" as D
+participant "CitaService" as S
+participant "CitaModel" as M
+participant "FichaService" as F
+participant "MailService" as MAIL
+database "PostgreSQL" as DB
+P -> V : selecciona especialidad, médico, fecha y hora
+V -> R : GET /api/public/disponibilidad
+R -> C : despachar consulta pública
+C -> D : calcular(medico_id, fecha, canal_web)
+D -> DB : SELECT horarios, citas y bloqueos
+DB --> D : datos de agenda
+D --> C : slots con cupo web
+C --> V : horarios disponibles
+P -> V : confirma la reserva
+V -> R : POST /api/public/reservar
+R -> C : validar token y despachar
+C -> S : registrarCita(datos)
+S -> D : revalidar disponibilidad
+D -> DB : SELECT ... FOR UPDATE
+DB --> D : slot libre y cupo vigente
+S -> M : insertar(cita)
+M -> DB : INSERT cita (estado=programada, origen=web)
+S -> F : emitirFicha(cita)
+F -> DB : INSERT ficha + código de acceso
+S -> MAIL : enviarConfirmacion(paciente, cita)
+MAIL --> S : correo en cola o enviado
+S --> C : cita + ficha
+C --> V : 201 Created
+V --> P : confirmación y ficha digital
+@enduml

@@ -103,6 +103,25 @@ def _para_border(p, color="0A6EBD", edge="bottom", size="8", space="2"):
     pBdr.append(el)
 
 
+def _cell_borders(cell, color="D5E3F0", size="4", top=False, bottom=True):
+    tcPr = cell._tc.get_or_add_tcPr()
+    borders = tcPr.find(qn("w:tcBorders"))
+    if borders is None:
+        borders = OxmlElement("w:tcBorders")
+        tcPr.append(borders)
+    for edge, enabled in (("top", top), ("bottom", bottom)):
+        if not enabled:
+            continue
+        el = borders.find(qn(f"w:{edge}"))
+        if el is None:
+            el = OxmlElement(f"w:{edge}")
+            borders.append(el)
+        el.set(qn("w:val"), "single")
+        el.set(qn("w:sz"), size)
+        el.set(qn("w:space"), "0")
+        el.set(qn("w:color"), color)
+
+
 def _para_shade(p, fill="EAF4FB"):
     pPr = p._p.get_or_add_pPr()
     shd = OxmlElement("w:shd")
@@ -379,7 +398,7 @@ class Builder:
     def caption(self, kind, text):
         p = self.doc.add_paragraph(style="Caption")
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.paragraph_format.keep_with_next = False
+        p.paragraph_format.keep_with_next = (kind == "Tabla")
         r = p.add_run(kind + " ")
         _set_run_font(r, size=8.5, bold=True, color=BLUE, italic=True)
         if kind == "Figura":
@@ -497,63 +516,65 @@ class Builder:
 def cover(b):
     p = b.doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(10)
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(2)
+    r = p.add_run("UNIVERSIDAD AUTÓNOMA GABRIEL RENÉ MORENO")
+    _set_run_font(r, size=13, bold=True, color=NAVY)
+
+    p = b.doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(8)
+    r = p.add_run("FACULTAD DE INGENIERÍA EN CIENCIAS DE LA COMPUTACIÓN Y TELECOMUNICACIONES")
+    _set_run_font(r, size=9.5, bold=True, color=GRAY)
+
+    p = b.doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(4)
     p.paragraph_format.space_after = Pt(10)
-    p.add_run().add_picture(os.path.join(ASSETS, "portada_banner.png"), width=Cm(16.0))
+    p.add_run().add_picture(os.path.join(ASSETS, "escudo_facultad.png"), width=Cm(5.5))
 
     p = b.doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(18)
-    p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.space_after = Pt(2)
     r = p.add_run("PROYECTO DE EXAMEN PARCIAL II")
-    _set_run_font(r, size=12, bold=True, color=BLUE)
+    _set_run_font(r, size=10.5, bold=True, color=BLUE)
 
     p = b.doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.space_after = Pt(2)
     r = p.add_run("SISTEMA WEB DE GESTIÓN DE CITAS MÉDICAS")
-    _set_run_font(r, name=HEAD_FONT, size=25, bold=True, color=NAVY)
+    _set_run_font(r, name=HEAD_FONT, size=22, bold=True, color=NAVY)
 
     p = b.doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(14)
+    p.paragraph_format.space_after = Pt(2)
     r = p.add_run("Clínica Vida Salud")
-    _set_run_font(r, name=HEAD_FONT, size=20, bold=True, color=TEAL)
+    _set_run_font(r, name=HEAD_FONT, size=17, bold=True, color=TEAL)
 
     p = b.doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.space_after = Pt(12)
     r = p.add_run("DOCUMENTO PUDS-UML")
-    _set_run_font(r, size=14, bold=True, color=NAVY)
-
-    p = b.doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(22)
-    r = p.add_run("Perfil · Marco teórico · Modelo de negocio · Requisitos · Análisis · Diseño · Implementación · Pruebas")
-    _set_run_font(r, size=9.5, italic=True, color=GRAY)
+    _set_run_font(r, size=11, bold=True, color=NAVY)
 
     table = b.doc.add_table(rows=0, cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     table.autofit = False
     rows = [
-        ("Grupo", "32"),
-        ("Integrantes", "Matías Franco · Lucas Cortez Cáceres"),
+        ("Materia", "Ingeniería de Requisitos SC"),
         ("Docente", "MSc. Ing. Angélica Gazón Cuéllar"),
-        ("Asignatura", "Ingeniería de Requisitos SC"),
-        ("Fecha", "Octubre de 2026"),
-        ("Versión", "1.0"),
-        ("Repositorio", "github.com/MattFrs12343/Cl-nica-Vida-Salud-Grupo-32"),
+        ("Grupo", "32"),
     ]
     for i, (k, v) in enumerate(rows):
         tr = table.add_row()
         _row_no_split(tr)
         c0, c1 = tr.cells
-        c0.width = Cm(4.4)
-        c1.width = Cm(9.6)
-        _cell_margins(c0, top=80, bottom=80)
-        _cell_margins(c1, top=80, bottom=80)
-        c0.text = ""
-        c1.text = ""
+        c0.width = Cm(4.2)
+        c1.width = Cm(11.4)
+        _cell_borders(c0, color="D5E3F0", size="4", top=(i == 0), bottom=True)
+        _cell_borders(c1, color="D5E3F0", size="4", top=(i == 0), bottom=True)
+        _cell_margins(c0, top=60, bottom=60, left=80, right=80)
+        _cell_margins(c1, top=60, bottom=60, left=80, right=80)
         p0 = c0.paragraphs[0]
         p1 = c1.paragraphs[0]
         p0.alignment = WD_ALIGN_PARAGRAPH.RIGHT
@@ -562,15 +583,43 @@ def cover(b):
         _set_run_font(r0, size=8.5, bold=True, color=GRAY)
         r1 = p1.add_run(v)
         _set_run_font(r1, size=10, color=NAVY)
-        if i < len(rows) - 1:
-            _para_border(p0, color="D5E3F0", edge="bottom", size="4", space="4")
-            _para_border(p1, color="D5E3F0", edge="bottom", size="4", space="4")
-
     p = b.doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(22)
-    r = p.add_run("Documento elaborado para la asignatura Ingeniería de Requisitos SC · Defensa: lunes 09 de noviembre de 2026")
-    _set_run_font(r, size=8.5, italic=True, color=LIGHT_GRAY)
+    p.paragraph_format.space_before = Pt(14)
+    p.paragraph_format.space_after = Pt(4)
+    r = p.add_run("Integrantes")
+    _set_run_font(r, size=11, bold=True, color=NAVY)
+
+    table = b.doc.add_table(rows=0, cols=2)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table.autofit = False
+    rows = [
+        ("Matías Franco Salvatierra", "224071254"),
+        ("Lucas Cortez Cáceres", "224051520"),
+    ]
+    for i, (name, code) in enumerate(rows):
+        tr = table.add_row()
+        _row_no_split(tr)
+        c0, c1 = tr.cells
+        c0.width = Cm(10.6)
+        c1.width = Cm(5.0)
+        _cell_borders(c0, color="D5E3F0", size="4", top=(i == 0), bottom=True)
+        _cell_borders(c1, color="D5E3F0", size="4", top=(i == 0), bottom=True)
+        _cell_margins(c0, top=60, bottom=60, left=80, right=80)
+        _cell_margins(c1, top=60, bottom=60, left=80, right=80)
+        p0 = c0.paragraphs[0]
+        p1 = c1.paragraphs[0]
+        p0.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r0 = p0.add_run(name)
+        _set_run_font(r0, size=11, color=NAVY)
+        r1 = p1.add_run(code)
+        _set_run_font(r1, size=11, color=GRAY)
+    p = b.doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(16)
+    r = p.add_run("Santa Cruz – Bolivia, octubre de 2026")
+    _set_run_font(r, size=10, color=GRAY)
 
 
 def front_matter(b):
@@ -583,7 +632,7 @@ def front_matter(b):
         ("Versión", "1.0"),
         ("Estado", "Documento de diseño y avance académico"),
         ("Grupo", "32"),
-        ("Integrantes", "Matías Franco · Lucas Cortez Cáceres"),
+        ("Integrantes", "Matías Franco Salvatierra · Lucas Cortez Cáceres"),
         ("Docente", "MSc. Ing. Angélica Gazón Cuéllar"),
         ("Asignatura", "Ingeniería de Requisitos SC"),
         ("Periodo", "Segundo Examen Parcial · 14/10/2026 al 09/11/2026"),

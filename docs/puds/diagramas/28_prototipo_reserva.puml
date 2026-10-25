@@ -1,0 +1,19 @@
+@startsalt
+skinparam dpi 220
+{+
+  <b>Clínica Vida Salud — Reserva de cita
+  <b>Paso 1 de 4: especialidad, médico y fecha
+  {
+    Especialidad | [Medicina general        v]
+    Médico       | [Dra. Ana Torres         v]
+    Fecha        | [15/11/2026              ]
+  }
+  <b>Horarios disponibles
+  {#
+    . | <b>08:00 | <b>08:30 | <b>09:00 | <b>09:30
+    Turno | ( ) | (X) | ( ) | ( )
+  }
+  Motivo | [Consulta general_______________]
+  [ Buscar disponibilidad ] | [ Confirmar cita ]
+}
+@endsalt
