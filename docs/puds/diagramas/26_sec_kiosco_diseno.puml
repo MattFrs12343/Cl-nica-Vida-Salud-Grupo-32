@@ -1,0 +1,48 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0A6EBD
+  ActorBorderColor #0A6EBD
+  LifeLineBorderColor #9CC3E5
+  LifeLineBackgroundColor #F7FBFF
+  ParticipantBorderColor #0A6EBD
+  ParticipantBackgroundColor #EAF4FB
+  FontSize 10
+}
+autonumber
+actor "Paciente" as P
+participant "KioscoView" as V
+participant "KioskMiddleware" as MW
+participant "KioscoController" as C
+participant "KioscoTokenService" as T
+participant "CitaService" as S
+participant "FichaService" as F
+participant "CitaModel" as M
+database "PostgreSQL" as DB
+P -> V : ingresa su CI en el teclado numérico
+V -> MW : POST /api/kiosco/identificar
+MW -> T : validarTokenHMAC()
+T --> MW : token vigente
+MW -> C : despachar solicitud
+C -> M : buscarPacientePorCI(ci)
+M -> DB : SELECT paciente
+DB --> M : paciente o null
+C --> V : paciente identificado o registro
+P -> V : selecciona especialidad, médico y horario
+V -> C : GET /api/kiosco/disponibilidad
+C -> S : consultarDisponibilidad(canal_kiosco)
+S -> DB : SELECT horarios y cupos kiosco
+DB --> S : slots
+S --> C : horarios disponibles
+C --> V : slots con cupo kiosco
+P -> V : confirma la reserva
+V -> C : POST /api/kiosco/reservar
+C -> S : registrarCita(datos, canal_kiosco)
+S -> DB : INSERT cita + revalidar cupo
+S -> F : emitirFicha(cita)
+F -> DB : INSERT ficha + código + QR
+F --> C : ficha emitida
+C --> V : ficha y confirmación
+V --> P : ficha digital / impresión
+@enduml

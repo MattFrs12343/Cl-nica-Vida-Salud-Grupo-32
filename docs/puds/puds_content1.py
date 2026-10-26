@@ -48,24 +48,7 @@ def chapter1():
         caption="Alcance funcional del proyecto",
     )
 
-    b.h2("1.5 Actores y roles")
-    b.table(
-        ["Rol", "Código", "Responsabilidad principal"],
-        [
-            ("Superadministrador", "super_admin", "Control total del sistema, usuarios, catálogos, auditoría y reportes."),
-            ("Administrador", "admin", "Configuración de catálogos, usuarios, horarios, reportes y desbloqueo de cuentas."),
-            ("Recepcionista", "recepcionista", "Gestión de pacientes y citas de toda la clínica, fichas y reconsultas."),
-            ("Recepcionista de médico", "recepcionista_medico", "Operación limitada a los médicos que tiene asignados."),
-            ("Médico", "medico", "Atención de su agenda, historia clínica, recetas, órdenes y pagos."),
-            ("Paciente", "paciente", "Reserva, consulta y cancelación de sus propias citas y pedidos."),
-            ("Kiosco", "dispositivo", "Emisión de fichas en modo público con token firmado."),
-        ],
-        [3.4, 3.7, 8.9],
-        caption="Actores del sistema",
-        font_size=8.5,
-    )
-
-    b.h2("1.6 Interesados y expectativas")
+    b.h2("1.5 Interesados y expectativas")
     b.table(
         ["Interesado", "Expectativa"],
         [
@@ -80,7 +63,7 @@ def chapter1():
         caption="Interesados y expectativas",
     )
 
-    b.h2("1.7 Metodología y ciclo de vida")
+    b.h2("1.6 Metodología y ciclo de vida")
     b.p("Se adopta un ciclo de vida iterativo e incremental basado en RUP, con énfasis en las disciplinas de Captura de Requisitos, Análisis, Diseño, Implementación y Pruebas. El trabajo se organiza en dos ciclos: el primero consolida la base de datos, seguridad, catálogos, horarios y landing; el segundo incorpora citas, estados, kiosco, historia clínica, pedidos, pagos, reportes y auditoría.")
     b.p("El Ciclo 1 (hasta el 24/10/2026) establece la plataforma base sobre la que se construyen los demás módulos. Su implementación sigue un orden de dependencias: primero el modelo de datos y las políticas de seguridad a nivel de fila; luego la autenticación y el control de acceso por roles; a continuación los catálogos de pacientes, médicos y especialidades; después la configuración de horarios y cupos 50/50 web/kiosco; y finalmente la landing pública base. Este orden garantiza que cada módulo cuente con las tablas, permisos y catálogos que necesita antes de ser construido, y se complementa con las reglas transversales de seguridad, validación cliente/servidor, CSRF y despliegue en cPanel con PostgreSQL en la nube.")
     b.figure("rup_fases.png", 15.5, "Fases e hitos del proceso unificado aplicados al proyecto")
@@ -95,7 +78,7 @@ def chapter1():
         [2.2, 3.0, 10.8],
         caption="Planificación general por ciclos",
     )
-    b.h3("1.7.1 Detalle de los entregables del Ciclo 1")
+    b.h3("1.6.1 Detalle de los entregables del Ciclo 1")
     b.p("La tabla siguiente desglosa el alcance comprometido para el Ciclo 1, alineado con las especificaciones por módulo del repositorio (carpeta docs/specs). Cada entrega incluye su modelo de datos, endpoints, reglas de negocio y criterios de aceptación.")
     b.table(
         ["Spec", "Módulo", "Resultado esperado"],
@@ -114,7 +97,7 @@ def chapter1():
     )
     b.p("El cierre del Ciclo 1 deja operativa la base del sistema: usuarios y roles, catálogos maestros, disponibilidad y sitio público, de modo que el Ciclo 2 pueda concentrarse en la operación de citas, la atención clínica y los procesos de soporte.")
 
-    b.h3("1.7.2 Detalle de los entregables del Ciclo 2")
+    b.h3("1.6.2 Detalle de los entregables del Ciclo 2")
     b.p("El Ciclo 2 (hasta el 07/11/2026) completa la operación clínica y administrativa. A partir de la base entregada, incorpora el registro y la gestión de citas, los estados y reconsultas, el kiosco y las fichas, la agenda y el historial, la historia clínica con recetas, documentos y órdenes, el envío de pedidos por WhatsApp, los pagos, los reportes y la auditoría. El orden conserva la dependencia entre agenda, cita, atención y soporte, de modo que cada módulo se apoye en datos y permisos ya disponibles.")
     b.table(
         ["Spec", "Módulo", "Resultado esperado"],
@@ -134,7 +117,7 @@ def chapter1():
         font_size=8.2,
     )
 
-    b.h3("1.7.3 Distribución de casos de uso por ciclo")
+    b.h3("1.6.3 Distribución de casos de uso por ciclo")
     b.p("La asignación de casos de uso a cada ciclo sigue la prioridad y las dependencias funcionales. El Ciclo 1 agrupa los casos de uso de la plataforma base y el Ciclo 2 los de la operación clínica y de soporte. La tabla siguiente resume la distribución y remite a la priorización detallada del capítulo 4.")
     b.table(
         ["Ciclo", "Casos de uso", "N.º", "Distribución por prioridad", "Resultado esperado"],
@@ -148,7 +131,7 @@ def chapter1():
         align_center_cols={0, 2, 3},
     )
 
-    b.h2("1.8 Organización del documento")
+    b.h2("1.7 Organización del documento")
     b.p("El documento se estructura en ocho capítulos. El capítulo 1 presenta el perfil y el problema. El capítulo 2 expone el marco teórico. El capítulo 3 describe el modelo de negocio. El capítulo 4 captura los requisitos y casos de uso. El capítulo 5 desarrolla el análisis. El capítulo 6 presenta el diseño. El capítulo 7 documenta la implementación. El capítulo 8 describe la estrategia y los casos de prueba. Finalmente se incluyen conclusiones, recomendaciones, bibliografía y anexos.")
 
 
@@ -174,7 +157,7 @@ def chapter2():
     b.p("Las disciplinas se representan en el documento mediante los diagramas de casos de uso, análisis, diseño, implementación y pruebas. La arquitectura se documenta con vistas lógica y de despliegue, mientras que la implementación se organiza en capas y paquetes.")
 
     b.h2("2.3 UML 2.5")
-    b.p("UML es un lenguaje de modelado que proporciona notaciones para visualizar, especificar, construir y documentar artefactos de software. En este proyecto se emplean diagramas de casos de uso, actividad, clases, secuencia, estados, componentes, despliegue y entidad-relación; la organización en paquetes se representa mediante la tabla de la sección 4.4. Los diagramas se elaboran con PlantUML y se integran al documento como figuras numeradas.")
+    b.p("UML es un lenguaje de modelado que proporciona notaciones para visualizar, especificar, construir y documentar artefactos de software. En este proyecto se emplean diagramas de casos de uso, actividad, clases, secuencia, estados, componentes, despliegue y entidad-relación; la organización en paquetes se representa mediante la tabla de la sección 4.9. Los diagramas se elaboran con PlantUML y se integran al documento como figuras numeradas.")
     b.table(
         ["Diagrama", "Tipo", "Uso en el proyecto", "Capítulo"],
         [
@@ -197,8 +180,8 @@ def chapter2():
     b.table(
         ["Tipo UML", "Este PUDS", "PROYECTOCOMPLETO1", "Observación"],
         [
-            ("Casos de uso", "3 diagramas (cap. 4)", "5 diagramas (figs. 7–11)", "Se conserva la notación; la agrupación por paquete se documenta en la tabla 4.4."),
-            ("Paquetes", "Tabla 4.4", "1 diagrama (fig. 12)", "Se mantiene la agrupación lógica; no se añade una figura independiente."),
+            ("Casos de uso", "3 diagramas (cap. 4)", "5 diagramas (figs. 7–11)", "Se conserva la notación; la agrupación por paquete se documenta en la tabla de la sección 4.9."),
+            ("Paquetes", "Tabla de la sección 4.9", "1 diagrama (fig. 12)", "Se mantiene la agrupación lógica; no se añade una figura independiente."),
             ("Clases", "3 diagramas (cap. 5)", "3 diagramas (figs. 29–31)", "Cobertura equivalente: análisis y dominio."),
             ("Entidad-relación", "2 diagramas (cap. 6)", "4 diagramas (figs. 32–35)", "Se prioriza el núcleo y el modelo clínico."),
             ("Secuencia", "5 diagramas (cap. 5)", "3 diagramas (figs. 36–38)", "Mayor detalle en login, reserva, kiosco, cancelación y consulta."),
@@ -273,7 +256,148 @@ def chapter3():
     b.p("El proceso principal inicia con la necesidad del paciente y termina con la atención y el registro clínico. Las actividades de validación de elegibilidad, disponibilidad, cupo y superposición son puntos de control obligatorios. La emisión de la ficha confirma la cita y habilita la atención.")
     b.figure("02_actividad_negocio.png", 15.8, "Diagrama de actividad del proceso de reserva y atención")
 
-    b.h2("3.4 Reglas de negocio")
+    b.note("Las reglas de negocio RN01–RN14 y las reglas de ampliación RX01–RX13 se documentan en la sección 4.5, dentro de la disciplina de Captura de Requisitos, porque restringen el comportamiento de los casos de uso y son la entrada directa del análisis y del diseño.", "Ubicación de las reglas")
+
+    b.h2("3.4 Propuesta de valor")
+    b.bullets([
+        ("Eficiencia operativa: ", "menos llamadas y registros manuales, agenda única y validaciones automáticas."),
+        ("Confiabilidad: ", "prevención de superposiciones y control de cupos en tiempo real."),
+        ("Autoservicio: ", "reserva web y kiosco para pacientes, con fichas digitales."),
+        ("Trazabilidad: ", "historial de estados, auditoría de catálogos y códigos únicos."),
+        ("Continuidad clínica: ", "historia clínica, recetas, órdenes y resultados asociados al paciente."),
+        ("Toma de decisiones: ", "reportes de demanda, atención, cancelaciones y productividad."),
+    ])
+
+    b.h2("3.5 Canales y puntos de contacto")
+    b.table(
+        ["Canal", "Usuario", "Función"],
+        [
+            ("Landing pública", "Paciente / visitante", "Información, especialidades, médicos y reserva web."),
+            ("Portal del paciente", "Paciente", "Mis citas, historial, perfil y cancelación."),
+            ("Kiosco", "Paciente presencial", "Identificación, reserva y emisión de ficha."),
+            ("Panel administrativo", "Admin / recepción", "Catálogos, agenda, citas, reportes y auditoría."),
+            ("Panel médico", "Médico", "Agenda, consulta, historia, pedidos y pagos."),
+            ("WhatsApp", "Paciente", "Acceso a recetas, documentos y órdenes mediante enlace."),
+        ],
+        [3.4, 4.2, 8.4],
+        caption="Canales del sistema",
+    )
+
+
+def chapter4():
+    b.h1("4. CAPTURA DE REQUISITOS")
+    b.p("La captura de requisitos sigue el flujo de trabajo de RUP: encontrar actores y casos de uso, priorizarlos, detallar los flujos críticos, prototipar la interfaz y estructurar el modelo de casos de uso. El resultado es el modelo de casos de uso, que actúa como contrato entre los interesados y el equipo de desarrollo y como entrada principal del análisis.")
+
+    b.h2("4.1 Técnicas de elicitación")
+    b.bullets([
+        ("Entrevistas: ", "con la dirección, recepción y médicos para comprender el flujo real de atención."),
+        ("Observación: ", "del proceso de reserva, confirmación, emisión de ficha y cierre de consulta."),
+        ("Análisis documental: ", "revisión de la especificación del examen y de los documentos operativos."),
+        ("Prototipación: ", "panel administrativo del Ciclo 1, reserva web, kiosco y agenda para validar la interacción."),
+        ("Talleres de validación: ", "revisión de reglas de negocio y criterios de aceptación con los interesados."),
+    ])
+
+    b.h2("4.2 Encontrar actores y casos de uso")
+    b.p("Los actores se identificaron a partir de los trabajadores y actores del negocio, de los sistemas externos y de los dispositivos de operación. Cada actor representa un rol y no una persona concreta; un mismo usuario puede desempeñar más de un rol si el administrador se lo asigna. El actor Kiosco se modela como un actor de sistema con token firmado y permisos restringidos.")
+    b.table(
+        ["Rol", "Código", "Responsabilidad principal"],
+        [
+            ("Superadministrador", "super_admin", "Control total del sistema, usuarios, catálogos, auditoría y reportes."),
+            ("Administrador", "admin", "Configuración de catálogos, usuarios, horarios, reportes y desbloqueo de cuentas."),
+            ("Recepcionista", "recepcionista", "Gestión de pacientes y citas de toda la clínica, fichas y reconsultas."),
+            ("Recepcionista de médico", "recepcionista_medico", "Operación limitada a los médicos que tiene asignados."),
+            ("Médico", "medico", "Atención de su agenda, historia clínica, recetas, órdenes y pagos."),
+            ("Paciente", "paciente", "Reserva, consulta y cancelación de sus propias citas y pedidos."),
+            ("Kiosco", "dispositivo", "Emisión de fichas en modo público con token firmado."),
+        ],
+        [3.4, 3.7, 8.9],
+        caption="Actores del sistema",
+        font_size=8.5,
+    )
+    b.table(
+        ["Trabajador o actor del negocio", "Actor del sistema", "Casos de uso principales"],
+        [
+            ("Dirección de la clínica", "Administrador / Superadministrador", "UC20, UC21, UC22, UC23, UC24"),
+            ("Recepción", "Recepcionista / Recepcionista de médico", "UC08, UC09, UC10, UC11, UC12, UC13, UC14"),
+            ("Médico", "Médico", "UC12, UC13, UC14, UC16, UC17, UC18, UC19"),
+            ("Paciente", "Paciente", "UC03, UC04, UC05, UC06, UC07"),
+            ("Atención presencial", "Kiosco", "UC15"),
+            ("Correo y WhatsApp", "Sistemas externos (secundarios)", "UC18 y notificaciones de UC05, UC06 y UC10"),
+        ],
+        [4.5, 5.2, 6.3],
+        caption="Correspondencia entre actores del negocio y actores del sistema",
+        font_size=8.3,
+    )
+    b.p("La identificación de casos de uso se realizó recorriendo cada actor y preguntando qué servicios necesita del sistema. Los casos resultantes se agruparon por proceso de negocio y se depuraron para evitar duplicados. El catálogo completo se presenta en la sección 4.6 y su estructuración en la sección 4.9.")
+
+    b.h2("4.3 Requisitos funcionales")
+    b.p("Los requisitos funcionales se numeran RF01–RF13 y se derivan de la especificación funcional del proyecto. La tabla siguiente resume el alcance y la prioridad; el detalle de funciones y reglas se presenta a continuación para conservar la trazabilidad con los casos de uso y las pruebas.")
+    b.table(
+        ["ID", "Requisito", "Prioridad"],
+        [
+            ("RF01", "Autenticación, control de acceso por roles, bloqueo y recuperación de contraseña.", "Alta"),
+            ("RF02", "Gestión de pacientes con CI única, perfil e historial.", "Alta"),
+            ("RF03", "Gestión de médicos, especialidades asignadas y QR profesional.", "Alta"),
+            ("RF04", "Gestión de especialidades con restricciones de sexo y edad.", "Alta"),
+            ("RF05", "Horarios, cupos web/kiosco, bloqueos y cálculo de disponibilidad.", "Alta"),
+            ("RF06", "Registro de citas con validación de disponibilidad.", "Alta"),
+            ("RF07", "Prevención de citas duplicadas, superpuestas y fuera de horario.", "Alta"),
+            ("RF08", "Reprogramación de citas programadas o confirmadas.", "Alta"),
+            ("RF09", "Cancelación con motivo y plazo mínimo.", "Alta"),
+            ("RF10", "Estados, asistencia, inasistencia y reconsultas.", "Alta"),
+            ("RF11", "Agenda médica e historial del paciente.", "Media"),
+            ("RF12", "Historia clínica, recetas, documentos y órdenes.", "Media"),
+            ("RF13", "Reportes y dashboards operativos.", "Media"),
+        ],
+        [2.0, 12.8, 2.2],
+        caption="Requisitos funcionales del sistema",
+        align_center_cols={0, 2},
+    )
+    b.table(
+        ["ID", "Nombre", "Funciones y reglas de negocio"],
+        [
+            ("RF01", "Inicio de sesión y control de acceso", "Validar usuario o correo y contraseña con `password_verify()`; iniciar sesión segura y regenerar el identificador; identificar el rol y mostrar el menú correspondiente; cerrar sesión; impedir el acceso a páginas internas sin sesión; almacenar contraseñas con `password_hash()`; bloquear la cuenta tras tres intentos fallidos y habilitar la recuperación por token."),
+            ("RF02", "Gestión de pacientes", "Registrar, listar, buscar por CI, nombre o apellido, modificar, consultar citas anteriores y desactivar sin eliminar el historial. Campos: código, CI, nombres, apellidos, fecha de nacimiento, sexo, teléfono, correo, dirección y estado. No se permiten dos pacientes con la misma CI cuando esta es el identificador."),
+            ("RF03", "Gestión de médicos", "Registrar, listar, buscar por nombre o especialidad, modificar, consultar agenda y activar o desactivar. Campos mínimos: código, registro profesional, nombres, apellidos, teléfono, correo, especialidades y estado. Un médico inactivo no recibe citas nuevas, pero conserva sus citas históricas."),
+            ("RF04", "Gestión de especialidades", "Administrar identificador, nombre, descripción opcional y estado. No se permiten dos especialidades con el mismo nombre normalizado. Se aplican restricciones de sexo y edad cuando la especialidad lo requiera."),
+            ("RF05", "Gestión de horarios de atención", "Registrar franjas por médico y día; definir la duración de la cita en bloques de 30 minutos y calcular los horarios disponibles. La hora final debe ser posterior a la inicial; no se ofrecen citas fuera del horario, en fechas pasadas ni fuera de los intervalos configurados. Los bloqueos y feriados pueden excluirse de la agenda."),
+            ("RF06", "Registro de citas médicas", "Seleccionar paciente, especialidad, médico, fecha, hora disponible y motivo opcional; generar un código único y registrar la fecha de creación. Después de elegir médico y fecha se muestran solo los horarios disponibles. Al guardar se comprueba nuevamente la disponibilidad antes de confirmar."),
+            ("RF07", "Prevención de citas duplicadas", "Impedir que un médico tenga dos citas incompatibles en el mismo horario y que una cita exceda el horario de atención. La validación se ejecuta en el servidor y se refuerza con transacciones, bloqueo pesimista e índice único parcial en la base de datos."),
+            ("RF08", "Reprogramación de citas", "Recuperar la cita, mostrar nuevas fechas y horas disponibles, verificar que el médico pueda atender en el nuevo horario, evitar conflictos, guardar el cambio y conservar la integridad y el historial. Una cita atendida o cancelada no se reprograma directamente."),
+            ("RF09", "Cancelación de citas", "Cancelar citas programadas o confirmadas, registrar el estado y el motivo, no eliminar físicamente el registro, liberar el horario y conservar la cita para consultas históricas. Una cita atendida no se cancela como si nunca hubiera ocurrido."),
+            ("RF10", "Control de asistencia", "Gestionar los estados programada, confirmada, atendida, cancelada e inasistencia; validar las transiciones permitidas y rechazar acciones incompatibles, por ejemplo marcar como atendida una cita cancelada sin procedimiento autorizado."),
+            ("RF11", "Consulta de agenda médica", "Consultar la agenda de un médico para una fecha específica mostrando hora, código de cita, paciente, especialidad, estado y motivo breve cuando el usuario tenga permiso. Permitir filtrar por médico, fecha y estado."),
+            ("RF12", "Historial de citas por paciente", "Visualizar fecha y hora, médico, especialidad, estado y fecha de registro de todas las citas del paciente, incluidas las pasadas y canceladas, sin perder la trazabilidad."),
+            ("RF13", "Reportes", "Generar como mínimo citas por fecha, por médico, por especialidad, por estado, pacientes registrados, cantidad de citas atendidas, canceladas e inasistencias por período y agenda diaria por médico. Permitir filtros por fecha o rango y mostrar totales; la exportación a CSV o PDF es opcional."),
+        ],
+        [1.6, 3.8, 10.6],
+        caption="Detalle de requisitos funcionales y reglas asociadas",
+        font_size=7.8,
+        align_center_cols={0},
+    )
+
+    b.h2("4.4 Requisitos no funcionales")
+    b.table(
+        ["ID", "Categoría", "Requisito"],
+        [
+            ("RNF01", "Usabilidad", "Interfaz responsive, clara y consistente; kiosco touch-friendly."),
+            ("RNF02", "Rendimiento", "Respuesta menor a 2 s en consultas habituales y disponibilidad en menos de 1 s."),
+            ("RNF03", "Seguridad", "Hash de contraseñas, CSRF, RLS, cookies seguras y control por rol."),
+            ("RNF04", "Disponibilidad", "Operación continua en horario de atención; despliegue con HTTPS."),
+            ("RNF05", "Integridad", "Transacciones y restricciones para evitar citas superpuestas."),
+            ("RNF06", "Mantenibilidad", "Arquitectura MVC, separación por capas y convenciones de código."),
+            ("RNF07", "Portabilidad", "PHP 8.1+, PostgreSQL 16 y navegadores modernos."),
+            ("RNF08", "Escalabilidad", "Cupos y agenda preparados para crecimiento de médicos y sedes."),
+            ("RNF09", "Auditabilidad", "Registro de cambios de catálogos con IP y datos antes/después."),
+            ("RNF10", "Compatibilidad", "Landing y kiosco en iPad, tablet y navegador de escritorio."),
+        ],
+        [2.0, 3.0, 11.0],
+        caption="Requisitos no funcionales",
+        align_center_cols={0},
+    )
+
+    b.h2("4.5 Reglas de negocio")
+    b.p("Las reglas se aplican independientemente de lo que el usuario escriba en los formularios y se validan en el servidor y, cuando corresponde, en la base de datos. Las reglas RN01–RN14 provienen del enunciado del proyecto; las reglas RX01–RX13 son ampliaciones acordadas para la operación de la clínica.")
     b.table(
         ["Código", "Regla"],
         [
@@ -316,104 +440,7 @@ def chapter3():
         caption="Reglas de ampliación acordadas",
     )
 
-    b.h2("3.5 Propuesta de valor")
-    b.bullets([
-        ("Eficiencia operativa: ", "menos llamadas y registros manuales, agenda única y validaciones automáticas."),
-        ("Confiabilidad: ", "prevención de superposiciones y control de cupos en tiempo real."),
-        ("Autoservicio: ", "reserva web y kiosco para pacientes, con fichas digitales."),
-        ("Trazabilidad: ", "historial de estados, auditoría de catálogos y códigos únicos."),
-        ("Continuidad clínica: ", "historia clínica, recetas, órdenes y resultados asociados al paciente."),
-        ("Toma de decisiones: ", "reportes de demanda, atención, cancelaciones y productividad."),
-    ])
-
-    b.h2("3.6 Canales y puntos de contacto")
-    b.table(
-        ["Canal", "Usuario", "Función"],
-        [
-            ("Landing pública", "Paciente / visitante", "Información, especialidades, médicos y reserva web."),
-            ("Portal del paciente", "Paciente", "Mis citas, historial, perfil y cancelación."),
-            ("Kiosco", "Paciente presencial", "Identificación, reserva y emisión de ficha."),
-            ("Panel administrativo", "Admin / recepción", "Catálogos, agenda, citas, reportes y auditoría."),
-            ("Panel médico", "Médico", "Agenda, consulta, historia, pedidos y pagos."),
-            ("WhatsApp", "Paciente", "Acceso a recetas, documentos y órdenes mediante enlace."),
-        ],
-        [3.4, 4.2, 8.4],
-        caption="Canales del sistema",
-    )
-
-
-def chapter4():
-    b.h1("4. CAPTURA DE REQUISITOS")
-    b.h2("4.1 Técnicas de elicitación")
-    b.bullets([
-        ("Entrevistas: ", "con la dirección, recepción y médicos para comprender el flujo real de atención."),
-        ("Observación: ", "del proceso de reserva, confirmación, emisión de ficha y cierre de consulta."),
-        ("Análisis documental: ", "revisión de la especificación del examen y de los documentos operativos."),
-        ("Prototipación: ", "pantallas de reserva, kiosco y agenda para validar la interacción."),
-        ("Talleres de validación: ", "revisión de reglas de negocio y criterios de aceptación con los interesados."),
-    ])
-
-    b.h2("4.2 Requisitos funcionales")
-    b.table(
-        ["ID", "Requisito", "Prioridad"],
-        [
-            ("RF01", "Autenticación, control de acceso por roles, bloqueo y recuperación de contraseña.", "Alta"),
-            ("RF02", "Gestión de pacientes con CI única, perfil e historial.", "Alta"),
-            ("RF03", "Gestión de médicos, especialidades asignadas y QR profesional.", "Alta"),
-            ("RF04", "Gestión de especialidades con restricciones de sexo y edad.", "Alta"),
-            ("RF05", "Horarios, cupos web/kiosco, bloqueos y cálculo de disponibilidad.", "Alta"),
-            ("RF06", "Registro de citas con validación de disponibilidad.", "Alta"),
-            ("RF07", "Prevención de citas duplicadas, superpuestas y fuera de horario.", "Alta"),
-            ("RF08", "Reprogramación de citas programadas o confirmadas.", "Alta"),
-            ("RF09", "Cancelación con motivo y plazo mínimo.", "Alta"),
-            ("RF10", "Estados, asistencia, inasistencia y reconsultas.", "Alta"),
-            ("RF11", "Agenda médica e historial del paciente.", "Media"),
-            ("RF12", "Historia clínica, recetas, documentos y órdenes.", "Media"),
-            ("RF13", "Reportes y dashboards operativos.", "Media"),
-        ],
-        [2.0, 12.8, 2.2],
-        caption="Requisitos funcionales del sistema",
-        align_center_cols={0, 2},
-    )
-
-    b.h2("4.3 Requisitos no funcionales")
-    b.table(
-        ["ID", "Categoría", "Requisito"],
-        [
-            ("RNF01", "Usabilidad", "Interfaz responsive, clara y consistente; kiosco touch-friendly."),
-            ("RNF02", "Rendimiento", "Respuesta menor a 2 s en consultas habituales y disponibilidad en menos de 1 s."),
-            ("RNF03", "Seguridad", "Hash de contraseñas, CSRF, RLS, cookies seguras y control por rol."),
-            ("RNF04", "Disponibilidad", "Operación continua en horario de atención; despliegue con HTTPS."),
-            ("RNF05", "Integridad", "Transacciones y restricciones para evitar citas superpuestas."),
-            ("RNF06", "Mantenibilidad", "Arquitectura MVC, separación por capas y convenciones de código."),
-            ("RNF07", "Portabilidad", "PHP 8.1+, PostgreSQL 16 y navegadores modernos."),
-            ("RNF08", "Escalabilidad", "Cupos y agenda preparados para crecimiento de médicos y sedes."),
-            ("RNF09", "Auditabilidad", "Registro de cambios de catálogos con IP y datos antes/después."),
-            ("RNF10", "Compatibilidad", "Landing y kiosco en iPad, tablet y navegador de escritorio."),
-        ],
-        [2.0, 3.0, 11.0],
-        caption="Requisitos no funcionales",
-        align_center_cols={0},
-    )
-
-    b.h2("4.4 Paquetes de casos de uso")
-    b.p("Los casos de uso se agrupan en tres paquetes: acceso público y reserva web (UC01–UC07), operación de citas y agenda (UC08–UC14) y atención médica y administración (UC15–UC24). La numeración es única y se mantiene consistente entre diagramas, especificaciones y matriz de trazabilidad.")
-    b.table(
-        ["Paquete", "Casos de uso", "Actores principales"],
-        [
-            ("Acceso público", "UC01–UC07", "Paciente, público"),
-            ("Citas y agenda", "UC08–UC14", "Recepcionista, recepcionista de médico, médico"),
-            ("Atención y administración", "UC15–UC24", "Médico, recepción, administrador, kiosco"),
-        ],
-        [3.2, 4.8, 8.0],
-        caption="Paquetes de casos de uso",
-    )
-
-    b.figure("01_casos_uso_publico.png", 15.5, "Casos de uso del acceso público y reserva web")
-    b.figure("01b_casos_uso_citas.png", 15.5, "Casos de uso de operación de citas y agenda")
-    b.figure("01c_casos_uso_atencion.png", 15.8, "Casos de uso de atención médica y administración", max_height_cm=23.0)
-
-    b.h2("4.5 Catálogo de casos de uso")
+    b.h2("4.6 Catálogo de casos de uso")
     b.table(
         ["ID", "Caso de uso", "Actor principal", "RF"],
         [
@@ -448,8 +475,8 @@ def chapter4():
         align_center_cols={0},
     )
 
-    b.h3("4.5.1 Priorización de casos de uso por importancia y riesgo")
-    b.p("La priorización combina dos ejes: la importancia, que mide el grado en que el caso de uso sostiene la operación o la seguridad del paciente, y el riesgo, que estima el daño clínico, económico o legal que produciría una falla o un uso indebido. La combinación da lugar a cuatro niveles: P1 Crítica, P2 Alta, P3 Media y P4 Baja. La tabla se ordena por prioridad y conserva el código para mantener la trazabilidad con el catálogo y con los paquetes PK-01 (acceso público), PK-02 (citas y agenda) y PK-03 (atención y administración).")
+    b.h3("4.6.1 Priorización de casos de uso por importancia y riesgo")
+    b.p("La priorización combina dos ejes: la importancia, que mide el grado en que el caso de uso sostiene la operación o la seguridad del paciente, y el riesgo, que estima el daño clínico, económico o legal que produciría una falla o un uso indebido. La combinación da lugar a cuatro niveles: P1 Crítica, P2 Alta, P3 Media y P4 Baja. La tabla se ordena por prioridad y conserva el código para mantener la trazabilidad con el catálogo y con los paquetes PK-01, PK-02 y PK-03.")
     b.table(
         ["Prioridad", "Código", "Paquete", "Caso de uso", "Importancia", "Riesgo", "Fundamento"],
         [
@@ -486,8 +513,9 @@ def chapter4():
     )
     b.p("El sombreado de cada fila codifica la prioridad: rojo para P1 Crítica, naranja para P2 Alta, amarillo para P3 Media y verde para P4 Baja. El resultado es 11 casos de uso P1 Crítica, 3 P2 Alta, 8 P3 Media y 2 P4 Baja. Los casos P1 se construyen y prueban primero dentro de cada ciclo y concentran la mayor cobertura de pruebas; los casos P3 y P4 se incorporan según la dependencia funcional y el avance de la operación. La prioridad no altera el catálogo: los 24 casos de uso se conservan sin omisiones ni duplicados y solo se reordenan para planificar la entrega.")
 
-    b.h2("4.6 Especificación de casos de uso críticos")
-    b.h3("4.6.1 UC04 — Iniciar sesión")
+    b.h2("4.7 Especificación detallada de casos de uso críticos")
+    b.p("Se detallan los casos de uso de mayor prioridad y riesgo. Cada especificación describe actor, precondición, flujo principal, flujos alternativos y postcondición, conforme a la plantilla de la disciplina de requisitos. El resto de los casos se especifica en las fichas por módulo del repositorio (docs/specs).")
+    b.h3("4.7.1 UC04 — Iniciar sesión")
     b.kv_table([
         ("Actor principal", "Usuario interno o paciente."),
         ("Precondición", "El usuario existe y la cuenta está activa."),
@@ -496,7 +524,7 @@ def chapter4():
         ("Postcondición", "Sesión iniciada con el rol correspondiente y último acceso actualizado."),
     ], caption="Especificación de UC04")
 
-    b.h3("4.6.2 UC05 — Reservar cita web")
+    b.h3("4.7.2 UC05 — Reservar cita web")
     b.kv_table([
         ("Actor principal", "Paciente."),
         ("Precondición", "Paciente autenticado, especialidad y médico activos."),
@@ -505,7 +533,7 @@ def chapter4():
         ("Postcondición", "Cita creada en estado programada, con origen web y código único."),
     ], caption="Especificación de UC05")
 
-    b.h3("4.6.3 UC09 — Programar cita en recepción")
+    b.h3("4.7.3 UC09 — Programar cita en recepción")
     b.kv_table([
         ("Actor principal", "Recepcionista."),
         ("Precondición", "Paciente registrado y médico activo con horario vigente."),
@@ -514,7 +542,7 @@ def chapter4():
         ("Postcondición", "Cita registrada y disponible para emisión de ficha."),
     ], caption="Especificación de UC09")
 
-    b.h3("4.6.4 UC10 — Reprogramar cita")
+    b.h3("4.7.4 UC10 — Reprogramar cita")
     b.kv_table([
         ("Actor principal", "Recepcionista."),
         ("Precondición", "Cita en estado programada o confirmada."),
@@ -523,7 +551,7 @@ def chapter4():
         ("Postcondición", "Cita reprogramada, historial conservado y cupo anterior liberado."),
     ], caption="Especificación de UC10")
 
-    b.h3("4.6.5 UC15 — Emitir ficha en kiosco")
+    b.h3("4.7.5 UC15 — Emitir ficha en kiosco")
     b.kv_table([
         ("Actor principal", "Kiosco; paciente como usuario."),
         ("Precondición", "Token de kiosco válido y cita reservada o por reservar."),
@@ -532,7 +560,7 @@ def chapter4():
         ("Postcondición", "Ficha emitida y cita confirmada; el paciente puede ser atendido."),
     ], caption="Especificación de UC15")
 
-    b.h3("4.6.6 UC16 — Registrar consulta")
+    b.h3("4.7.6 UC16 — Registrar consulta")
     b.kv_table([
         ("Actor principal", "Médico."),
         ("Precondición", "Cita confirmada y ficha emitida."),
@@ -541,7 +569,79 @@ def chapter4():
         ("Postcondición", "Consulta almacenada y cita atendida; se habilitan recetas y órdenes."),
     ], caption="Especificación de UC16")
 
-    b.h2("4.7 Matriz de trazabilidad requisito–caso de uso")
+    b.h2("4.8 Prototipos de interfaz de usuario")
+    b.p("Los prototipos se documentan en dos niveles. Los de baja fidelidad se elaboraron a partir de los casos de uso y se validaron con recepción y dirección para acordar la interacción antes de construir las vistas definitivas. Los de alta fidelidad corresponden a las vistas implementadas y se agrupan por actor: siete del recorrido del paciente y cuatro del personal y la administración. Las capturas utilizan datos de demostración y complementan, sin reemplazar, los prototipos de baja fidelidad.")
+    b.h3("4.8.1 Prototipos de baja fidelidad")
+    b.p("Se organizan por ciclo: el Ciclo 1 se valida con el panel administrativo de la plataforma base —pacientes, médicos, especialidades, horarios y cupos—, mientras que el Ciclo 2 se valida con la reserva web y el kiosco. La tabla siguiente resume los prototipos previstos y su trazabilidad con los casos de uso.")
+    b.table(
+        ["Prototipo", "Ciclo", "Actor", "Zonas y controles principales", "Casos de uso"],
+        [
+            ("Landing y buscador", "Ciclo 1", "Público / paciente", "Encabezado, buscador por especialidad, tarjetas de médicos, llamada a reservar, acceso y registro.", "UC01–UC03"),
+            ("Panel administrativo", "Ciclo 1", "Administrador / recepción", "Pacientes, médicos, especialidades, horarios y cupos; alta, edición, búsqueda y desactivación.", "UC08, UC20–UC22"),
+            ("Reserva web", "Ciclo 2", "Paciente", "Stepper de cuatro pasos: especialidad, médico, fecha y hora, confirmación; resumen y mensajes de error.", "UC05"),
+            ("Kiosco", "Ciclo 2", "Paciente presencial", "Teclado numérico para CI, selección de especialidad, médico y slot, ficha con código QR e impresión.", "UC15"),
+            ("Agenda de recepción", "Ciclo 2", "Recepcionista", "Filtros por médico, fecha y estado; acciones programar, reprogramar, cancelar y controlar asistencia.", "UC09–UC14"),
+            ("Panel médico", "Ciclo 2", "Médico", "Agenda del día, acceso a la consulta, recetas, órdenes y registro de pago.", "UC16–UC19"),
+        ],
+        [3.2, 1.5, 2.7, 6.8, 2.8],
+        caption="Prototipos de baja fidelidad, ciclo y casos de uso asociados",
+        font_size=8.0,
+    )
+    b.figure("31_prototipo_panel_ciclo1.png", 15.8, "Prototipo de baja fidelidad del panel administrativo del Ciclo 1: pacientes, catálogos y horarios", max_height_cm=20.0)
+    b.figure("28_prototipo_reserva.png", 15.8, "Prototipo de baja fidelidad del flujo de reserva web (Ciclo 2)", max_height_cm=20.0)
+    b.figure("29_prototipo_kiosco.png", 15.0, "Prototipo de baja fidelidad del kiosco de fichas (Ciclo 2)", max_height_cm=20.0)
+    b.note("El prototipo del Ciclo 1 se concentra en la operación de catálogos y disponibilidad (UC08 y UC20–UC22); los prototipos del Ciclo 2 cubren la reserva web y el kiosco. Los prototipos priorizan la claridad del flujo y la prevención de errores: el paciente solo ve horarios disponibles y el kiosco reinicia el flujo por inactividad. Las validaciones definitivas se realizan en el servidor, no en el prototipo.", "Criterio de prototipación")
+    b.h3("4.8.2 Vistas de alta fidelidad del paciente")
+    b.p("Las siete vistas siguientes cubren el recorrido público del paciente: landing, especialidades, médicos, nosotros, canales de atención, blog y kiosco presencial. Se presentan a ancho completo para conservar la legibilidad de los controles y de los textos de apoyo.")
+    b.figure("32_vista_paciente_landing.png", 15.8, "Vista de alta fidelidad de la landing pública: propuesta de valor y acceso a la reserva", max_height_cm=8.2)
+    b.figure("33_vista_paciente_especialidades.png", 15.8, "Vista de alta fidelidad del directorio de especialidades", max_height_cm=8.2)
+    b.figure("34_vista_paciente_medicos.png", 15.8, "Vista de alta fidelidad del directorio de médicos y tarjetas de reserva", max_height_cm=8.2)
+    b.figure("35_vista_paciente_nosotros.png", 15.8, "Vista de alta fidelidad de la sección Nosotros", max_height_cm=8.2)
+    b.figure("36_vista_paciente_canales.png", 15.8, "Vista de alta fidelidad de la sección de canales de atención: reserva web y kiosco presencial", max_height_cm=8.2)
+    b.figure("37_vista_paciente_blog.png", 15.8, "Vista de alta fidelidad del blog de consejos de salud", max_height_cm=8.2)
+    b.figure("38_vista_paciente_kiosco.png", 15.8, "Vista de alta fidelidad del kiosco de fichas: identificación, selección y ficha con QR", max_height_cm=8.2)
+    b.h3("4.8.3 Vistas de alta fidelidad del personal y administración")
+    b.p("Las cuatro vistas siguientes corresponden a los paneles de médico, recepción, recepción médica y administración. Cada panel prioriza la tarea del rol y reutiliza los componentes visuales de la plataforma.")
+    b.figure("39_vista_medico_panel.png", 15.8, "Vista de alta fidelidad del panel del médico: agenda del día, consulta y pedidos", max_height_cm=8.2)
+    b.figure("40_vista_recepcion_panel.png", 15.8, "Vista de alta fidelidad del panel de recepción: agenda, citas y fichas", max_height_cm=8.2)
+    b.figure("41_vista_recepcion_medica_panel.png", 15.8, "Vista de alta fidelidad del panel de recepción médica: agenda y reconsultas", max_height_cm=8.2)
+    b.figure("42_vista_admin_usuarios.png", 15.8, "Vista de alta fidelidad del panel de administración: gestión de usuarios y roles", max_height_cm=8.2)
+
+
+    b.h2("4.9 Estructuración del modelo de casos de uso")
+    b.p("Los casos de uso se agrupan en tres paquetes: acceso público y reserva web (UC01–UC07), operación de citas y agenda (UC08–UC14) y atención médica y administración (UC15–UC24). La numeración es única y se mantiene consistente entre diagramas, especificaciones y matriz de trazabilidad.")
+    b.table(
+        ["Paquete", "Casos de uso", "Actores principales"],
+        [
+            ("PK-01 Acceso público", "UC01–UC07", "Paciente, público"),
+            ("PK-02 Citas y agenda", "UC08–UC14", "Recepcionista, recepcionista de médico, médico"),
+            ("PK-03 Atención y administración", "UC15–UC24", "Médico, recepción, administrador, kiosco"),
+        ],
+        [4.0, 4.8, 7.2],
+        caption="Paquetes de casos de uso",
+    )
+    b.p("Las relaciones de inclusión, extensión y generalización permiten reutilizar flujos y separar los comportamientos opcionales. La inclusión expresa un comportamiento que siempre se ejecuta; la extensión, un comportamiento opcional o excepcional; la generalización, una variante que hereda el flujo base.")
+    b.table(
+        ["Relación", "Origen", "Destino", "Propósito"],
+        [
+            ("«include»", "UC05 Reservar cita web", "UC02 Buscar especialidad y médico", "Toda reserva web requiere buscar y seleccionar al médico."),
+            ("«include»", "UC09 Programar cita", "UC04 Iniciar sesión", "Las operaciones internas exigen una sesión válida y un rol autorizado."),
+            ("«include»", "UC15 Emitir ficha en kiosco", "UC05 Reservar cita web", "El kiosco reutiliza la lógica de reserva cuando el paciente no tiene cita."),
+            ("«extend»", "UC06 Cancelar cita", "UC07 Consultar mis citas e historial", "La cancelación se ofrece desde la consulta de citas del paciente."),
+            ("«extend»", "UC11 Cancelar cita en recepción", "UC14 Consultar agenda e historial", "La recepción cancela desde la agenda del médico."),
+            ("«extend»", "UC13 Gestionar reconsultas", "UC12 Controlar asistencia", "La reconsulta se habilita cuando se registra una inasistencia."),
+            ("«extend»", "UC18 Enviar pedido por WhatsApp", "UC17 Generar receta, documento u orden", "El envío es opcional después de generar el pedido."),
+            ("Generalización", "UC06 y UC11", "Cancelar cita (conceptual)", "Dos variantes del mismo flujo base, diferenciadas por actor y canal."),
+        ],
+        [2.2, 4.6, 4.4, 4.8],
+        caption="Relaciones de inclusión, extensión y generalización",
+        font_size=7.9,
+    )
+    b.figure("01_casos_uso_publico.png", 9.0, "Casos de uso del acceso público y reserva web")
+    b.figure("01b_casos_uso_citas.png", 12.0, "Casos de uso de operación de citas y agenda")
+    b.figure("01c_casos_uso_atencion.png", 10.5, "Casos de uso de atención médica y administración", max_height_cm=23.0)
+
+    b.h2("4.10 Matriz de trazabilidad requisito–caso de uso")
     b.table(
         ["RF", "Casos de uso"],
         [
@@ -564,7 +664,7 @@ def chapter4():
         align_center_cols={0},
     )
 
-    b.h2("4.8 Supuestos y restricciones")
+    b.h2("4.11 Supuestos y restricciones")
     b.bullets([
         ("Supuesto: ", "la clínica dispone de conectividad estable y de un iPad o tablet para el kiosco."),
         ("Supuesto: ", "los médicos y recepcionistas cuentan con credenciales y capacitación básica."),

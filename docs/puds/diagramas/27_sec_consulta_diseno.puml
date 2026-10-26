@@ -1,0 +1,44 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0A6EBD
+  ActorBorderColor #0A6EBD
+  LifeLineBorderColor #9CC3E5
+  LifeLineBackgroundColor #F7FBFF
+  ParticipantBorderColor #0A6EBD
+  ParticipantBackgroundColor #EAF4FB
+  FontSize 10
+}
+autonumber
+actor "Médico" as MED
+participant "HistoriaView" as V
+participant "AuthMiddleware" as MW
+participant "ConsultaController" as C
+participant "ConsultaService" as S
+participant "ConsultaModel" as M
+participant "PedidoService" as PED
+database "PostgreSQL" as DB
+MED -> V : abre la cita del día
+V -> MW : GET /api/citas/{id}/consulta
+MW --> V : sesión y rol médico
+V -> C : despachar solicitud
+C -> M : buscarCitaYPaciente(id)
+M -> DB : SELECT cita, paciente e historia
+DB --> M : datos clínicos
+C --> V : formulario de consulta
+MED -> V : registra motivo, anamnesis, signos, diagnóstico y tratamiento
+V -> C : POST /api/consultas
+C -> S : registrarConsulta(datos)
+S -> M : insertar(consulta)
+M -> DB : INSERT consulta
+S -> M : marcarAtendida(cita_id)
+M -> DB : UPDATE cita estado=atendida
+MED -> V : genera receta u orden
+V -> C : POST /api/consultas/{id}/pedidos
+C -> PED : generarPedido(consulta_id, tipo)
+PED -> DB : INSERT pedido + código de acceso
+PED --> C : pedido generado
+C --> V : consulta y pedido registrados
+V --> MED : confirmación y acceso al documento
+@enduml

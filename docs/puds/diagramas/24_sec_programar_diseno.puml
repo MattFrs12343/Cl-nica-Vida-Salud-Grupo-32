@@ -1,0 +1,47 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0A6EBD
+  ActorBorderColor #0A6EBD
+  LifeLineBorderColor #9CC3E5
+  LifeLineBackgroundColor #F7FBFF
+  ParticipantBorderColor #0A6EBD
+  ParticipantBackgroundColor #EAF4FB
+  FontSize 10
+}
+autonumber
+actor "Recepcionista" as RCP
+participant "AgendaView" as V
+participant "Router" as R
+participant "AuthMiddleware" as MW
+participant "CitaController" as C
+participant "DisponibilidadService" as D
+participant "CitaService" as S
+participant "CitaModel" as M
+database "PostgreSQL" as DB
+RCP -> V : busca paciente y selecciona especialidad
+V -> R : GET /api/pacientes y /api/disponibilidad
+R -> MW : validar sesión y rol
+MW --> R : autorizado
+R -> C : despachar solicitud
+C -> D : calcular(medico_id, fecha, canal_recepcion)
+D -> DB : SELECT horarios, citas y bloqueos
+DB --> D : agenda
+D --> C : slots disponibles
+C --> V : horarios y datos del paciente
+RCP -> V : confirma fecha, hora y motivo
+V -> R : POST /api/citas
+R -> MW : validar sesión, rol y CSRF
+MW --> R : autorizado
+R -> C : despachar solicitud
+C -> S : registrarCita(datos)
+S -> D : revalidar disponibilidad
+D -> DB : SELECT ... FOR UPDATE
+DB --> D : slot libre
+S -> M : insertar(cita)
+M -> DB : INSERT cita (origen=recepción)
+S --> C : cita con código único
+C --> V : 201 Created y ficha
+V --> RCP : cita registrada
+@enduml

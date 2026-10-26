@@ -1,0 +1,42 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam nodesep 14
+skinparam ranksep 24
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #9CC3E5
+  FontColor #0A6EBD
+  FontSize 14
+}
+skinparam component {
+  BackgroundColor #F7FBFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 12
+}
+package "PK-01 Reserva web" as PK01 {
+  [LandingView]
+  [CitaService]
+}
+package "PK-02 Citas y agenda" as PK02 {
+  [AgendaView]
+  [Cita]
+}
+package "PK-03 Atención" as PK03 {
+  [KioscoController]
+  [ConsultaService]
+}
+package "PK-04 Servicios" as PK04 {
+  [AuthService]
+  [PostgreSQL]
+}
+PK01 --> PK02 : disponibilidad
+PK03 --> PK01 : reserva web
+PK03 --> PK02 : agenda
+PK01 ..> PK04 : seguridad
+PK02 ..> PK04 : persistencia
+PK03 ..> PK04 : correo y auditoría
+@enduml
