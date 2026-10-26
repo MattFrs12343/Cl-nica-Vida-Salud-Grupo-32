@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Controllers\Api\AgendaApiController;
 use App\Controllers\Api\AuditoriaApiController;
 use App\Controllers\Api\CitaApiController;
+use App\Controllers\Api\ConsultaApiController;
 use App\Controllers\Api\DisponibilidadApiController;
 use App\Controllers\Api\EspecialidadApiController;
 use App\Controllers\Api\FichaApiController;
@@ -13,6 +14,7 @@ use App\Controllers\Api\KioscoApiController;
 use App\Controllers\Api\MedicoApiController;
 use App\Controllers\Api\PacienteApiController;
 use App\Controllers\Api\PagoApiController;
+use App\Controllers\Api\PedidoApiController;
 use App\Controllers\Api\PublicApiController;
 use App\Controllers\Api\ReporteApiController;
 use App\Controllers\Api\UsuarioApiController;
@@ -46,6 +48,7 @@ $router->get('/api/public/especialidades', [PublicApiController::class, 'especia
 $router->get('/api/public/medicos', [PublicApiController::class, 'medicos']);
 $router->get('/api/public/disponibilidad', [PublicApiController::class, 'disponibilidad']);
 $router->post('/api/public/reservar', [PublicApiController::class, 'reservar'], ['role:paciente']);
+$router->get('/api/public/pedido', [PublicApiController::class, 'pedido']);
 
 // Kiosco (M-23, M-24). Las rutas protegidas usan el middleware `kiosk`.
 $router->post('/api/kiosco/sesion', [KioscoApiController::class, 'sesion']);
@@ -148,5 +151,18 @@ $router->group('/api', static function ($router): void {
 
     $router->get('/auditoria', [AuditoriaApiController::class, 'index'], ['role:admin,super_admin']);
     $router->get('/auditoria/{id}', [AuditoriaApiController::class, 'show'], ['role:admin,super_admin']);
+
+    // Historia clínica y pedidos (M-31)
+    $router->post('/citas/{id}/consulta', [ConsultaApiController::class, 'crear'], ['role:medico', 'csrf']);
+    $router->get('/consultas/{id}', [ConsultaApiController::class, 'mostrar'], ['role:medico,paciente']);
+    $router->post('/consultas/{id}/recetas', [ConsultaApiController::class, 'crearReceta'], ['role:medico', 'csrf']);
+    $router->get('/recetas/{id}', [ConsultaApiController::class, 'mostrarReceta'], ['role:medico,paciente']);
+    $router->get('/recetas/{id}/imprimir', [ConsultaApiController::class, 'imprimirReceta'], ['role:medico,paciente']);
+    $router->post('/consultas/{id}/documentos', [ConsultaApiController::class, 'crearDocumento'], ['role:medico', 'csrf']);
+    $router->get('/documentos/{id}/imprimir', [ConsultaApiController::class, 'imprimirDocumento'], ['role:medico,paciente']);
+    $router->post('/consultas/{id}/ordenes', [ConsultaApiController::class, 'crearOrden'], ['role:medico', 'csrf']);
+    $router->get('/ordenes/{id}/imprimir', [ConsultaApiController::class, 'imprimirOrden'], ['role:medico,paciente']);
+    $router->post('/ordenes/{id}/resultados', [ConsultaApiController::class, 'crearResultado'], ['role:medico', 'csrf']);
+    $router->post('/pedidos/{tipo}/{id}/enviar', [PedidoApiController::class, 'enviar'], ['role:medico,recepcionista_medico', 'csrf']);
 }, ['auth']);
 

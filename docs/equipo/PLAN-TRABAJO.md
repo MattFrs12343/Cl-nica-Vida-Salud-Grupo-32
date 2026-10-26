@@ -2,7 +2,7 @@
 
 > **Última actualización:** 2026-10-24
 > **Fuente funcional de verdad:** `docs/specs/`
-> **Estado del repo:** Fase 1 y Fase 2 backend terminadas (M-07–M-22). Fase 3 backend terminada: kiosco (M-23–M-26), APIs de recepción (M-27), fichas/pagos (M-28) y pruebas cruzadas (M-29). UI de autenticación, shell de paneles y panel de recepción completos; módulos admin restantes y secciones médico/portal quedan como placeholders estilizados.
+> **Estado del repo:** Fase 1 y Fase 2 backend terminadas (M-07–M-22). Fase 3 backend terminada: kiosco (M-23–M-26), APIs de recepción (M-27), fichas/pagos (M-28) y pruebas cruzadas (M-29). Fase 4 backend en curso: APIs del médico (M-30), consultas/pedidos (M-31) y pagos/QR del médico (M-32) terminadas. UI de autenticación, shell de paneles y panel de recepción completos; módulos admin restantes y secciones médico/portal quedan como placeholders estilizados.
 
 Este documento define **quién hace qué**, **qué archivos puede tocar cada uno** y **en qué orden**. La meta es que Matias y Lucas puedan trabajar en paralelo sin pisarse.
 
@@ -356,8 +356,8 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 #### Matias
 
 - [x] **M-30 · APIs del médico** — agenda, resumen diario, pacientes atendidos e historia clínica. · *Deps:* M-27. · *DoD:* agenda y resumen existentes, `GET /api/dashboard/medico`, filtro `atendidos=1` con `ultima_atencion`, `GET /api/pacientes/{id}/historia` con signos vitales y RLS por médico/paciente verificados con `bin/test-medico.php`; suites previas en verde.
-- [ ] **M-31 · Consultas y pedidos** — consultas con signos vitales, recetas, documentos y órdenes; vistas imprimibles; URL `wa.me` y página pública de pedido. · *Deps:* M-30.
-- [ ] **M-32 · Pagos y QR del médico** — registrar/listar pagos propios y subir/ver QR. · *Deps:* M-28.
+- [x] **M-31 · Consultas y pedidos** — consultas con signos vitales, recetas, documentos y órdenes; vistas imprimibles; URL `wa.me` y página pública de pedido. · *Deps:* M-30. · *DoD:* `POST /api/citas/{id}/consulta` transiciona `confirmada→atendida` y rechaza citas ajenas (403), estado inválido (409) y consulta duplicada (409); recetas/documentos/órdenes con código + código de acceso; resultados con archivo o texto; vistas imprimibles HTML (`/api/{recetas,documentos,ordenes}/{id}/imprimir`); envío por WhatsApp (`POST /api/pedidos/{tipo}/{id}/enviar`) valida teléfono antes de marcar `enviado_whatsapp`; página pública `/pedido/{codigo}` + `GET /api/public/pedido` sin sesión; todo verificado con `bin/test-consultas-pedidos.php` (40 pruebas); suites previas en verde.
+- [x] **M-32 · Pagos y QR del médico** — registrar/listar pagos propios y subir/ver QR. · *Deps:* M-28. · *DoD:* `/api/pagos` y `/api/medicos/{id}/qr` ya habilitaban el rol `medico` desde M-28/M-20; se cerró la cobertura faltante (médico registra/lee pagos propios y no los de otro médico; solo el propio médico sube su QR; admin/recepción/recepción médica lo ven) con `bin/test-medico-pagos-qr.php`. La subida real de archivo se verificó manualmente por HTTP (login + `curl -F` con un PNG real: sube, reemplaza el QR anterior y queda visible para recepción) porque `is_uploaded_file()` no es simulable desde la CLI; suites previas en verde.
 - [ ] **M-33 · APIs del portal paciente** — mis citas, historial, perfil, cambio de contraseña y cancelación con la regla del día anterior. · *Deps:* M-21.
 - [ ] **M-34 · Dashboards y reportes** — métricas admin/médico y reportes faltantes. · *Deps:* M-21, M-30.
 - [ ] **M-35 · Pruebas médico + portal** — consulta completa, receta, WhatsApp, pago, historial y cancelación. · *Deps:* M-31, M-32, M-33.

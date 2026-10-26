@@ -21,104 +21,6 @@ final class PanelController extends Controller
      * @var array<string, array{role: string, active: string, title: string, description: string, icon: string}>
      */
     private const MODULES = [
-        '/admin/usuarios' => [
-            'role' => 'admin',
-            'active' => 'usuarios',
-            'title' => 'Usuarios',
-            'description' => 'Altas, roles, bloqueos y desbloqueos de cuentas.',
-            'icon' => 'users',
-        ],
-        '/admin/medicos' => [
-            'role' => 'admin',
-            'active' => 'medicos',
-            'title' => 'Médicos',
-            'description' => 'Perfiles profesionales, especialidades y recepcionistas asignados.',
-            'icon' => 'stethoscope',
-        ],
-        '/admin/especialidades' => [
-            'role' => 'admin',
-            'active' => 'especialidades',
-            'title' => 'Especialidades',
-            'description' => 'Catálogo de especialidades, restricciones y destacados.',
-            'icon' => 'heart',
-        ],
-        '/admin/horarios' => [
-            'role' => 'admin',
-            'active' => 'horarios',
-            'title' => 'Horarios',
-            'description' => 'Franjas semanales, cupos por canal y bloqueos de agenda.',
-            'icon' => 'clock',
-        ],
-        '/admin/citas' => [
-            'role' => 'admin',
-            'active' => 'citas',
-            'title' => 'Citas',
-            'description' => 'Supervisión global de la agenda y los estados de atención.',
-            'icon' => 'calendar',
-        ],
-        '/admin/reportes' => [
-            'role' => 'admin',
-            'active' => 'reportes',
-            'title' => 'Reportes',
-            'description' => 'Indicadores de demanda, asistencia y ocupación por médico.',
-            'icon' => 'chart',
-        ],
-        '/admin/auditoria' => [
-            'role' => 'admin',
-            'active' => 'auditoria',
-            'title' => 'Auditoría',
-            'description' => 'Bitácora de cambios sensibles del sistema.',
-            'icon' => 'shield',
-        ],
-        '/medico/agenda' => [
-            'role' => 'medico',
-            'active' => 'agenda',
-            'title' => 'Mi agenda',
-            'description' => 'Consulta diaria, semana y bloqueos de atención.',
-            'icon' => 'calendar',
-        ],
-        '/medico/pacientes' => [
-            'role' => 'medico',
-            'active' => 'pacientes',
-            'title' => 'Pacientes',
-            'description' => 'Pacientes atendidos y búsqueda por documento.',
-            'icon' => 'users',
-        ],
-        '/medico/consultas' => [
-            'role' => 'medico',
-            'active' => 'consultas',
-            'title' => 'Consultas',
-            'description' => 'Registro clínico de la atención y signos vitales.',
-            'icon' => 'clipboard',
-        ],
-        '/medico/historia' => [
-            'role' => 'medico',
-            'active' => 'historia',
-            'title' => 'Historia clínica',
-            'description' => 'Evolución cronológica y antecedentes del paciente.',
-            'icon' => 'file',
-        ],
-        '/medico/pedidos' => [
-            'role' => 'medico',
-            'active' => 'pedidos',
-            'title' => 'Recetas y órdenes',
-            'description' => 'Recetas, documentos y órdenes de estudio.',
-            'icon' => 'ticket',
-        ],
-        '/medico/pagos' => [
-            'role' => 'medico',
-            'active' => 'pagos',
-            'title' => 'Pagos',
-            'description' => 'Movimientos asociados a tu atención.',
-            'icon' => 'card',
-        ],
-        '/medico/qr' => [
-            'role' => 'medico',
-            'active' => 'qr',
-            'title' => 'Mi QR',
-            'description' => 'Credencial de acceso para el kiosco de fichas.',
-            'icon' => 'qr',
-        ],
         '/portal/mis-citas' => [
             'role' => 'paciente',
             'active' => 'citas',
@@ -153,6 +55,83 @@ final class PanelController extends Controller
                 'subtitle' => 'Una lectura rápida de la operación de hoy.',
                 'script' => 'panel/js/admin.js',
             ]
+        );
+    }
+
+    public function adminUsuarios(Request $request): Response
+    {
+        return $this->renderPanel(
+            'admin/usuarios/index',
+            'Usuarios',
+            'usuarios',
+            [['label' => 'Administración'], ['label' => 'Usuarios']],
+            ['subtitle' => 'Altas, roles, bloqueos y desbloqueos de cuentas.']
+        );
+    }
+
+    public function adminMedicos(Request $request): Response
+    {
+        return $this->renderPanel(
+            'admin/medicos/index',
+            'Médicos',
+            'medicos',
+            [['label' => 'Administración'], ['label' => 'Médicos']],
+            ['subtitle' => 'Perfiles profesionales, especialidades y recepcionistas asignados.']
+        );
+    }
+
+    public function adminEspecialidades(Request $request): Response
+    {
+        return $this->renderPanel(
+            'admin/especialidades/index',
+            'Especialidades',
+            'especialidades',
+            [['label' => 'Administración'], ['label' => 'Especialidades']],
+            ['subtitle' => 'Catálogo de especialidades, restricciones y destacados.']
+        );
+    }
+
+    public function adminHorarios(Request $request): Response
+    {
+        return $this->renderPanel(
+            'admin/horarios/index',
+            'Horarios',
+            'horarios',
+            [['label' => 'Administración'], ['label' => 'Horarios']],
+            ['subtitle' => 'Franjas semanales, cupos por canal y bloqueos de agenda.']
+        );
+    }
+
+    public function adminCitas(Request $request): Response
+    {
+        return $this->renderPanel(
+            'admin/citas/index',
+            'Citas',
+            'citas',
+            [['label' => 'Administración'], ['label' => 'Citas']],
+            ['subtitle' => 'Supervisión global de la agenda y los estados de atención.']
+        );
+    }
+
+    public function adminReportes(Request $request): Response
+    {
+        return $this->renderPanel(
+            'admin/reportes/index',
+            'Reportes',
+            'reportes',
+            [['label' => 'Administración'], ['label' => 'Reportes']],
+            ['subtitle' => 'Indicadores de demanda, asistencia y ocupación por médico.']
+        );
+    }
+
+    public function adminAuditoria(Request $request): Response
+    {
+        return $this->renderPanel(
+            'admin/auditoria/index',
+            'Auditoría',
+            'auditoria',
+            [['label' => 'Administración'], ['label' => 'Auditoría']],
+            ['subtitle' => 'Bitácora de cambios sensibles del sistema.']
         );
     }
 
@@ -265,6 +244,83 @@ final class PanelController extends Controller
                 'subtitle' => 'Tu jornada clínica, sin ruido.',
                 'script' => 'panel/js/recepcion.js',
             ]
+        );
+    }
+
+    public function medicoAgenda(Request $request): Response
+    {
+        return $this->renderPanel(
+            'medico/agenda/index',
+            'Mi agenda',
+            'agenda',
+            [['label' => 'Médico'], ['label' => 'Agenda']],
+            ['subtitle' => 'Consulta diaria, semana y bloqueos de atención.']
+        );
+    }
+
+    public function medicoPacientes(Request $request): Response
+    {
+        return $this->renderPanel(
+            'medico/pacientes/index',
+            'Pacientes',
+            'pacientes',
+            [['label' => 'Médico'], ['label' => 'Pacientes']],
+            ['subtitle' => 'Pacientes atendidos y búsqueda por documento.']
+        );
+    }
+
+    public function medicoConsultas(Request $request): Response
+    {
+        return $this->renderPanel(
+            'medico/consultas/index',
+            'Consultas',
+            'consultas',
+            [['label' => 'Médico'], ['label' => 'Consultas']],
+            ['subtitle' => 'Registro clínico de la atención y signos vitales.']
+        );
+    }
+
+    public function medicoHistoria(Request $request): Response
+    {
+        return $this->renderPanel(
+            'medico/historia/index',
+            'Historia clínica',
+            'historia',
+            [['label' => 'Médico'], ['label' => 'Historia clínica']],
+            ['subtitle' => 'Evolución cronológica y antecedentes del paciente.']
+        );
+    }
+
+    public function medicoPedidos(Request $request): Response
+    {
+        return $this->renderPanel(
+            'medico/pedidos/index',
+            'Recetas y órdenes',
+            'pedidos',
+            [['label' => 'Médico'], ['label' => 'Recetas y órdenes']],
+            ['subtitle' => 'Recetas, documentos y órdenes de estudio.']
+        );
+    }
+
+    public function medicoPagos(Request $request): Response
+    {
+        return $this->renderPanel(
+            'medico/pagos/index',
+            'Pagos',
+            'pagos',
+            [['label' => 'Médico'], ['label' => 'Pagos']],
+            ['subtitle' => 'Movimientos asociados a tu atención.']
+        );
+    }
+
+    public function medicoQr(Request $request): Response
+    {
+        return $this->renderPanel(
+            'medico/qr/index',
+            'Mi QR',
+            'qr',
+            [['label' => 'Médico'], ['label' => 'Mi QR']],
+            ['subtitle' => 'Credencial de acceso para el kiosco de fichas.']
         );
     }
 

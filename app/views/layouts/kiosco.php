@@ -33,6 +33,7 @@ $ttl = (int) ($kiosk['expires_in'] ?? 600);
         data-token-ttl="<?= $ttl ?>"
         data-token-url="<?= e(url('/kiosco/token')) ?>"
         data-api-base="<?= e(url('/api/kiosco')) ?>"
+        data-img-base="<?= e(asset('kiosco/img')) ?>"
         data-demo-ci="10000001"
     >
         <?= $content ?>

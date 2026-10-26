@@ -91,4 +91,23 @@ final class PublicController extends Controller
             'bodyClass' => 'landing landing-kiosco',
         ], 'layouts/base'));
     }
+
+    /**
+     * Página pública de pedidos (Spec 11): sin sesión, pide código + código
+     * de acceso y consulta `GET /api/public/pedido` desde el cliente.
+     *
+     * @param array<string, string> $params
+     */
+    public function pedido(Request $request, array $params): Response
+    {
+        $codigo = strtoupper(trim((string) ($params['codigo'] ?? '')));
+
+        return Response::html(View::render('landing/pedido', [
+            'title' => 'Consultar pedido — Clínica Vida Salud',
+            'description' => 'Consulta tu receta, documento u orden con el código y el código de acceso enviados por WhatsApp.',
+            'canonical' => url('/pedido'),
+            'bodyClass' => 'landing landing-pedido',
+            'codigo' => $codigo,
+        ], 'layouts/base'));
+    }
 }

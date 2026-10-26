@@ -839,13 +839,23 @@ Errores: `404 FICHA_NOT_FOUND`, `403 FORBIDDEN`, `403 CSRF_TOKEN_MISMATCH`, `422
 | GET | `/api/recetas/{id}` | médico, paciente | Detalle de receta. |
 | POST | `/api/consultas/{id}/documentos` | médico | Crear documento. |
 | POST | `/api/consultas/{id}/ordenes` | médico | Crear orden + detalle. |
-| POST | `/api/ordenes/{id}/resultados` | médico | Registrar/subir resultado. |
-| GET | `/api/recetas/{id}/imprimir` | médico, paciente | Vista imprimible. |
-| GET | `/api/documentos/{id}/imprimir` | médico, paciente | Vista imprimible. |
-| GET | `/api/ordenes/{id}/imprimir` | médico, paciente | Vista imprimible. |
+| POST | `/api/ordenes/{id}/resultados` | médico | Registrar/subir resultado (multipart `archivo` y/o `texto`). |
+| GET | `/api/recetas/{id}/imprimir` | médico, paciente | Vista imprimible **HTML** (no JSON). |
+| GET | `/api/documentos/{id}/imprimir` | médico, paciente | Vista imprimible **HTML** (no JSON). |
+| GET | `/api/ordenes/{id}/imprimir` | médico, paciente | Vista imprimible **HTML** (no JSON), incluye resultados. |
 | POST | `/api/pedidos/{tipo}/{id}/enviar` | médico, recep_medico | Marca envío y devuelve URL `wa.me`. |
+| GET | `/api/public/pedido?codigo=&acceso=` | pública | Datos del pedido (JSON) para la página pública. |
+| GET | `/pedido` y `/pedido/{codigo}` | pública | Página HTML con formulario de código de acceso (Spec 11). |
 
-`tipo` de pedido: `receta`, `documento`, `orden`.
+`tipo` de pedido: `receta`, `documento`, `orden`. Implementado en M-31.
+
+### 13.1 Reglas de autorización
+
+- `POST /api/citas/{id}/consulta`: la cita debe ser del médico autenticado y estar `confirmada` o `atendida`; si está `confirmada` pasa a `atendida` en la misma operación. Cita de otro médico → `403 FORBIDDEN`; estado no válido → `409 INVALID_STATE`; segunda consulta sobre la misma cita → `409 CONFLICT`.
+- `POST /api/consultas/{id}/recetas|documentos|ordenes` y `POST /api/ordenes/{id}/resultados`: la consulta/orden debe ser del médico autenticado (`403 FORBIDDEN` si es de otro médico, `404 NOT_FOUND` si no existe).
+- `GET /api/consultas/{id}`, `GET /api/recetas/{id}` y los `imprimir`: corren bajo RLS; si el recurso no es del médico o paciente autenticado, se responde `404 NOT_FOUND` (no se distingue de "no existe").
+- `POST /api/pedidos/{tipo}/{id}/enviar`: `recepcionista_medico` solo para sus `medico_ids`; sin teléfono registrado en el paciente → `409 NOT_ELIGIBLE` y el pedido **no** se marca enviado; `tipo` fuera de `receta|documento|orden` → `404 NOT_FOUND`.
+- `GET /api/public/pedido`: sin `codigo`/`acceso` → `422 VALIDATION_ERROR`; código inexistente o prefijo desconocido → `404 NOT_FOUND`; código de acceso incorrecto → `403 FORBIDDEN`. La respuesta nunca incluye `telefono` ni `ci` del paciente.
 
 Respuesta de `GET /api/pacientes/{id}/historia` (M-30):
 
@@ -912,7 +922,7 @@ Respuesta de `GET /api/pacientes/{id}/historia` (M-30):
 }
 ```
 
-`signos_vitales` se devuelve como objeto JSON (`null` si no se registró). La historia se ordena por `fecha` descendente. El médico recibe solo sus propias consultas y el paciente todas las consultas de su historia (RLS). La creación de consultas, recetas, documentos y órdenes queda para M-31.
+`signos_vitales` se devuelve como objeto JSON (`null` si no se registró). La historia se ordena por `fecha` descendente. El médico recibe solo sus propias consultas y el paciente todas las consultas de su historia (RLS).
 
 Payload de consulta:
 
@@ -952,6 +962,42 @@ Payload de receta:
 }
 ```
 
+Payload de documento:
+
+```json
+{
+  "tipo": "certificado",
+  "contenido": "El paciente requiere reposo por 48 horas."
+}
+```
+
+`tipo` de documento: `certificado`, `informe`, `constancia`, `interconsulta`.
+
+Payload de orden:
+
+```json
+{
+  "tipo": "laboratorio",
+  "detalle": [
+    { "estudio": "Hemograma completo" },
+    { "estudio": "Glicemia en ayunas", "observaciones": "Ayuno de 8 horas" }
+  ]
+}
+```
+
+`tipo` de orden: `laboratorio`, `imagen`, `otro`.
+
+Payload de resultado (`multipart/form-data` o JSON; al menos uno de los dos):
+
+```json
+{
+  "texto": "Hemograma dentro de parámetros normales.",
+  "revisado": false
+}
+```
+
+El campo de archivo se llama `archivo` (PNG, JPG o PDF, máx. 5 MB) y se guarda en `public/uploads/resultados/`.
+
 Respuesta de envío:
 
 ```json
@@ -963,6 +1009,27 @@ Respuesta de envío:
   }
 }
 ```
+
+Respuesta de `GET /api/public/pedido?codigo=RSV-000012&acceso=1234`:
+
+```json
+{
+  "ok": true,
+  "data": {
+    "tipo": "receta",
+    "codigo": "RSV-000012",
+    "codigo_acceso": "1234",
+    "fecha": "2026-10-17 09:00:00-04",
+    "paciente": { "id": 1, "nombre_completo": "Juan Pérez" },
+    "medico": { "id": 1, "nombre_completo": "Dr(a). Carlos Méndez" },
+    "detalle": [
+      { "id": 1, "medicamento": "Paracetamol 500 mg", "dosis": "1 tableta", "via": "oral", "frecuencia": "cada 8 horas", "duracion": "3 días", "instrucciones": "Después de comer" }
+    ]
+  }
+}
+```
+
+Para `tipo: "documento"` el objeto trae `contenido`; para `tipo: "orden"` trae `detalle` (estudios) y `resultados`.
 
 ---
 

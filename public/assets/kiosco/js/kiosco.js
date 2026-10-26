@@ -13,6 +13,7 @@
     }
 
     const API = (app.dataset.apiBase || '/api/kiosco').replace(/\/$/, '');
+    const IMG_BASE = (app.dataset.imgBase || '/assets/kiosco/img').replace(/\/$/, '');
     const TOKEN_URL = app.dataset.tokenUrl || '/kiosco/token';
     const DEMO_CI = app.dataset.demoCi || '10000001';
     const INACTIVITY_MS = 120000;
@@ -120,6 +121,14 @@
         default: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
     };
 
+    const PHOTOS = {
+        stethoscope: 'especialidad-medicina-general.jpg',
+        child: 'especialidad-pediatria.jpg',
+        elderly: 'especialidad-geriatria.jpg',
+        heart: 'especialidad-cardiologia.jpg',
+        female: 'especialidad-ginecologia.jpg',
+    };
+
     function esc(value) {
         return String(value ?? '')
             .replace(/&/g, '&amp;')
@@ -143,6 +152,23 @@
         if (nombre.includes('general')) return ICONS.stethoscope;
 
         return ICONS.default;
+    }
+
+    function photoFor(especialidad) {
+        const key = String(especialidad.icono || '').toLowerCase();
+
+        if (PHOTOS[key]) {
+            return `${IMG_BASE}/${PHOTOS[key]}`;
+        }
+
+        const nombre = String(especialidad.nombre || '').toLowerCase();
+        if (nombre.includes('pediatr')) return `${IMG_BASE}/${PHOTOS.child}`;
+        if (nombre.includes('geriatr')) return `${IMG_BASE}/${PHOTOS.elderly}`;
+        if (nombre.includes('cardio')) return `${IMG_BASE}/${PHOTOS.heart}`;
+        if (nombre.includes('gineco')) return `${IMG_BASE}/${PHOTOS.female}`;
+        if (nombre.includes('general')) return `${IMG_BASE}/${PHOTOS.stethoscope}`;
+
+        return null;
     }
 
     function initials(nombre) {
@@ -690,7 +716,11 @@
         if (els.specialtiesError) els.specialtiesError.hidden = true;
 
         try {
-            const data = await api(`/especialidades?paciente_id=${encodeURIComponent(state.paciente.id)}`);
+            // TEMPORAL: se omite `paciente_id` para mostrar todas las
+            // especialidades sin el filtro de sexo/edad (solo para capturas
+            // de pantalla). Volver a `?paciente_id=${state.paciente.id}`
+            // cuando se revise ese filtro.
+            const data = await api('/especialidades');
             state.especialidades = Array.isArray(data) ? data : [];
             renderSpecialties();
 
@@ -717,15 +747,31 @@
         const fragment = document.createDocumentFragment();
 
         state.especialidades.forEach((especialidad) => {
+            const foto = photoFor(especialidad);
             const card = document.createElement('button');
             card.type = 'button';
-            card.className = 'specialty-card' + (especialidad.destacada ? ' is-featured' : '');
-            card.innerHTML = `
-                <span class="specialty-icon">${iconFor(especialidad)}</span>
-                <strong>${esc(especialidad.nombre)}</strong>
-                <p>${esc(especialidad.descripcion || 'Atención profesional en la clínica.')}</p>
-                <span class="card-arrow">${SVG_ARROW}</span>
-            `;
+
+            if (foto) {
+                card.className = 'specialty-card has-photo' + (especialidad.destacada ? ' is-featured' : '');
+                card.innerHTML = `
+                    <span class="specialty-photo-tile">
+                        <img src="${esc(foto)}" alt="" loading="lazy">
+                    </span>
+                    <span class="specialty-tile-footer">
+                        <strong>${esc(especialidad.nombre)}</strong>
+                        <span class="card-arrow">${SVG_ARROW}</span>
+                    </span>
+                `;
+            } else {
+                card.className = 'specialty-card' + (especialidad.destacada ? ' is-featured' : '');
+                card.innerHTML = `
+                    <span class="specialty-icon">${iconFor(especialidad)}</span>
+                    <strong>${esc(especialidad.nombre)}</strong>
+                    <p>${esc(especialidad.descripcion || 'Atención profesional en la clínica.')}</p>
+                    <span class="card-arrow">${SVG_ARROW}</span>
+                `;
+            }
+
             card.addEventListener('click', () => chooseSpecialty(especialidad));
             fragment.appendChild(card);
         });
