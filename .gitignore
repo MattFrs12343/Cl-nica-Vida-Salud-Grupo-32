@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # Dependencias
 /vendor/
@@ -18,6 +19,7 @@ gentelella/dist/
 # Subidas de usuario
 /public/uploads/*
 !/public/uploads/.gitkeep
+!/public/uploads/.htaccess
 
 # Sistema
 .DS_Store
