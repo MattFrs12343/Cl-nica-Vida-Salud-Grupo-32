@@ -7,31 +7,43 @@
         <h1>Mi QR</h1>
         <p>Tu credencial visual: recepción y el kiosco la muestran junto a tu nombre.</p>
     </div>
+    <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" type="button" data-qr-refresh>
+            <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+            Actualizar
+        </button>
+    </div>
 </header>
 
 <div class="dashboard-grid">
-    <section class="card" aria-labelledby="qr-preview-title">
+    <section class="card qr-card" aria-labelledby="qr-preview-title">
         <div class="card-head">
             <div>
                 <span class="card-kicker">Vista previa</span>
                 <h2 id="qr-preview-title">Tu código QR</h2>
             </div>
-            <span class="status status-activo">Cargado</span>
+            <span class="status status-activo">Credencial</span>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:12px 0 4px;">
-            <div style="width:180px;height:180px;border-radius:16px;border:1px solid var(--panel-line);background:#fff;display:grid;place-items:center;">
-                <svg class="icon" aria-hidden="true" style="width:96px;height:96px;color:var(--panel-ink,#16241f);"><use href="#i-qr"></use></svg>
+        <div class="qr-preview-body">
+            <div class="qr-preview-frame">
+                <img class="qr-image" src="" alt="Código QR del médico" data-qr-image hidden>
+                <div class="qr-empty" data-qr-empty>
+                    <svg class="icon" aria-hidden="true"><use href="#i-qr"></use></svg>
+                    <p>Aún no has subido tu QR.</p>
+                </div>
             </div>
-            <div style="text-align:center;">
-                <strong style="display:block;font-size:15px;">Dr. Carlos Méndez</strong>
-                <small style="color:var(--panel-muted);">MED-DEMO-001 · Medicina General</small>
+            <div class="qr-copy">
+                <strong class="qr-name" data-qr-name>Dr(a). Médico</strong>
+                <small class="qr-meta" data-qr-code>—</small>
+                <small class="qr-meta" data-qr-specialties>Sin especialidad asignada</small>
+                <small class="qr-meta" data-qr-meta></small>
             </div>
-            <div class="row-actions">
-                <button class="btn btn-ghost btn-sm" type="button">
+            <div class="row-actions qr-actions">
+                <a class="btn btn-ghost btn-sm" href="#" data-qr-download hidden>
                     <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>
                     Descargar
-                </button>
-                <button class="btn btn-ghost btn-sm" type="button">
+                </a>
+                <button class="btn btn-ghost btn-sm" type="button" data-qr-print hidden>
                     <svg class="icon" aria-hidden="true"><use href="#i-print"></use></svg>
                     Imprimir
                 </button>
@@ -47,14 +59,19 @@
                     <h2>Subir un nuevo QR</h2>
                 </div>
             </div>
-            <div style="border:1.5px dashed var(--panel-line-strong);border-radius:12px;padding:24px;text-align:center;">
-                <svg class="icon" aria-hidden="true" style="width:28px;height:28px;color:var(--panel-muted);"><use href="#i-qr"></use></svg>
-                <p style="margin:10px 0 14px;font-size:12.5px;color:var(--panel-muted);">PNG o JPG, máximo 1 MB</p>
-                <button class="btn btn-primary btn-sm" type="button">
-                    Elegir archivo
-                    <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"></use></svg></span>
+            <form class="qr-form" data-qr-form novalidate>
+                <label class="upload-zone qr-upload-zone" for="qr-file">
+                    <svg class="icon" aria-hidden="true"><use href="#i-qr"></use></svg>
+                    <span class="upload-title">Elegir archivo</span>
+                    <span class="upload-meta">PNG o JPG, máximo 1 MB</span>
+                    <input id="qr-file" class="sr-only" type="file" accept="image/png,image/jpeg" data-qr-file>
+                </label>
+                <img class="qr-preview-image" src="" alt="Vista previa del nuevo QR" data-qr-preview hidden>
+                <button class="btn btn-primary btn-sm btn-block qr-upload-submit" type="submit">
+                    <span class="btn-label">Subir QR</span>
+                    <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-check"></use></svg></span>
                 </button>
-            </div>
+            </form>
         </section>
 
         <section class="callout callout-info">

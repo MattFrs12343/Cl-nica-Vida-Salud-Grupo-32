@@ -1,14 +1,21 @@
 <?php
 /** @var array<string, mixed> $user */
-$nombre = (string) ($user['nombre'] ?? 'Paciente');
 ?>
 <header class="page-head">
     <div class="page-head-copy">
         <span class="page-kicker"><span class="status-dot"></span> Mi espacio</span>
-        <h1>Hola, <em><?= e(explode(' ', trim($nombre))[0] ?? 'paciente') ?>.</em></h1>
-        <p>Tu salud, tus citas y tus documentos, siempre a mano.</p>
+        <h1>Hola, <em data-patient-first-name>paciente</em>.</h1>
+        <p data-patient-meta>Tu salud, tus citas y tus documentos, siempre a mano.</p>
     </div>
     <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" type="button" data-patient-refresh>
+            <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+            Actualizar
+        </button>
+        <a class="btn btn-ghost btn-sm" href="<?= e(url('/portal/mis-citas')) ?>">
+            <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
+            Mis citas
+        </a>
         <a class="btn btn-primary btn-sm" href="<?= e(url('/reservar')) ?>">
             Reservar cita
             <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-calendar-plus"></use></svg></span>
@@ -16,47 +23,87 @@ $nombre = (string) ($user['nombre'] ?? 'Paciente');
     </div>
 </header>
 
-<div class="portal-hero card">
-    <div class="portal-hero-copy">
-        <span class="card-kicker">Portal del paciente</span>
-        <h2>Tu próxima cita, sin llamadas.</h2>
-        <p>Revisa tus horarios, tu historial y actualiza tus datos de contacto cuando lo necesites.</p>
-        <div class="portal-hero-actions">
-            <a class="btn btn-primary btn-sm" href="<?= e(url('/portal/mis-citas')) ?>">
-                Ver mis citas
+<section class="kpi-grid kpi-grid-4" aria-label="Resumen de tu salud" data-patient-kpis>
+    <?php foreach ([
+        ['proximas', 'Próximas citas', 'calendar', 'primary'],
+        ['atendidas', 'Citas atendidas', 'check-circle', 'success'],
+        ['consultas', 'Atenciones registradas', 'file', 'info'],
+        ['total', 'Citas en total', 'clock', 'accent'],
+    ] as [$clave, $etiqueta, $icono, $tono]): ?>
+        <article class="kpi-card tone-<?= e($tono) ?>">
+            <div class="kpi-top">
+                <span class="kpi-icon" aria-hidden="true"><svg class="icon"><use href="#i-<?= e($icono) ?>"></use></svg></span>
+                <span class="kpi-label"><?= e($etiqueta) ?></span>
+            </div>
+            <strong class="kpi-value" data-patient-kpi="<?= e($clave) ?>">
+                <span class="skeleton skeleton-value"></span>
+            </strong>
+            <span class="kpi-foot">Hoy · <span data-patient-date><?= e(date('d/m/Y')) ?></span></span>
+        </article>
+    <?php endforeach; ?>
+</section>
+
+<div class="dashboard-grid">
+    <section class="card card-span-2" aria-labelledby="patient-appointments-title">
+        <div class="card-head">
+            <div>
+                <span class="card-kicker">Agenda personal</span>
+                <h2 id="patient-appointments-title" data-patient-appointments-title>Tus próximas citas</h2>
+            </div>
+            <a class="text-link" href="<?= e(url('/portal/mis-citas')) ?>">
+                Ver todas
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+            </a>
+        </div>
+        <div data-patient-appointments>
+            <div class="table-loading">
+                <?php for ($i = 0; $i < 3; $i++): ?>
+                    <div class="skeleton skeleton-row"></div>
+                <?php endfor; ?>
+            </div>
+        </div>
+    </section>
+
+    <aside class="dashboard-side">
+        <section class="card" aria-labelledby="patient-next-title">
+            <div class="card-head">
+                <div>
+                    <span class="card-kicker">Ahora</span>
+                    <h2 id="patient-next-title">Siguiente cita</h2>
+                </div>
+            </div>
+            <div data-patient-next>
+                <div class="table-loading">
+                    <div class="skeleton skeleton-row"></div>
+                    <div class="skeleton skeleton-row"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" aria-labelledby="patient-profile-title">
+            <div class="card-head">
+                <div>
+                    <span class="card-kicker">Mi ficha</span>
+                    <h2 id="patient-profile-title">Mis datos</h2>
+                </div>
+                <a class="text-link" href="<?= e(url('/portal/perfil')) ?>">Editar</a>
+            </div>
+            <div data-patient-profile>
+                <div class="table-loading">
+                    <div class="skeleton skeleton-row"></div>
+                    <div class="skeleton skeleton-row"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card card-accent">
+            <span class="card-kicker">Mi historial</span>
+            <h2>Consulta tus atenciones</h2>
+            <p>Revisa diagnósticos, indicaciones y signos vitales de tus consultas anteriores.</p>
+            <a class="btn btn-light btn-sm" href="<?= e(url('/portal/historial')) ?>">
+                Abrir historial
                 <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"></use></svg></span>
             </a>
-            <a class="btn btn-ghost btn-sm" href="<?= e(url('/portal/perfil')) ?>">Mi perfil</a>
-        </div>
-    </div>
-    <span class="portal-hero-mark" aria-hidden="true">
-        <svg class="icon"><use href="#i-heart"></use></svg>
-    </span>
+        </section>
+    </aside>
 </div>
-
-<div class="quick-grid quick-grid-3">
-    <a class="quick-card" href="<?= e(url('/portal/mis-citas')) ?>">
-        <span class="quick-icon tone-primary" aria-hidden="true"><svg class="icon"><use href="#i-calendar"></use></svg></span>
-        <div><strong>Mis citas</strong><p>Próximas atenciones y estado de cada reserva.</p></div>
-        <svg class="icon quick-arrow" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
-    </a>
-    <a class="quick-card" href="<?= e(url('/portal/historial')) ?>">
-        <span class="quick-icon tone-success" aria-hidden="true"><svg class="icon"><use href="#i-file"></use></svg></span>
-        <div><strong>Mi historial</strong><p>Atenciones anteriores, indicaciones y recetas.</p></div>
-        <svg class="icon quick-arrow" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
-    </a>
-    <a class="quick-card" href="<?= e(url('/portal/perfil')) ?>">
-        <span class="quick-icon tone-accent" aria-hidden="true"><svg class="icon"><use href="#i-user"></use></svg></span>
-        <div><strong>Mis datos</strong><p>Contacto, emergencia y preferencias de atención.</p></div>
-        <svg class="icon quick-arrow" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
-    </a>
-</div>
-
-<section class="card">
-    <div class="empty-state">
-        <span class="empty-icon" aria-hidden="true"><svg class="icon"><use href="#i-spark"></use></svg></span>
-        <h2>Estamos preparando tu portal</h2>
-        <p>La reserva web y el kiosco ya funcionan. En la siguiente entrega podrás ver tus citas y tu historia clínica desde aquí.</p>
-        <a class="btn btn-ghost btn-sm" href="<?= e(url('/reservar')) ?>">Reservar una cita mientras tanto</a>
-    </div>
-</section>

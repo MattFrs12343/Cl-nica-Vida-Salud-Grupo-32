@@ -1,12 +1,5 @@
 <?php
 /** @var array<string, mixed> $user */
-$citas = [
-    ['hora' => '08:00', 'codigo' => 'CM-0041', 'paciente' => 'Juan Pérez', 'ci' => '10000001', 'motivo' => 'Control de presión arterial', 'estado' => 'confirmada'],
-    ['hora' => '08:30', 'codigo' => 'CM-0042', 'paciente' => 'María Gómez', 'ci' => '10000002', 'motivo' => 'Dolor de cabeza persistente', 'estado' => 'confirmada'],
-    ['hora' => '09:00', 'codigo' => 'CM-0043', 'paciente' => 'Lucía Flores', 'ci' => '10000006', 'motivo' => 'Control prenatal', 'estado' => 'programada'],
-    ['hora' => '09:30', 'codigo' => 'CM-0039', 'paciente' => 'Pedro Fernández', 'ci' => '10000005', 'motivo' => 'Chequeo general', 'estado' => 'atendida'],
-    ['hora' => '10:00', 'codigo' => 'CM-0044', 'paciente' => 'Rosa Villarroel', 'ci' => '10000004', 'motivo' => 'Dolor articular', 'estado' => 'inasistencia'],
-];
 ?>
 <header class="page-head">
     <div class="page-head-copy">
@@ -15,94 +8,79 @@ $citas = [
         <p>El día de hoy, hora por hora. Marca la asistencia a medida que atiendes.</p>
     </div>
     <div class="page-actions">
-        <div class="segmented">
-            <button class="segmented-item is-active" type="button">Día</button>
-            <button class="segmented-item" type="button">Semana</button>
+        <div class="segmented" role="tablist" aria-label="Vista de agenda">
+            <button class="segmented-item is-active" type="button" role="tab" aria-selected="true" data-agenda-mode="day">Día</button>
+            <button class="segmented-item" type="button" role="tab" aria-selected="false" data-agenda-mode="week">Semana</button>
         </div>
-        <input type="date" value="<?= e(date('Y-m-d')) ?>" aria-label="Fecha">
+        <button class="btn btn-ghost btn-sm" type="button" data-agenda-refresh>
+            <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+            Actualizar
+        </button>
     </div>
 </header>
 
-<section class="kpi-grid kpi-grid-4" aria-label="Resumen del día">
-    <article class="kpi-card tone-primary">
-        <div class="kpi-top"><span class="kpi-icon" aria-hidden="true"><svg class="icon"><use href="#i-calendar"></use></svg></span><span class="kpi-label">Citas hoy</span></div>
-        <strong class="kpi-value">5</strong>
-    </article>
-    <article class="kpi-card tone-info">
-        <div class="kpi-top"><span class="kpi-icon" aria-hidden="true"><svg class="icon"><use href="#i-clock"></use></svg></span><span class="kpi-label">En espera</span></div>
-        <strong class="kpi-value">2</strong>
-    </article>
-    <article class="kpi-card tone-success">
-        <div class="kpi-top"><span class="kpi-icon" aria-hidden="true"><svg class="icon"><use href="#i-stethoscope"></use></svg></span><span class="kpi-label">Atendidas</span></div>
-        <strong class="kpi-value">1</strong>
-    </article>
-    <article class="kpi-card tone-danger">
-        <div class="kpi-top"><span class="kpi-icon" aria-hidden="true"><svg class="icon"><use href="#i-x-circle"></use></svg></span><span class="kpi-label">Inasistencias</span></div>
-        <strong class="kpi-value">1</strong>
-    </article>
+<section class="toolbar card">
+    <div class="date-stepper">
+        <button class="date-stepper-btn" type="button" aria-label="Período anterior" data-agenda-prev>
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
+        </button>
+        <input type="date" value="<?= e(date('Y-m-d')) ?>" aria-label="Fecha de la agenda" data-agenda-fecha>
+        <button class="date-stepper-btn" type="button" aria-label="Período siguiente" data-agenda-next>
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+        </button>
+        <button class="btn btn-ghost btn-sm" type="button" data-agenda-today>Hoy</button>
+    </div>
+    <div class="toolbar-filters">
+        <label class="select-wrap">
+            <span class="sr-only">Estado</span>
+            <select data-agenda-estado>
+                <option value="">Todos los estados</option>
+                <option value="programada">Programadas</option>
+                <option value="confirmada">Confirmadas</option>
+                <option value="atendida">Atendidas</option>
+                <option value="cancelada">Canceladas</option>
+                <option value="inasistencia">Inasistencias</option>
+            </select>
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+        </label>
+    </div>
+    <p class="toolbar-count" data-agenda-status>Agenda actualizada</p>
+</section>
+
+<section class="kpi-grid kpi-grid-5" aria-label="Resumen de la agenda" data-agenda-kpis>
+    <?php foreach ([
+        ['total', 'Total', 'calendar', 'primary'],
+        ['programadas', 'Programadas', 'clock', 'info'],
+        ['confirmadas', 'Confirmadas', 'check-circle', 'success'],
+        ['atendidas', 'Atendidas', 'stethoscope', 'success'],
+        ['inasistencias', 'Inasistencias', 'x-circle', 'danger'],
+    ] as [$clave, $etiqueta, $icono, $tono]): ?>
+        <article class="kpi-card tone-<?= e($tono) ?>">
+            <div class="kpi-top">
+                <span class="kpi-icon" aria-hidden="true"><svg class="icon"><use href="#i-<?= e($icono) ?>"></use></svg></span>
+                <span class="kpi-label"><?= e($etiqueta) ?></span>
+            </div>
+            <strong class="kpi-value" data-agenda-kpi="<?= e($clave) ?>">0</strong>
+        </article>
+    <?php endforeach; ?>
 </section>
 
 <section class="card" aria-labelledby="agenda-title">
     <div class="card-head">
         <div>
-            <span class="card-kicker">Hoy · <?= e(date('d/m/Y')) ?></span>
+            <span class="card-kicker" data-agenda-date-label>Hoy</span>
             <h2 id="agenda-title">Agenda del día</h2>
         </div>
+        <div class="card-head-tools">
+            <span class="badge badge-muted" data-agenda-count>0 citas</span>
+            <span class="badge badge-muted" data-agenda-doctor>Mi agenda</span>
+        </div>
     </div>
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Hora</th>
-                    <th>Paciente</th>
-                    <th>Motivo</th>
-                    <th>Estado</th>
-                    <th><span class="sr-only">Acciones</span></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($citas as $cita): ?>
-                    <tr>
-                        <td>
-                            <div class="cell-stack">
-                                <span class="cell-time"><?= e($cita['hora']) ?></span>
-                                <small><?= e($cita['codigo']) ?></small>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cell-person">
-                                <span class="avatar avatar-sm"><?= e(mb_strtoupper(mb_substr($cita['paciente'], 0, 1))) ?></span>
-                                <div>
-                                    <strong><?= e($cita['paciente']) ?></strong>
-                                    <small><?= e($cita['ci']) ?></small>
-                                </div>
-                            </div>
-                        </td>
-                        <td><?= e($cita['motivo']) ?></td>
-                        <td><span class="status status-<?= e($cita['estado']) ?>"><?= e(ucfirst($cita['estado'])) ?></span></td>
-                        <td>
-                            <div class="row-actions">
-                                <?php if ($cita['estado'] === 'confirmada'): ?>
-                                    <button class="row-action" type="button" title="Atender" aria-label="Atender">
-                                        <svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>
-                                    </button>
-                                    <button class="row-action is-danger" type="button" title="Inasistencia" aria-label="Inasistencia">
-                                        <svg class="icon" aria-hidden="true"><use href="#i-x-circle"></use></svg>
-                                    </button>
-                                <?php elseif ($cita['estado'] === 'atendida'): ?>
-                                    <button class="row-action" type="button" title="Ver consulta" aria-label="Ver consulta">
-                                        <svg class="icon" aria-hidden="true"><use href="#i-clipboard"></use></svg>
-                                    </button>
-                                <?php else: ?>
-                                    <button class="row-action" type="button" title="Ver detalle" aria-label="Ver detalle">
-                                        <svg class="icon" aria-hidden="true"><use href="#i-eye"></use></svg>
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <div data-agenda-list>
+        <div class="table-loading">
+            <?php for ($i = 0; $i < 5; $i++): ?>
+                <div class="skeleton skeleton-row"></div>
+            <?php endfor; ?>
+        </div>
     </div>
 </section>
