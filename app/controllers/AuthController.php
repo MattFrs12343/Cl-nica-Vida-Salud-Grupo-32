@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\DB;
+use App\Core\ErrorHandler;
 use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
@@ -50,6 +51,12 @@ final class AuthController extends Controller
         try {
             $usuario = $this->auth->login($identificador, $password);
         } catch (HttpException $exception) {
+            ErrorHandler::log('Login fallido', [
+                'identificador' => $identificador,
+                'ip' => $request->ip(),
+                'code' => $exception->errorCode() ?? 'ERROR',
+            ]);
+
             return $this->respondError($request, $exception, '/login');
         }
 

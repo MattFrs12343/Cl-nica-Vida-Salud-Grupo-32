@@ -126,7 +126,9 @@ final class ErrorHandler
         self::$handled = true;
 
         if (!headers_sent()) {
+            $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
             http_response_code($status);
+            SecurityHeaders::send(is_string($path) ? $path : '/');
 
             foreach ($headers as $name => $value) {
                 header($name . ': ' . $value, true);
@@ -185,6 +187,10 @@ final class ErrorHandler
     private static function messageFor(Throwable $exception): string
     {
         if ($exception instanceof HttpException) {
+            if ($exception->statusCode() >= 500 && !config('app.debug')) {
+                return self::defaultMessage($exception->statusCode());
+            }
+
             return $exception->getMessage() !== '' ? $exception->getMessage() : self::defaultMessage($exception->statusCode());
         }
 

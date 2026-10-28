@@ -47,7 +47,7 @@ $router->get('/api/me', static function (): Response {
 $router->get('/api/public/especialidades', [PublicApiController::class, 'especialidades']);
 $router->get('/api/public/medicos', [PublicApiController::class, 'medicos']);
 $router->get('/api/public/disponibilidad', [PublicApiController::class, 'disponibilidad']);
-$router->post('/api/public/reservar', [PublicApiController::class, 'reservar'], ['role:paciente']);
+$router->post('/api/public/reservar', [PublicApiController::class, 'reservar'], ['role:paciente', 'csrf:same-origin']);
 $router->get('/api/public/pedido', [PublicApiController::class, 'pedido']);
 
 // Kiosco (M-23, M-24). Las rutas protegidas usan el middleware `kiosk`.

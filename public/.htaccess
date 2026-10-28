@@ -13,4 +13,7 @@ Options -Indexes
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header set Cross-Origin-Opener-Policy "same-origin"
+    Header set X-Permitted-Cross-Domain-Policies "none"
 </IfModule>

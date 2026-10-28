@@ -80,13 +80,15 @@ function codigoDeRespuesta(Response $response): ?string
     return is_string($codigo) ? $codigo : null;
 }
 
-function cambiarUltimoCaracter(string $valor): string
+function cambiarPrimerCaracter(string $valor): string
 {
     if ($valor === '') {
         return 'x';
     }
 
-    $valor[strlen($valor) - 1] = $valor[strlen($valor) - 1] === 'a' ? 'b' : 'a';
+    // Cambiar el primer carácter evita que una variación en los bits de
+    // relleno de base64url decodifique a los mismos bytes.
+    $valor[0] = $valor[0] === 'a' ? 'b' : 'a';
 
     return $valor;
 }
@@ -149,10 +151,10 @@ comprobar('el token expira exactamente a los 10 minutos', $servicio->validate($e
 comprobar('el token emitido en el futuro lejano es rechazado', $servicio->validate($emitido['token'], $fijo - 61) === null);
 comprobar('se tolera un desfase de reloj pequeno', $servicio->validate($emitido['token'], $fijo - 30) !== null);
 
-$payloadManipulado = cambiarUltimoCaracter($partes[0]) . '.' . $partes[1];
+$payloadManipulado = cambiarPrimerCaracter($partes[0]) . '.' . $partes[1];
 comprobar('un payload manipulado es rechazado', $servicio->validate($payloadManipulado, $fijo) === null);
 
-$firmaManipulada = $partes[0] . '.' . cambiarUltimoCaracter($partes[1]);
+$firmaManipulada = $partes[0] . '.' . cambiarPrimerCaracter($partes[1]);
 comprobar('una firma manipulada es rechazada', $servicio->validate($firmaManipulada, $fijo) === null);
 
 $otroServicio = new KioskTokenService('otro-secreto-para-pruebas', 'otro-device', 600);
@@ -258,7 +260,7 @@ comprobar('el middleware rechaza un token de otro secreto', $respuesta->status()
     && codigoDeRespuesta($respuesta) === 'UNAUTHENTICATED');
 
 $respuesta = $servidor->dispatch(Request::create('GET', '/api/kiosco/_test_protegido', [], [
-    'X-Kiosk-Token' => $partes[0] . '.' . cambiarUltimoCaracter($partes[1]),
+    'X-Kiosk-Token' => $partes[0] . '.' . cambiarPrimerCaracter($partes[1]),
 ]));
 comprobar('el middleware rechaza una firma manipulada', $respuesta->status() === 401
     && codigoDeRespuesta($respuesta) === 'UNAUTHENTICATED');

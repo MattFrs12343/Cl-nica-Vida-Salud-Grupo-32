@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Middlewares;
 
+use App\Core\ErrorHandler;
 use App\Core\MiddlewareInterface;
 use App\Core\Request;
 use App\Core\Response;
@@ -35,6 +36,12 @@ final class RoleMiddleware implements MiddlewareInterface
         if ($this->roles === [] || in_array((string) $usuario['rol'], $this->roles, true)) {
             return $next($request);
         }
+
+        ErrorHandler::log('Acceso denegado por rol', [
+            'path' => $request->path(),
+            'rol' => (string) ($usuario['rol'] ?? ''),
+            'ip' => $request->ip(),
+        ]);
 
         if ($request->wantsJson()) {
             return json_error('FORBIDDEN', 'No tienes permisos para esta sección.', [], 403);

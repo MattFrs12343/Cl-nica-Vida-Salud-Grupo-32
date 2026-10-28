@@ -114,7 +114,7 @@ final class Router
             };
         }
 
-        return $next($request);
+        return SecurityHeaders::apply($next($request), $request->path());
     }
 
     /**

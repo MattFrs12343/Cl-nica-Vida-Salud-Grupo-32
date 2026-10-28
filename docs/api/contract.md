@@ -69,10 +69,12 @@ Códigos de error de negocio: `VALIDATION_ERROR`, `UNAUTHENTICATED`, `FORBIDDEN`
 ### 1.3 Autenticación
 
 - Paneles, landing y portal usan sesión PHP con cookie `HttpOnly`, `Secure` (en HTTPS) y `SameSite=Lax`.
+- La sesión expira en el servidor tras `SESSION_LIFETIME` segundos de inactividad (7200 por defecto); el siguiente request pierde `usuario` y recibe un aviso de sesión expirada.
 - El kiosco usa token HMAC en el header `X-Kiosk-Token`.
 - La página pública de pedidos no usa sesión: valida `codigo` + `codigo_acceso`.
 - `GET /api/me` devuelve el usuario de sesión. Si no hay sesión: `401`.
 - `GET /api/csrf` devuelve el token para el `fetch` inicial del panel.
+- Las respuestas incluyen `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` y `X-Permitted-Cross-Domain-Policies`; las rutas `/api/*` añaden `Cache-Control: no-store`. Sobre HTTPS se añade HSTS.
 
 ---
 
@@ -276,7 +278,7 @@ Reglas de los endpoints públicos:
 - Solo se listan especialidades y médicos con `estado=activo`.
 - `disponibilidad` excluye fechas pasadas, bloqueos, citas activas y franjas sin cupo web.
 - Sin sesión, los endpoints de catálogo son de solo lectura y no requieren CSRF.
-- `POST /api/public/reservar` exige sesión `paciente`; el rol se valida con `RoleMiddleware`.
+- `POST /api/public/reservar` exige sesión `paciente`; el rol se valida con `RoleMiddleware`. La mutación exige CSRF, pero acepta además peticiones JSON del mismo origen (`Origin`/`Referer` iguales a `APP_URL`) porque el JS de la landing no envía el header; las peticiones cross-origin sin token se rechazan con `CSRF_TOKEN_MISMATCH`.
 - La reserva web revalida la disponibilidad dentro de una transacción y responde `409 SLOT_TAKEN` si el bloque se ocupó mientras el paciente completaba el formulario.
 
 ---
@@ -1275,10 +1277,11 @@ La auditoría se escribe por trigger; no se expone endpoint de escritura.
 - `recepcionista_medico` solo opera sobre `medico_ids` de su sesión.
 - El médico solo accede a sus propios recursos (`medico_id`).
 - El paciente solo accede a sus propios recursos (`paciente_id`).
-- Cualquier endpoint que muta estado exige CSRF, salvo kiosco (token HMAC) y endpoints públicos.
+- Cualquier endpoint que muta estado exige CSRF, salvo kiosco (token HMAC) y endpoints públicos. La reserva web usa `csrf:same-origin` como excepción documentada.
 - Los listados deben devolver `meta` con `page`, `per_page` y `total`.
 - Los errores de validación devuelven `error.fields` con `campo => mensaje`.
-- No se exponen stack traces ni SQL en producción.
+- No se exponen stack traces, rutas internas ni SQL en producción. `APP_DEBUG=false` es obligatorio fuera de desarrollo; los `500` devuelven un mensaje genérico.
+- Los intentos de login fallidos, CSRF inválido y accesos denegados por rol se registran en `storage/logs/app.log` sin incluir contraseñas.
 
 ---
 

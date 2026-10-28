@@ -28,6 +28,7 @@ Reglas:
 - Un usuario sin sesión que entra a un panel recibe `302 → /login`.
 - Un usuario con sesión pero sin permiso recibe `403`.
 - El backend renueva el ID de sesión al iniciar sesión y rota el token CSRF.
+- La sesión expira en el servidor tras `SESSION_LIFETIME` segundos sin actividad; el siguiente request redirige a `/login` con un aviso.
 
 Redirecciones por rol:
 

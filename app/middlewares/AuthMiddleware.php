@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Middlewares;
 
+use App\Core\ErrorHandler;
 use App\Core\MiddlewareInterface;
 use App\Core\Request;
 use App\Core\Response;
@@ -15,6 +16,11 @@ final class AuthMiddleware implements MiddlewareInterface
         if (auth() !== null) {
             return $next($request);
         }
+
+        ErrorHandler::log('Acceso sin sesión', [
+            'path' => $request->path(),
+            'ip' => $request->ip(),
+        ]);
 
         if ($request->wantsJson()) {
             return json_error('UNAUTHENTICATED', 'No autenticado.', [], 401);

@@ -484,7 +484,7 @@ try {
         'fecha' => $fecha,
         'hora' => $slot['hora'],
         'motivo' => 'Integracion M-22 ' . $sufijo,
-    ]));
+    ], ['Origin' => (string) config('app.url')]));
     $datos = cuerpo($respuesta);
     $cita = $datos['data']['cita'] ?? [];
     $ficha = $datos['data']['ficha'] ?? [];
@@ -562,7 +562,7 @@ try {
             'especialidad_id' => $especialidadId,
             'fecha' => $fecha,
             'hora' => $slot['hora'],
-        ]))) === 'SLOT_TAKEN'
+        ], ['Origin' => (string) config('app.url')]))) === 'SLOT_TAKEN'
     );
 
     // Correo de confirmación ----------------------------------------------------

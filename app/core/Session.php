@@ -6,6 +6,8 @@ namespace App\Core;
 
 final class Session
 {
+    private const LAST_ACTIVITY = '_last_activity';
+
     public static function start(): void
     {
         if (PHP_SAPI === 'cli' || session_status() === PHP_SESSION_ACTIVE || headers_sent()) {
@@ -34,6 +36,38 @@ final class Session
         ini_set('session.cookie_httponly', '1');
 
         session_start();
+        self::touch();
+    }
+
+    /**
+     * Renueva la marca de actividad y cierra la sesión si superó el tiempo
+     * de inactividad configurado. Se ejecuta al inicio de cada petición web.
+     */
+    public static function touch(): void
+    {
+        self::ensure();
+
+        $lifetime = (int) (config('app.session.lifetime', 7200));
+        $now = time();
+        $last = (int) ($_SESSION[self::LAST_ACTIVITY] ?? 0);
+
+        if ($lifetime > 0 && $last > 0 && ($now - $last) > $lifetime) {
+            $teniaUsuario = isset($_SESSION['usuario']);
+            $_SESSION = [];
+
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_regenerate_id(true);
+            }
+
+            if ($teniaUsuario) {
+                $_SESSION['_flash'][] = [
+                    'type' => 'error',
+                    'message' => 'Tu sesión expiró por inactividad. Inicia sesión nuevamente.',
+                ];
+            }
+        }
+
+        $_SESSION[self::LAST_ACTIVITY] = $now;
     }
 
     private static function ensure(): void
@@ -95,15 +129,14 @@ final class Session
 
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
-            setcookie(
-                session_name(),
-                '',
-                time() - 42000,
-                $params['path'],
-                $params['domain'],
-                $params['secure'],
-                $params['httponly']
-            );
+            setcookie(session_name(), '', [
+                'expires' => time() - 42000,
+                'path' => $params['path'],
+                'domain' => $params['domain'],
+                'secure' => $params['secure'],
+                'httponly' => $params['httponly'],
+                'samesite' => $params['samesite'] ?? 'Lax',
+            ]);
         }
 
         if (session_status() === PHP_SESSION_ACTIVE) {
