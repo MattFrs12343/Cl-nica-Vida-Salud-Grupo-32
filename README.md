@@ -118,6 +118,7 @@ docker compose exec app php bin/test-integracion.php  # flujo landing → reserv
 docker compose exec app php bin/test-kiosco.php       # pruebas de token HMAC y middleware del kiosco
 docker compose exec app php bin/test-kiosco-api.php   # flujo de kiosco: identificar, alta, catálogos, cupo y reserva
 docker compose exec app php bin/test-kiosco-ficha.php # ficha: emisión idempotente, QR, confirmación y reconsulta
+docker compose exec app php bin/test-portal.php       # portal: perfil, mis citas, historial, contraseña y cancelación
 docker compose exec app php -l archivo.php            # lint de un archivo
 docker compose logs -f app                            # logs de Apache/PHP
 ```
@@ -138,8 +139,9 @@ La recuperación de contraseña se envía a Mailpit (`http://localhost:8025`). S
 - **Fase 0 completada:** esqueleto, Docker, core, contratos, migración de usuarios y seeders demo.
 - **Fase 1 backend completada:** modelo de datos 001–010, RLS, seeders, auth real (login por usuario/email/CI, bloqueo, reset, activación), middlewares y correo con PHPMailer/Mailpit.
 - **Fase 2 backend completada:** catálogo público (`/api/public/especialidades`, `/medicos`, `/disponibilidad`), reserva web con cupo, ficha y correo (`POST /api/public/reservar`), landing PHP en `/`, `/reservar`, `/kiosco`, APIs administrativas (M-20/M-21) y pruebas de integración (M-22).
-- **Fase 3 en curso:** kiosco completo (M-23–M-26): token HMAC, APIs de identificación/alta/catálogos/cupo/reserva, ficha con QR y confirmación de cita, y app táctil en `/kiosco` (la vista informativa vive en `/kiosco-como-funciona`). Siguen las APIs de recepción (M-27 en adelante).
-- **Pendiente de Lucas:** vistas de autenticación (`app/views/auth/*`), paneles y su integración visual. Mientras no existan, los GET de auth devuelven `501 VIEW_NOT_AVAILABLE` en JSON.
-- **Pendiente de Matias:** APIs de recepción (M-27 en adelante).
+- **Fase 3 backend completada:** kiosco (M-23–M-26), APIs de recepción (M-27), fichas/pagos (M-28) y pruebas cruzadas (M-29).
+- **Fase 4 backend en curso:** APIs del médico (M-30), consultas/pedidos (M-31), pagos/QR del médico (M-32) y portal del paciente (M-33) completados. Pendientes: dashboards/reportes (M-34), pruebas cruzadas médico + portal (M-35) y hardening/deploy/QA (M-36–M-39).
+- **UI:** autenticación, shell de paneles y panel de recepción completos. Quedan los módulos admin (L-14–L-19), las secciones del médico (L-26–L-31), el portal del paciente (L-32–L-33) y el pulido final (L-34–L-37); por ahora se muestran como placeholders estilizados.
+- **Portal del paciente (API):** `GET /api/me/perfil`, `PUT /api/me/perfil`, `GET /api/me/citas`, `GET /api/me/historial`, `PUT /api/me/password` y cancelación con `PATCH /api/citas/{id}/cancelar`. La UI del portal queda a cargo de Lucas.
 
 Las fases y tareas están en [`docs/equipo/PLAN-TRABAJO.md`](docs/equipo/PLAN-TRABAJO.md).

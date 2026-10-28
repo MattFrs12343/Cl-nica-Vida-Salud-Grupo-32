@@ -7,25 +7,31 @@ namespace App\Controllers\Api;
 use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
+use App\Core\Session;
 use App\Models\CitaModel;
 use App\Models\ConsultaModel;
 use App\Models\PacienteModel;
+use App\Services\AuthService;
 use App\Services\PacienteService;
 
 final class PacienteApiController extends AdminApiController
 {
     private const ESTADOS = ['activo', 'inactivo'];
+    private const ESTADOS_CITA = ['programada', 'confirmada', 'atendida', 'cancelada', 'inasistencia'];
+    private const SORT_CITAS = ['fecha', 'hora', 'codigo', 'estado', 'created_at'];
 
     public function __construct(
         private ?PacienteService $pacientes = null,
         private ?PacienteModel $modelo = null,
         private ?CitaModel $citas = null,
-        private ?ConsultaModel $consultas = null
+        private ?ConsultaModel $consultas = null,
+        private ?AuthService $auth = null
     ) {
         $this->pacientes ??= new PacienteService();
         $this->modelo ??= new PacienteModel();
         $this->citas ??= new CitaModel();
         $this->consultas ??= new ConsultaModel();
+        $this->auth ??= new AuthService();
     }
 
     public function index(Request $request): Response
@@ -187,6 +193,155 @@ final class PacienteApiController extends AdminApiController
         );
 
         return json_ok($actualizado, [], 'Perfil actualizado.');
+    }
+
+    /**
+     * Citas del paciente autenticado. El listado nunca acepta un `paciente_id`
+     * externo: el alcance se toma de la sesión y se reafirma en la consulta.
+     */
+    public function misCitas(Request $request): Response
+    {
+        $paciente = $this->pacienteDeSesion();
+        $filtros = $this->filtrosCitasPortal($request);
+        $filtros['paciente_id'] = (int) $paciente['id'];
+        $paginacion = $this->pagination($request);
+
+        $resultado = $this->comoPropietario(
+            fn (): array => $this->citas->listarAdmin(
+                $filtros,
+                $paginacion['page'],
+                $paginacion['per_page']
+            )
+        );
+
+        return $this->listaJson(
+            $resultado['data'],
+            $resultado['total'],
+            $paginacion['page'],
+            $paginacion['per_page']
+        );
+    }
+
+    /**
+     * Historial completo del paciente: citas (incluidas canceladas) y
+     * consultas clínicas. Los filtros de fecha se aplican a ambas colecciones;
+     * `estado` solo filtra las citas.
+     */
+    public function historial(Request $request): Response
+    {
+        $paciente = $this->pacienteDeSesion();
+        $desde = $this->queryDate($request, 'desde');
+        $hasta = $this->queryDate($request, 'hasta');
+        $this->validarRango($desde, $hasta);
+
+        $estado = strtolower($this->queryText($request, 'estado'));
+
+        if ($estado !== '' && !in_array($estado, self::ESTADOS_CITA, true)) {
+            $this->validacion(['estado' => 'Selecciona un estado válido.']);
+        }
+
+        $citas = $this->comoPropietario(
+            fn (): array => $this->citas->historialPaciente(
+                (int) $paciente['id'],
+                $desde,
+                $hasta,
+                $estado === '' ? null : $estado
+            )
+        );
+        $consultas = $this->comoPropietario(
+            fn (): array => $this->consultas->historiaPaciente(
+                (int) $paciente['id'],
+                $desde,
+                $hasta
+            )
+        );
+
+        return json_ok([
+            'paciente' => $paciente,
+            'citas' => $citas,
+            'consultas' => $consultas,
+            'total_citas' => count($citas),
+            'total_consultas' => count($consultas),
+        ], [
+            'desde' => $desde,
+            'hasta' => $hasta,
+            'estado' => $estado === '' ? null : $estado,
+        ]);
+    }
+
+    /**
+     * Cambio de contraseña del portal. Exige la contraseña actual y mantiene
+     * la sesión activa rotando el identificador de sesión.
+     */
+    public function cambiarPassword(Request $request): Response
+    {
+        $usuario = $this->usuarioActual();
+        $body = $request->body();
+        $actual = $body['password_actual'] ?? $body['current_password'] ?? null;
+
+        $this->auth->cambiarPassword(
+            (int) ($usuario['id'] ?? 0),
+            is_scalar($actual) ? (string) $actual : '',
+            is_scalar($body['password'] ?? null) ? (string) $body['password'] : '',
+            is_scalar($body['password_confirmation'] ?? null)
+                ? (string) $body['password_confirmation']
+                : ''
+        );
+
+        Session::regenerate();
+
+        return json_ok([], [], 'Contraseña actualizada.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function filtrosCitasPortal(Request $request): array
+    {
+        $desde = $this->queryDate($request, 'desde');
+        $hasta = $this->queryDate($request, 'hasta');
+        $this->validarRango($desde, $hasta);
+
+        $estado = strtolower($this->queryText($request, 'estado'));
+
+        if ($estado !== '' && !in_array($estado, self::ESTADOS_CITA, true)) {
+            $this->validacion(['estado' => 'Selecciona un estado válido.']);
+        }
+
+        $sort = strtolower($this->queryText($request, 'sort'));
+        $sort = $sort === '' ? 'fecha' : $sort;
+
+        if (!in_array($sort, self::SORT_CITAS, true)) {
+            $this->validacion(['sort' => 'Selecciona un orden válido.']);
+        }
+
+        $direction = strtolower($this->queryText($request, 'direction'));
+        $direction = $direction === '' ? 'desc' : $direction;
+
+        if (!in_array($direction, ['asc', 'desc'], true)) {
+            $this->validacion(['direction' => 'Usa asc o desc.']);
+        }
+
+        // Atajo para el dashboard: desde hoy y en orden cronológico ascendente.
+        if ($this->queryBool($request, 'proximas') === true) {
+            $hoy = date('Y-m-d');
+
+            if ($desde === null || $desde < $hoy) {
+                $desde = $hoy;
+            }
+
+            $direction = 'asc';
+        }
+
+        return [
+            'fecha' => null,
+            'desde' => $desde,
+            'hasta' => $hasta,
+            'paciente_id' => null,
+            'estado' => $estado === '' ? null : $estado,
+            'sort' => $sort,
+            'direction' => $direction,
+        ];
     }
 
     /**

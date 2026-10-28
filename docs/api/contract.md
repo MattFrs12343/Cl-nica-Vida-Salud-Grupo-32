@@ -518,6 +518,9 @@ Payload de creación:
 | GET | `/api/pacientes/{id}/historial?desde=&hasta=&estado=` | admin, super_admin, recepcionista, recepcionista_medico, medico, paciente (propio) | Historial de citas con filtros. |
 | GET | `/api/me/perfil` | paciente | Perfil propio. |
 | PUT | `/api/me/perfil` | paciente | Editar contacto y datos médicos propios. |
+| GET | `/api/me/citas?estado=&desde=&hasta=&proximas=&sort=&direction=&page=&per_page=` | paciente | Mis citas, con filtros y paginación. |
+| GET | `/api/me/historial?desde=&hasta=&estado=` | paciente | Historial combinado de citas y consultas clínicas. |
+| PUT | `/api/me/password` | paciente | Cambiar la contraseña propia. |
 
 Alcance por rol:
 
@@ -558,6 +561,38 @@ Campos obligatorios en el alta: `ci`, `nombres`, `apellidos`, `fecha_nacimiento`
 `PATCH /api/pacientes/{id}/estado` acepta `estado` (`activo`/`inactivo`) o `activo` booleano. La respuesta incluye `meta.citas_futuras`; desactivar no cancela citas existentes, pero impide agendar nuevas.
 
 `PUT /api/me/perfil` solo permite `telefono`, `email`, `direccion`, `tipo_sangre`, `alergias`, `enfermedades_cronicas`, `medicamentos`, `antecedentes` y los datos de emergencia. No permite cambiar `ci`, nombres, apellidos, fecha de nacimiento ni sexo.
+
+### 6.1 Portal del paciente (M-33)
+
+`GET /api/me/citas` devuelve únicamente las citas del paciente autenticado, con el mismo shape que `/api/citas`. Acepta `estado`, `desde`, `hasta`, `proximas`, `sort` (`fecha`, `hora`, `codigo`, `estado`, `created_at`), `direction` (`asc`/`desc`), `page` y `per_page` (máximo 100). Por defecto ordena por fecha descendente. `proximas=1` fija `desde` en la fecha actual si no se envió una posterior y fuerza el orden ascendente; es el atajo previsto para el dashboard del portal.
+
+`GET /api/me/historial` devuelve el historial propio combinado:
+
+```json
+{
+  "paciente": { "id": 1, "nombre_completo": "Juan Pérez" },
+  "citas": [],
+  "consultas": [],
+  "total_citas": 0,
+  "total_consultas": 0
+}
+```
+
+`desde` y `hasta` filtran citas y consultas; `estado` solo filtra las citas. Incluye citas pasadas y canceladas. Las consultas tienen el mismo shape que `GET /api/pacientes/{id}/historia`.
+
+`PUT /api/me/password` requiere CSRF y el body:
+
+```json
+{
+  "password_actual": "Demo1234!",
+  "password": "NuevaClave1",
+  "password_confirmation": "NuevaClave1"
+}
+```
+
+La contraseña actual también puede enviarse como `current_password`. La nueva debe tener al menos 8 caracteres, una letra y un número, coincidir con la confirmación y ser distinta de la actual. La sesión se mantiene activa y rota su identificador. Errores: `422 VALIDATION_ERROR` con `fields.password_actual`, `fields.password` o `fields.password_confirmation`; `403 CSRF_TOKEN_MISMATCH`; `403 FORBIDDEN` para roles distintos de `paciente`.
+
+La cancelación del paciente reutiliza `PATCH /api/citas/{id}/cancelar` y conserva la regla del día anterior (`422 CANCELLATION_TOO_LATE`). El paciente también puede consultar el detalle de sus propias citas con `GET /api/citas/{id}`.
 
 Errores: `409 DUPLICATE_CI`, `409 PATIENT_INACTIVE`, `403 FORBIDDEN`, `404 NOT_FOUND`, `422 VALIDATION_ERROR`.
 
@@ -658,7 +693,7 @@ Payload de franja:
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
 | GET | `/api/citas` | según rol | Listar con `fecha`, `medico`, `especialidad`, `estado`. |
-| GET | `/api/citas/{id}` | según rol | Detalle. |
+| GET | `/api/citas/{id}` | según rol; paciente (propia) | Detalle. |
 | POST | `/api/citas` | admin, super_admin, recepcionista, recepcionista_medico | Registrar en recepción (`origen=recepcion`). |
 | PUT | `/api/citas/{id}/reprogramar` | admin, super_admin, recepcionista, recepcionista_medico | Cambiar fecha/hora. |
 | PATCH | `/api/citas/{id}/cancelar` | admin, super_admin, recepcionista, recepcionista_medico, paciente (propia) | Cancelar con motivo. |
@@ -749,6 +784,8 @@ Errores de cupo/agenda: `409 SLOT_TAKEN`, `422 SCHEDULE_OUTSIDE`, `422 CANCELLAT
 | GET | `/api/pacientes/{id}/historial?desde=&hasta=&estado=` | admin, super_admin, recepcionista, recepcionista_medico, medico, paciente (propio) | Historial de citas. |
 | GET | `/api/pacientes/{id}/citas` | admin, super_admin, recepcionista, recepcionista_medico, medico | Alias del historial de citas. |
 | GET | `/api/citas?fecha=&desde=&hasta=&medico=&especialidad=&estado=&page=&per_page=` | admin, super_admin, recepcionista, recepcionista_medico, medico | Listado general con filtros y paginación. |
+| GET | `/api/me/citas?estado=&desde=&hasta=&proximas=&page=&per_page=` | paciente | Mis citas con alcance de sesión. |
+| GET | `/api/me/historial?desde=&hasta=&estado=` | paciente | Historial combinado de citas y consultas propias. |
 
 `recepcionista_medico` y `medico` quedan limitados a sus médicos asignados. El paciente solo puede consultar su propio historial. El historial devuelve la ficha básica de la cita (fecha, hora, médico, especialidad, estado, origen y reconsulta) y respeta `desde`/`hasta`/`estado`.
 

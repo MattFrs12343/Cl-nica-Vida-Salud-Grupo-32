@@ -82,13 +82,30 @@ final class ConsultaModel
      *
      * @return array<int, array<string, mixed>>
      */
-    public function historiaPaciente(int $pacienteId): array
-    {
+    public function historiaPaciente(
+        int $pacienteId,
+        ?string $desde = null,
+        ?string $hasta = null
+    ): array {
+        $where = ['co.paciente_id = :paciente_id'];
+        $parametros = ['paciente_id' => $pacienteId];
+
+        if ($desde !== null) {
+            $where[] = 'co.fecha >= CAST(:desde AS date)';
+            $parametros['desde'] = $desde;
+        }
+
+        if ($hasta !== null) {
+            $where[] = "co.fecha < CAST(:hasta AS date) + INTERVAL '1 day'";
+            $parametros['hasta'] = $hasta;
+        }
+
         $statement = $this->pdo->prepare(
-            $this->baseSql() . ' WHERE co.paciente_id = :paciente_id
-             ORDER BY co.fecha DESC, co.id DESC'
+            $this->baseSql()
+            . ' WHERE ' . implode(' AND ', $where)
+            . ' ORDER BY co.fecha DESC, co.id DESC'
         );
-        $statement->execute(['paciente_id' => $pacienteId]);
+        $statement->execute($parametros);
 
         return array_map([$this, 'normalizar'], $statement->fetchAll());
     }

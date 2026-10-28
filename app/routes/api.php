@@ -106,7 +106,7 @@ $router->group('/api', static function ($router): void {
     $router->get('/citas', [CitaApiController::class, 'index'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
     $router->post('/citas', [CitaApiController::class, 'store'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
     $router->get('/citas/{id}/historial-estados', [CitaApiController::class, 'historial'], ['role:admin,super_admin']);
-    $router->get('/citas/{id}', [CitaApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->get('/citas/{id}', [CitaApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico,paciente']);
     $router->put('/citas/{id}/reprogramar', [CitaApiController::class, 'reprogramar'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
     $router->patch('/citas/{id}/cancelar', [CitaApiController::class, 'cancelar'], ['role:admin,super_admin,recepcionista,recepcionista_medico,paciente', 'csrf']);
     $router->patch('/citas/{id}/atender', [CitaApiController::class, 'atender'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico', 'csrf']);
@@ -131,9 +131,12 @@ $router->group('/api', static function ($router): void {
     $router->post('/pagos', [PagoApiController::class, 'store'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico', 'csrf']);
     $router->get('/pagos/{id}', [PagoApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
 
-    // Perfil del paciente (Spec 02)
+    // Portal del paciente (M-33)
     $router->get('/me/perfil', [PacienteApiController::class, 'perfil'], ['role:paciente']);
     $router->put('/me/perfil', [PacienteApiController::class, 'actualizarPerfil'], ['role:paciente', 'csrf']);
+    $router->get('/me/citas', [PacienteApiController::class, 'misCitas'], ['role:paciente']);
+    $router->get('/me/historial', [PacienteApiController::class, 'historial'], ['role:paciente']);
+    $router->put('/me/password', [PacienteApiController::class, 'cambiarPassword'], ['role:paciente', 'csrf']);
 
     $router->get('/medicos/{medico}/agenda', [AgendaApiController::class, 'medico'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
     $router->get('/medicos/{medico}/agenda/dia', [AgendaApiController::class, 'dia'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);

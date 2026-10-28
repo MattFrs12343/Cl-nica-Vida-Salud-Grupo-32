@@ -195,6 +195,61 @@ final class AuthService
     }
 
     /**
+     * Cambia la contraseña de un usuario autenticado.
+     *
+     * La contraseña actual se verifica antes de validar la nueva para no
+     * revelar las reglas de complejidad a quien no conoce la credencial.
+     */
+    public function cambiarPassword(
+        int $usuarioId,
+        string $passwordActual,
+        string $password,
+        string $passwordConfirmation
+    ): void {
+        $usuario = $this->usuarios->findById($usuarioId);
+
+        if ($usuario === null) {
+            throw new HttpException(401, 'No autenticado.', [], 'UNAUTHENTICATED');
+        }
+
+        if ((bool) $usuario['activo'] === false) {
+            throw new HttpException(
+                403,
+                'Cuenta inactiva. Contacte al administrador.',
+                [],
+                'ACCOUNT_INACTIVE'
+            );
+        }
+
+        if ($passwordActual === '' || !password_verify($passwordActual, (string) $usuario['password_hash'])) {
+            throw new HttpException(
+                422,
+                'Revisa los datos enviados.',
+                [],
+                'VALIDATION_ERROR',
+                ['password_actual' => 'La contraseña actual no es correcta.']
+            );
+        }
+
+        $this->validarPassword($password, $passwordConfirmation);
+
+        if (password_verify($password, (string) $usuario['password_hash'])) {
+            throw new HttpException(
+                422,
+                'Revisa los datos enviados.',
+                [],
+                'VALIDATION_ERROR',
+                ['password' => 'La nueva contraseña debe ser diferente a la actual.']
+            );
+        }
+
+        $this->usuarios->actualizarPassword(
+            $usuarioId,
+            password_hash($password, PASSWORD_BCRYPT)
+        );
+    }
+
+    /**
      * Activa la cuenta de un paciente registrado en kiosco.
      *
      * @return array<string, mixed>

@@ -300,6 +300,11 @@ final class CitaApiController extends AdminApiController
             return;
         }
 
+        if ($rol === 'paciente'
+            && (int) ($cita['paciente_id'] ?? 0) === (int) ($usuario['paciente_id'] ?? 0)) {
+            return;
+        }
+
         if ($rol === 'medico' && $medicoId === (int) ($usuario['medico_id'] ?? 0)) {
             return;
         }
