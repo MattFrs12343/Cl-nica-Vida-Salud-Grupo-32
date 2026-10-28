@@ -74,6 +74,7 @@ $panelData = [
     <link rel="preload" href="<?= e(asset('landing/fonts/dm-sans-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= e(asset('landing/css/base.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('panel/css/panel.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('panel/css/print.css')) ?>" media="print">
     <script>window.PANEL = <?= json_encode($panelData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;</script>
 </head>
 <body class="panel-body"
@@ -84,7 +85,7 @@ $panelData = [
 <?php require app_path('views/partials/panel/icons.php'); ?>
 
 <div class="panel-shell">
-    <div class="sidebar-backdrop" data-sidebar-close></div>
+    <div class="sidebar-backdrop" data-sidebar-close aria-hidden="true"></div>
 
     <aside class="sidebar" id="panel-sidebar" data-sidebar aria-label="Barra lateral">
         <div class="sidebar-head">
@@ -130,7 +131,8 @@ $panelData = [
     <div class="panel-main">
         <header class="topbar">
             <div class="topbar-left">
-                <button class="topbar-menu" type="button" data-sidebar-open aria-label="Abrir menú">
+                <button class="topbar-menu" type="button" data-sidebar-open aria-label="Abrir menú"
+                        aria-controls="panel-sidebar" aria-expanded="false">
                     <svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg>
                 </button>
                 <nav class="breadcrumbs" aria-label="Migas de pan">
@@ -190,7 +192,7 @@ $panelData = [
             </div>
         </header>
 
-        <main class="panel-content" id="contenido">
+        <main class="panel-content" id="contenido" tabindex="-1">
             <?php if (($flashes ?? []) !== []): ?>
                 <div class="panel-flashes" role="status" aria-live="polite">
                     <?php foreach ($flashes as $mensaje): ?>

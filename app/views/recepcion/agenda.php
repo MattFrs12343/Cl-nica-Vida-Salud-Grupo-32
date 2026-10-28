@@ -34,7 +34,7 @@
             </button>
             <label class="input-inline" aria-label="Fecha de agenda">
                 <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
-                <input type="date" data-agenda-fecha value="<?= e(date('Y-m-d')) ?>">
+                <input type="date" data-agenda-fecha aria-label="Fecha de agenda" value="<?= e(date('Y-m-d')) ?>">
             </label>
             <button class="icon-btn" type="button" data-agenda-next aria-label="Día siguiente">
                 <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg>

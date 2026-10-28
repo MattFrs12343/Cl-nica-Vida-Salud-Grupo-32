@@ -352,8 +352,23 @@ export default function initFichas() {
     <title>${escapeHtml(ficha.codigo || 'Ficha')}</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: "DM Sans", Arial, sans-serif; margin: 0; padding: 18px; color: #12241f; }
-        .ticket { border: 1px dashed #8a9992; border-radius: 12px; padding: 18px; width: 340px; margin: 0 auto; }
+        body {
+            font-family: "DM Sans", Arial, sans-serif;
+            margin: 0;
+            padding: 18px;
+            color: #12241f;
+            background: #fff;
+        }
+        .ticket {
+            width: 340px;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 18px;
+            border: 1px dashed #8a9992;
+            border-radius: 12px;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
         .head { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px dashed #b9c4be; }
         .brand strong { display: block; font-size: 15px; }
         .brand small, .code small { display: block; font-size: 8px; letter-spacing: .12em; text-transform: uppercase; color: #68766f; }
@@ -373,7 +388,15 @@ export default function initFichas() {
         .foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #b9c4be; font-size: 7px; color: #68766f; }
         .bars { display: flex; gap: 1px; height: 16px; }
         .bars i { width: 2px; background: #12241f; }
-        @page { margin: 8mm; }
+        @page { size: A4 portrait; margin: 12mm; }
+        @media print {
+            body {
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .ticket { border-style: solid; border-radius: 0; }
+        }
     </style>
 </head>
 <body>

@@ -85,7 +85,7 @@ $mensajes = $flashes ?? [];
             </a>
         </div>
 
-        <div class="auth-card" id="auth-form">
+        <div class="auth-card" id="auth-form" tabindex="-1">
             <?php if ($mensajes !== []): ?>
                 <div class="auth-flashes" role="status" aria-live="polite">
                     <?php foreach ($mensajes as $mensaje): ?>

@@ -29,12 +29,15 @@
     .sidebar {
         z-index: 90;
         transform: translateX(-102%);
-        transition: transform 260ms var(--ease-out);
+        visibility: hidden;
+        transition: transform 260ms var(--ease-out), visibility 0s linear 260ms;
         box-shadow: 24px 0 70px -30px rgba(6, 24, 19, 0.5);
     }
 
     .sidebar.is-open {
         transform: none;
+        visibility: visible;
+        transition: transform 260ms var(--ease-out);
     }
 
     .sidebar-close {
@@ -404,6 +407,116 @@
     .toast-stack {
         right: 10px;
         bottom: 10px;
+    }
+}
+
+@media (max-width: 400px) {
+    .panel-content {
+        padding: 18px 14px 34px;
+    }
+
+    .topbar {
+        padding: 9px 14px;
+        min-height: 58px;
+    }
+
+    .panel-foot {
+        padding: 10px 14px 14px;
+        font-size: 10px;
+    }
+
+    .page-head {
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .page-head h1 {
+        font-size: 1.85rem;
+    }
+
+    .page-head p {
+        font-size: 12.5px;
+    }
+
+    .card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .kpi-card {
+        padding: 12px;
+    }
+
+    .breadcrumbs {
+        max-width: 168px;
+        overflow: hidden;
+    }
+
+    .breadcrumbs span[aria-current="page"] {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .user-trigger {
+        padding: 2px;
+    }
+
+    .avatar-sm {
+        width: 30px;
+        height: 30px;
+    }
+
+    .toolbar-filters {
+        flex-wrap: wrap;
+    }
+
+    .toolbar-filters .select-wrap,
+    .toolbar-filters .input-inline {
+        flex: 1 1 100%;
+    }
+
+    .modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .modal-panel {
+        max-height: calc(100vh - 8px);
+        border-radius: 18px 18px 0 0;
+    }
+
+    .modal-foot .btn {
+        flex: 1 1 100%;
+    }
+
+    .toast-stack {
+        left: 10px;
+        right: 10px;
+    }
+
+    .toast {
+        width: 100%;
+        max-width: none;
+    }
+
+    .auth-shell {
+        padding: 0;
+    }
+
+    .auth-panel {
+        min-height: 100vh;
+        padding: 16px;
+        border-radius: 0;
+    }
+
+    .auth-head h1 {
+        font-size: 1.8rem;
+    }
+
+    .qr-preview-frame {
+        width: 168px;
+        height: 168px;
     }
 }
 

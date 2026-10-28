@@ -27,7 +27,7 @@
     <div class="toolbar-filters">
         <label class="input-inline" aria-label="Fecha de emisión">
             <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
-            <input type="date" data-ficha-fecha>
+            <input type="date" data-ficha-fecha aria-label="Fecha de emisión">
         </label>
         <button class="icon-btn" type="button" data-ficha-refresh aria-label="Actualizar listado">
             <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
