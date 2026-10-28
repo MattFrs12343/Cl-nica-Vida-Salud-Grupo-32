@@ -26,6 +26,9 @@ const metaNode = $('[data-qr-meta]');
 const download = $('[data-qr-download]');
 const print = $('[data-qr-print]');
 const refresh = $('[data-qr-refresh]');
+const fileName = $('[data-qr-file-name]');
+const submit = form?.querySelector('[data-qr-submit]')
+    ?? form?.querySelector('button[type="submit"]');
 
 const emptyDefault = empty?.innerHTML || '';
 
@@ -118,6 +121,13 @@ function resetPreview() {
         preview.removeAttribute('src');
         preview.hidden = true;
     }
+    if (fileName) {
+        fileName.textContent = '';
+        fileName.hidden = true;
+    }
+    if (submit) {
+        submit.disabled = true;
+    }
 }
 
 fileInput?.addEventListener('change', () => {
@@ -131,12 +141,14 @@ fileInput?.addEventListener('change', () => {
     if (!['image/png', 'image/jpeg'].includes(file.type)) {
         toast('error', 'El archivo debe ser una imagen PNG o JPG.');
         fileInput.value = '';
+        resetPreview();
         return;
     }
 
     if (file.size > 1_048_576) {
         toast('error', 'La imagen no puede superar 1 MB.');
         fileInput.value = '';
+        resetPreview();
         return;
     }
 
@@ -144,6 +156,14 @@ fileInput?.addEventListener('change', () => {
     if (preview) {
         preview.src = previewUrl;
         preview.hidden = false;
+    }
+    if (fileName) {
+        const kb = Math.max(1, Math.round(file.size / 1024));
+        fileName.textContent = `${file.name} · ${kb} KB`;
+        fileName.hidden = false;
+    }
+    if (submit) {
+        submit.disabled = false;
     }
 });
 
@@ -184,6 +204,9 @@ form?.addEventListener('submit', async (event) => {
         toast('error', apiErrorMessage(error));
     } finally {
         setLoading(button, false);
+        if (submit) {
+            submit.disabled = !fileInput?.files?.length;
+        }
     }
 });
 

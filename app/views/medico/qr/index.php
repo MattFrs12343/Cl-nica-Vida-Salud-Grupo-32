@@ -64,10 +64,11 @@
                     <svg class="icon" aria-hidden="true"><use href="#i-qr"></use></svg>
                     <span class="upload-title">Elegir archivo</span>
                     <span class="upload-meta">PNG o JPG, máximo 1 MB</span>
+                    <span class="upload-file" data-qr-file-name aria-live="polite" hidden></span>
                     <input id="qr-file" class="sr-only" type="file" accept="image/png,image/jpeg" data-qr-file>
                 </label>
                 <img class="qr-preview-image" src="" alt="Vista previa del nuevo QR" data-qr-preview hidden>
-                <button class="btn btn-primary btn-sm btn-block qr-upload-submit" type="submit">
+                <button class="btn btn-primary btn-sm btn-block qr-upload-submit" type="submit" data-qr-submit disabled>
                     <span class="btn-label">Subir QR</span>
                     <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-check"></use></svg></span>
                 </button>

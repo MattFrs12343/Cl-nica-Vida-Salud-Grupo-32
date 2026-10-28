@@ -1215,14 +1215,57 @@
     justify-content: center;
 }
 
-.qr-upload-zone {
-    display: block;
+.upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 22px 16px;
+    border: 1.5px dashed var(--panel-line-strong);
+    border-radius: 14px;
+    background: #f7f9f4;
+    color: var(--panel-muted);
+    text-align: center;
     cursor: pointer;
+    transition: border-color 160ms var(--ease), background 160ms var(--ease);
+}
+
+.upload-zone:hover {
+    border-color: var(--pine);
+    background: #f1f5ee;
+}
+
+.upload-zone:focus-within {
+    outline: 2px solid var(--pine);
+    outline-offset: 2px;
+}
+
+.upload-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--panel-ink);
+}
+
+.upload-meta {
+    font-size: 12px;
+}
+
+.upload-file {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pine);
+    word-break: break-all;
+}
+
+.qr-upload-zone {
+    display: flex;
 }
 
 .qr-upload-zone .icon {
     width: 28px;
     height: 28px;
+    color: var(--pine);
 }
 
 .qr-preview-image {

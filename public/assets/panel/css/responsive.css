@@ -50,10 +50,9 @@
         z-index: 80;
         display: block;
         visibility: hidden;
-        background: rgba(9, 25, 21, 0.45);
+        background: rgba(6, 20, 17, 0.8);
         opacity: 0;
-        -webkit-backdrop-filter: blur(2px);
-        backdrop-filter: blur(2px);
+        -webkit-tap-highlight-color: transparent;
         transition: opacity 220ms var(--ease), visibility 220ms var(--ease);
     }
 
@@ -363,6 +362,10 @@
 }
 
 @media (max-width: 480px) {
+    .sidebar {
+        width: 100%;
+    }
+
     .kpi-grid-5,
     .kpi-grid-4,
     .kpi-grid-3 {
