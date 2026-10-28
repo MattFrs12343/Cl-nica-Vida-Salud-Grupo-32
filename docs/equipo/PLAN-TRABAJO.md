@@ -1,8 +1,8 @@
 # Plan de trabajo y reparto — Clínica Vida Salud
 
-> **Última actualización:** 2026-10-24
+> **Última actualización:** 2026-10-28
 > **Fuente funcional de verdad:** `docs/specs/`
-> **Estado del repo:** Fase 1 y Fase 2 backend terminadas (M-07–M-22). Fase 3 backend terminada: kiosco (M-23–M-26), APIs de recepción (M-27), fichas/pagos (M-28) y pruebas cruzadas (M-29). Fase 4 backend en curso: APIs del médico (M-30), consultas/pedidos (M-31) y pagos/QR del médico (M-32) terminadas. UI de autenticación, shell de paneles y panel de recepción completos; módulos admin restantes y secciones médico/portal quedan como placeholders estilizados.
+> **Estado del repo:** Fases 1–3 backend terminadas (M-07–M-29). Fase 4 backend: APIs del médico (M-30), consultas/pedidos (M-31) y pagos/QR del médico (M-32) terminadas; M-33 parcial (citas, historial y perfil operativos; cambio de contraseña pendiente). UI de autenticación, shell, recepción, módulos admin L-14–L-19, médico L-26–L-31, portal L-32–L-33 y Fase 5 de Lucas (L-34–L-37) completos, con E2E por rol, impresión y QA de accesibilidad cerrados; ver `docs/equipo/paneles.md`. Pendientes: hardening, deploy y QA final de Matias (M-36–M-39).
 
 Este documento define **quién hace qué**, **qué archivos puede tocar cada uno** y **en qué orden**. La meta es que Matias y Lucas puedan trabajar en paralelo sin pisarse.
 
@@ -311,12 +311,12 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 #### Lucas
 
 - [x] **L-13 · Dashboard admin** — contadores, gráficos y accesos rápidos desde `/api/dashboard/admin`. *Deps:* L-07, M-21.
-- [ ] **L-14 · Usuarios** — listado, filtros, alta/edición, activar/desactivar, desbloquear y asignar rol. · *Deps:* M-20.
-- [ ] **L-15 · Médicos** — CRUD, especialidades, subida de QR, activar/desactivar y asignar recepcionista. · *Deps:* M-20.
-- [ ] **L-16 · Especialidades** — CRUD, restricciones de sexo/edad y destacadas. · *Deps:* M-20.
-- [ ] **L-17 · Horarios** — grilla semanal, cupos web/kiosco, bloqueos de agenda. · *Deps:* M-20.
-- [ ] **L-18 · Citas (admin)** — listado con filtros, detalle, reprogramar y cancelar. · *Deps:* M-21 (lectura), M-27 (escrituras).
-- [ ] **L-19 · Reportes + auditoría** — tablas/gráficos, exportación CSV opcional y diff antes/después de auditoría. · *Deps:* M-21.
+- [x] **L-14 · Usuarios** — listado, filtros, alta/edición, activar/desactivar, desbloquear y asignar rol. · *Deps:* M-20.
+- [x] **L-15 · Médicos** — CRUD, especialidades, subida de QR, activar/desactivar y asignar recepcionista. · *Deps:* M-20.
+- [x] **L-16 · Especialidades** — CRUD, restricciones de sexo/edad y destacadas. · *Deps:* M-20.
+- [x] **L-17 · Horarios** — grilla semanal, cupos web/kiosco, bloqueos de agenda. · *Deps:* M-20.
+- [x] **L-18 · Citas (admin)** — listado con filtros, detalle, reprogramar y cancelar. · *Deps:* M-21 (lectura), M-27 (escrituras).
+- [x] **L-19 · Reportes + auditoría** — tablas/gráficos, exportación CSV opcional y diff antes/después de auditoría. · *Deps:* M-21.
 
 **Criterio de salida Fase 2:** un paciente reserva desde la landing y un admin gestiona catálogos y ve reportes.
 
@@ -364,14 +364,14 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 
 #### Lucas
 
-- [ ] **L-26 · Dashboard médico** — contadores del día, pacientes en espera y próximas citas. · *Deps:* M-30.
-- [ ] **L-27 · Agenda del médico** — día/semana, calendario y resumen diario. · *Deps:* M-30.
-- [ ] **L-28 · Pacientes e historia** — pacientes atendidos y timeline de historia clínica. · *Deps:* M-30.
-- [ ] **L-29 · Consulta** — motivo, anamnesis, signos vitales, examen, diagnóstico, tratamiento e indicaciones. · *Deps:* M-31.
-- [ ] **L-30 · Recetas, documentos y órdenes** — alta, listado, vista imprimible y modal de envío por WhatsApp. · *Deps:* M-31.
-- [ ] **L-31 · Pagos y QR** — registrar/listar pagos y gestionar QR propio. · *Deps:* M-32.
-- [ ] **L-32 · Portal del paciente** — dashboard, mis citas y cancelación. · *Deps:* M-33.
-- [ ] **L-33 · Portal: historial y perfil** — timeline, detalle, perfil y cambio de contraseña. · *Deps:* M-33.
+- [x] **L-26 · Dashboard médico** — contadores del día, pacientes en espera y próximas citas. · *Deps:* M-30.
+- [x] **L-27 · Agenda del médico** — día/semana, calendario y resumen diario. · *Deps:* M-30.
+- [x] **L-28 · Pacientes e historia** — pacientes atendidos y timeline de historia clínica. · *Deps:* M-30.
+- [x] **L-29 · Consulta** — motivo, anamnesis, signos vitales, examen, diagnóstico, tratamiento e indicaciones. · *Deps:* M-31.
+- [x] **L-30 · Recetas, documentos y órdenes** — alta, listado, vista imprimible y modal de envío por WhatsApp. · *Deps:* M-31. · *Nota:* sin endpoint de listado histórico; se muestran las consultas recientes y los pedidos de la sesión actual.
+- [x] **L-31 · Pagos y QR** — registrar/listar pagos y gestionar QR propio. · *Deps:* M-32.
+- [x] **L-32 · Portal del paciente** — dashboard, mis citas y cancelación. · *Deps:* M-33.
+- [x] **L-33 · Portal: historial y perfil** — timeline, detalle, perfil y cambio de contraseña. · *Deps:* M-33. · *Nota:* cambio de contraseña pendiente porque la API aún no expone ese endpoint.
 
 **Criterio de salida Fase 4:** flujo completo cita → ficha → atención → receta → pago, y portal del paciente operativo.
 
@@ -390,10 +390,10 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 
 #### Lucas
 
-- [ ] **L-34 · Responsive y accesibilidad** — 375/768/1280, teclado, foco, labels y contraste. · *Deps:* todas las vistas.
-- [ ] **L-35 · Estilos de impresión** — ficha, receta, documento y orden. · *Deps:* L-30.
-- [ ] **L-36 · E2E por rol** — admin, recepción, recepción de médico, médico y paciente con datos seed. · *Deps:* M-39, L-34.
-- [ ] **L-37 · Pulido y handoff** — loading/empty/error, confirmaciones, screenshots y documentación del panel. · *Deps:* L-36.
+- [x] **L-34 · Responsive y accesibilidad** — 375/768/1280, teclado, foco, labels y contraste. · *Deps:* todas las vistas. · *DoD:* 34 vistas de panel + 3 de autenticación auditadas a 375/768/1280 sin scroll horizontal y con 0 issues de accesibilidad (títulos, labels, `aria-*` y contraste); sidebar móvil con focus trap, Escape, retorno de foco e `inert`; modales con trap y restauración de foco; tablists con flechas/Home/End y roving tabindex; estilos globales de `:focus-visible`.
+- [x] **L-35 · Estilos de impresión** — ficha, receta, documento y orden. · *Deps:* L-30. · *DoD:* `public/assets/panel/css/print.css` cargado con `media="print"` desde el layout; ficha, receta, documento y orden en A4 sin chrome, con `print-color-adjust`, evitación de cortes y QR dimensionado; `layouts/imprimible.php` y el documento de ficha de recepción ajustados.
+- [x] **L-36 · E2E por rol** — admin, recepción, recepción de médico, médico y paciente con datos seed. · *Deps:* M-39, L-34. · *DoD:* Playwright sobre Edge con datos seed para admin (8 páginas), recepción (7), recepción médica (7), médico (8) y paciente (4): respuestas 200, un solo `h1`, sin errores de consola ni APIs 4xx/5xx, sin scroll horizontal a 375/768/1280 y guards por rol redirigiendo al home propio. · *Nota:* M-39 (seed de demo) aún no está cerrado; se usaron los datos seed existentes.
+- [x] **L-37 · Pulido y handoff** — loading/empty/error, confirmaciones, screenshots y documentación del panel. · *Deps:* L-36. · *DoD:* estados loading/empty/error y confirmaciones revisados, copy obsoleto del dashboard admin actualizado, 10 capturas en `docs/equipo/capturas/` y documentación en `docs/equipo/paneles.md` (rutas, roles, teclado, estados, impresión, matriz QA, limitaciones y mapa de archivos).
 
 **Criterio de salida Fase 5:** demo completa, sin errores de consola, con usuarios y datos de prueba.
 
