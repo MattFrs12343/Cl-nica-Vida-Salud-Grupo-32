@@ -142,13 +142,14 @@ final class PacienteModel
         $total = (int) $count->fetchColumn();
 
         $offset = ($page - 1) * $perPage;
-        $sql = 'SELECT p.*,
-                       (SELECT MAX(c.fecha) FROM citas c WHERE c.paciente_id = p.id) AS ultima_cita,
-                       (SELECT MAX(c.fecha)
-                        FROM citas c
-                        WHERE c.paciente_id = p.id
-                          AND c.estado = \'atendida\') AS ultima_atencion
-                FROM pacientes p'
+        $sql = 'SELECT p.*, ult.ultima_cita, ult.ultima_atencion
+                FROM pacientes p
+                LEFT JOIN LATERAL (
+                    SELECT MAX(c.fecha) AS ultima_cita,
+                           MAX(c.fecha) FILTER (WHERE c.estado = \'atendida\') AS ultima_atencion
+                    FROM citas c
+                    WHERE c.paciente_id = p.id
+                ) ult ON TRUE'
             . $whereSql
             . ' ORDER BY p.apellidos ASC, p.nombres ASC, p.id ASC
                 LIMIT ' . $perPage . ' OFFSET ' . $offset;

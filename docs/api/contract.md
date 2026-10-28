@@ -74,7 +74,7 @@ Códigos de error de negocio: `VALIDATION_ERROR`, `UNAUTHENTICATED`, `FORBIDDEN`
 - La página pública de pedidos no usa sesión: valida `codigo` + `codigo_acceso`.
 - `GET /api/me` devuelve el usuario de sesión. Si no hay sesión: `401`.
 - `GET /api/csrf` devuelve el token para el `fetch` inicial del panel.
-- Las respuestas incluyen `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` y `X-Permitted-Cross-Domain-Policies`; las rutas `/api/*` añaden `Cache-Control: no-store`. Sobre HTTPS se añade HSTS.
+- Las respuestas incluyen `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` y `X-Permitted-Cross-Domain-Policies`; las rutas `/api/*` añaden `Cache-Control: no-store`. Sobre HTTPS se añade HSTS.\n- Excepción de caché: `GET /api/public/especialidades` y `GET /api/public/medicos` devuelven `Cache-Control: public, max-age=60, stale-while-revalidate=30` porque son catálogos públicos. Disponibilidad, pedidos y datos de sesión siguen siendo `no-store`.
 
 ---
 

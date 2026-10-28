@@ -48,7 +48,7 @@ final class PublicApiController
             'page' => 1,
             'per_page' => 50,
             'total' => count($data),
-        ]);
+        ])->withHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=30');
     }
 
     public function medicos(Request $request): Response
@@ -86,7 +86,7 @@ final class PublicApiController
                 'page' => 1,
                 'per_page' => 50,
                 'total' => count($data),
-            ]);
+            ])->withHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=30');
         });
     }
 
