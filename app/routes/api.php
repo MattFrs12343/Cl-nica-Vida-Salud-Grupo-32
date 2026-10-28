@@ -149,6 +149,7 @@ $router->group('/api', static function ($router): void {
     $router->get('/reportes/pacientes', [ReporteApiController::class, 'pacientes'], ['role:admin,super_admin']);
     $router->get('/reportes/asistencia', [ReporteApiController::class, 'asistencia'], ['role:admin,super_admin']);
     $router->get('/reportes/agenda-diaria', [ReporteApiController::class, 'agendaDiaria'], ['role:admin,super_admin']);
+    $router->get('/reportes/{tipo}/csv', [ReporteApiController::class, 'csv'], ['role:admin,super_admin']);
     $router->get('/dashboard/admin', [ReporteApiController::class, 'dashboardAdmin'], ['role:admin,super_admin']);
     $router->get('/dashboard/medico', [ReporteApiController::class, 'dashboardMedico'], ['role:medico']);
 

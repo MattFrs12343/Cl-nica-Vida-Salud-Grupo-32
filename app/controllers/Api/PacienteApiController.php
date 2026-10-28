@@ -309,7 +309,12 @@ final class PacienteApiController extends AdminApiController
         }
 
         $sort = strtolower($this->queryText($request, 'sort'));
-        $sort = $sort === '' ? 'fecha' : $sort;
+        $sort = match ($sort) {
+            '' => 'fecha',
+            'hora_inicio' => 'hora',
+            'fecha_registro' => 'created_at',
+            default => $sort,
+        };
 
         if (!in_array($sort, self::SORT_CITAS, true)) {
             $this->validacion(['sort' => 'Selecciona un orden válido.']);

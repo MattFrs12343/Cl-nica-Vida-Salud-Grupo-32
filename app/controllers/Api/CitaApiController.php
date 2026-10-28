@@ -8,6 +8,8 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\CitaModel;
+use App\Models\EspecialidadModel;
+use App\Models\MedicoModel;
 use App\Services\CitaService;
 
 final class CitaApiController extends AdminApiController
@@ -17,10 +19,14 @@ final class CitaApiController extends AdminApiController
 
     public function __construct(
         private ?CitaModel $citas = null,
-        private ?CitaService $servicio = null
+        private ?CitaService $servicio = null,
+        private ?MedicoModel $medicos = null,
+        private ?EspecialidadModel $especialidades = null
     ) {
         $this->citas ??= new CitaModel();
         $this->servicio ??= new CitaService();
+        $this->medicos ??= new MedicoModel();
+        $this->especialidades ??= new EspecialidadModel();
     }
 
     public function index(Request $request): Response
@@ -133,6 +139,31 @@ final class CitaApiController extends AdminApiController
         return $this->listar($request, true);
     }
 
+    /**
+     * Datos completos para la exportación CSV del reporte de citas.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function exportar(Request $request): array
+    {
+        $usuario = $this->asegurarRoles('admin', 'super_admin');
+        $filtros = $this->filtros($request);
+
+        if ($filtros['fecha'] === null
+            && $filtros['desde'] === null
+            && $filtros['hasta'] === null) {
+            $rango = $this->rangoMesActual();
+            $filtros['desde'] = $rango['desde'];
+            $filtros['hasta'] = $rango['hasta'];
+        }
+
+        $filtros = array_merge($filtros, $this->alcance($usuario, $filtros['medico_id'] ?? null));
+
+        return $this->comoPropietario(
+            fn (): array => $this->citas->exportarAdmin($filtros)
+        );
+    }
+
     private function listar(Request $request, bool $rangoMesPorDefecto): Response
     {
         $usuario = $this->usuarioActual();
@@ -221,7 +252,12 @@ final class CitaApiController extends AdminApiController
         }
 
         $sort = strtolower($this->queryText($request, 'sort'));
-        $sort = $sort === '' ? 'fecha' : $sort;
+        $sort = match ($sort) {
+            '' => 'fecha',
+            'hora_inicio' => 'hora',
+            'fecha_registro' => 'created_at',
+            default => $sort,
+        };
 
         if (!in_array($sort, ['fecha', 'hora', 'codigo', 'estado', 'created_at'], true)) {
             $this->validacion(['sort' => 'Selecciona un orden válido.']);
@@ -234,13 +270,25 @@ final class CitaApiController extends AdminApiController
             $this->validacion(['direction' => 'Usa asc o desc.']);
         }
 
+        $medicoId = $this->queryId($request, 'medico') ?? $this->queryId($request, 'medico_id');
+        $especialidadId = $this->queryId($request, 'especialidad')
+            ?? $this->queryId($request, 'especialidad_id');
+
+        if ($medicoId !== null && $this->medicos->findById($medicoId) === null) {
+            $this->validacion(['medico' => 'Selecciona un médico válido.']);
+        }
+
+        if ($especialidadId !== null
+            && $this->especialidades->findAdminById($especialidadId) === null) {
+            $this->validacion(['especialidad' => 'Selecciona una especialidad válida.']);
+        }
+
         return [
             'fecha' => $fecha,
             'desde' => $desde,
             'hasta' => $hasta,
-            'medico_id' => $this->queryId($request, 'medico') ?? $this->queryId($request, 'medico_id'),
-            'especialidad_id' => $this->queryId($request, 'especialidad')
-                ?? $this->queryId($request, 'especialidad_id'),
+            'medico_id' => $medicoId,
+            'especialidad_id' => $especialidadId,
             'paciente_id' => $this->queryId($request, 'paciente') ?? $this->queryId($request, 'paciente_id'),
             'estado' => $estado === '' ? null : $estado,
             'origen' => $origen === '' ? null : $origen,

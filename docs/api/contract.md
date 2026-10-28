@@ -564,7 +564,7 @@ Campos obligatorios en el alta: `ci`, `nombres`, `apellidos`, `fecha_nacimiento`
 
 ### 6.1 Portal del paciente (M-33)
 
-`GET /api/me/citas` devuelve únicamente las citas del paciente autenticado, con el mismo shape que `/api/citas`. Acepta `estado`, `desde`, `hasta`, `proximas`, `sort` (`fecha`, `hora`, `codigo`, `estado`, `created_at`), `direction` (`asc`/`desc`), `page` y `per_page` (máximo 100). Por defecto ordena por fecha descendente. `proximas=1` fija `desde` en la fecha actual si no se envió una posterior y fuerza el orden ascendente; es el atajo previsto para el dashboard del portal.
+`GET /api/me/citas` devuelve únicamente las citas del paciente autenticado, con el mismo shape que `/api/citas`. Acepta `estado`, `desde`, `hasta`, `proximas`, `sort` (`fecha`, `hora`, `codigo`, `estado`, `created_at`), `direction` (`asc`/`desc`), `page` y `per_page` (máximo 100). Por defecto ordena por fecha descendente. `proximas=1` fija `desde` en la fecha actual si no se envió una posterior y fuerza el orden ascendente; es el atajo previsto para el dashboard del portal. Los alias `hora_inicio` y `fecha_registro` se aceptan como equivalencias de `hora` y `created_at`.
 
 `GET /api/me/historial` devuelve el historial propio combinado:
 
@@ -1163,7 +1163,11 @@ Errores: `404 NOT_FOUND`, `403 FORBIDDEN`, `403 CSRF_TOKEN_MISMATCH`, `422 VALID
 | GET | `/api/reportes/agenda-diaria?medico=&fecha=` | admin | Agenda diaria. |
 | GET | `/api/dashboard/admin` | admin, super_admin | Métricas del dashboard admin. |
 | GET | `/api/dashboard/medico?fecha=` | médico | Métricas y agenda del día para el médico autenticado. |
-| GET | `/api/reportes/{tipo}/csv` | admin | Exportación CSV (opcional). |
+| GET | `/api/reportes/{tipo}/csv` | admin, super_admin | Exportación CSV de cualquiera de los reportes. |
+
+`GET /api/reportes/{tipo}/csv` acepta los mismos filtros que el reporte correspondiente y los tipos `citas`, `citas-por-medico`, `citas-por-especialidad`, `citas-por-estado`, `pacientes`, `asistencia` y `agenda-diaria`. Devuelve `text/csv; charset=UTF-8` con BOM UTF-8, `Content-Disposition: attachment` y todas las filas que cumplen los filtros, sin paginar. El reporte de citas usa el mes actual cuando no se envían fechas; `agenda-diaria` requiere `medico` y acepta `fecha`.
+
+Los filtros `medico` y `especialidad` se validan contra los catálogos: si no existen responden `422 VALIDATION_ERROR`. En los listados de citas se aceptan los alias de orden `hora_inicio` y `fecha_registro`.
 
 Respuesta de dashboard admin (resumen):
 
@@ -1172,17 +1176,31 @@ Respuesta de dashboard admin (resumen):
   "ok": true,
   "data": {
     "citas_hoy": 24,
+    "programadas": 8,
+    "confirmadas": 7,
     "atendidas": 11,
     "canceladas": 3,
     "inasistencias": 2,
-    "por_origen": { "web": 9, "kiosco": 8, "recepcion": 7 }
+    "por_estado": {
+      "programada": 8,
+      "confirmada": 7,
+      "atendida": 11,
+      "cancelada": 3,
+      "inasistencia": 2
+    },
+    "por_origen": { "web": 9, "kiosco": 8, "recepcion": 7 },
+    "tasa_asistencia": 84.62,
+    "total_pacientes": 120,
+    "total_medicos": 12
   },
   "message": null,
   "meta": {}
 }
 ```
 
-Respuesta de dashboard médico (M-30):
+`tasa_asistencia` se calcula como `atendidas / (atendidas + inasistencias)` para las citas del día; no incluye canceladas.
+
+Respuesta de dashboard médico (M-30, ampliado en M-34):
 
 ```json
 {
@@ -1196,6 +1214,12 @@ Respuesta de dashboard médico (M-30):
     "proximas": 2,
     "pendientes": 1,
     "inasistencias": 0,
+    "reconsultas": 1,
+    "notificaciones": {
+      "reconsultas": 1,
+      "inasistencias": 0,
+      "canceladas": 0
+    },
     "siguiente_cita": {
       "hora": "08:00",
       "paciente": "Juan Pérez",
@@ -1219,7 +1243,7 @@ Respuesta de dashboard médico (M-30):
 }
 ```
 
-`fecha` es opcional y por defecto usa el día actual. `en_espera` cuenta las citas `confirmada`; `pendientes` las `programada`; `proximas` suma ambas; `siguiente_cita` es la primera cita pendiente del día. Solo el rol `medico` puede consultar su propio dashboard.
+`fecha` es opcional y por defecto usa el día actual. `en_espera` cuenta las citas `confirmada`; `pendientes` las `programada`; `proximas` suma ambas; `siguiente_cita` es la primera cita pendiente del día. `notificaciones.reconsultas` cuenta las reconsultas `programada`/`confirmada` del día, `notificaciones.inasistencias` las inasistencias y `notificaciones.canceladas` las cancelaciones; `reconsultas` repite el primer contador para facilitar los tableros. Solo el rol `medico` puede consultar su propio dashboard.
 
 ---
 

@@ -336,15 +336,7 @@ final class CitaModel
         $count->execute($parametros);
         $total = (int) $count->fetchColumn();
 
-        $sortMap = [
-            'fecha' => 'c.fecha',
-            'hora' => 'c.hora_inicio',
-            'codigo' => 'c.codigo',
-            'estado' => 'c.estado',
-            'created_at' => 'c.created_at',
-        ];
-        $sort = $sortMap[(string) ($filtros['sort'] ?? 'fecha')] ?? 'c.fecha';
-        $direction = strtoupper((string) ($filtros['direction'] ?? 'desc')) === 'ASC' ? 'ASC' : 'DESC';
+        [$sort, $direction] = $this->ordenAdmin($filtros);
         $offset = ($page - 1) * $perPage;
 
         $sql = $this->selectAdminSql()
@@ -361,6 +353,51 @@ final class CitaModel
             'data' => array_map([$this, 'normalizarCita'], $statement->fetchAll()),
             'total' => $total,
         ];
+    }
+
+    /**
+     * Todas las citas que cumplen los filtros, sin paginar. Se usa para las
+     * exportaciones CSV del módulo de reportes.
+     *
+     * @param array<string, mixed> $filtros
+     * @return array<int, array<string, mixed>>
+     */
+    public function exportarAdmin(array $filtros): array
+    {
+        $parametros = [];
+        $where = $this->whereAdmin($filtros, $parametros);
+        $whereSql = $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
+        [$sort, $direction] = $this->ordenAdmin($filtros);
+
+        $sql = $this->selectAdminSql()
+            . $whereSql
+            . ' ORDER BY ' . $sort . ' ' . $direction
+            . ', c.hora_inicio ' . $direction
+            . ', c.id ' . $direction;
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($parametros);
+
+        return array_map([$this, 'normalizarCita'], $statement->fetchAll());
+    }
+
+    /**
+     * @param array<string, mixed> $filtros
+     * @return array{0: string, 1: string}
+     */
+    private function ordenAdmin(array $filtros): array
+    {
+        $sortMap = [
+            'fecha' => 'c.fecha',
+            'hora' => 'c.hora_inicio',
+            'codigo' => 'c.codigo',
+            'estado' => 'c.estado',
+            'created_at' => 'c.created_at',
+        ];
+        $sort = $sortMap[(string) ($filtros['sort'] ?? 'fecha')] ?? 'c.fecha';
+        $direction = strtoupper((string) ($filtros['direction'] ?? 'desc')) === 'ASC' ? 'ASC' : 'DESC';
+
+        return [$sort, $direction];
     }
 
     /** @return array<string, mixed>|null */

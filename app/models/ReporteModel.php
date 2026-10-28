@@ -209,20 +209,63 @@ final class ReporteModel
             "SELECT COUNT(*) FROM medicos WHERE estado = 'activo'"
         )->fetchColumn();
 
+        $atendidas = (int) ($row['atendidas'] ?? 0);
+        $inasistencias = (int) ($row['inasistencias'] ?? 0);
+        $baseAsistencia = $atendidas + $inasistencias;
+
         return [
             'citas_hoy' => (int) ($row['citas_hoy'] ?? 0),
             'programadas' => (int) ($row['programadas'] ?? 0),
             'confirmadas' => (int) ($row['confirmadas'] ?? 0),
-            'atendidas' => (int) ($row['atendidas'] ?? 0),
+            'atendidas' => $atendidas,
             'canceladas' => (int) ($row['canceladas'] ?? 0),
-            'inasistencias' => (int) ($row['inasistencias'] ?? 0),
+            'inasistencias' => $inasistencias,
+            'por_estado' => [
+                'programada' => (int) ($row['programadas'] ?? 0),
+                'confirmada' => (int) ($row['confirmadas'] ?? 0),
+                'atendida' => $atendidas,
+                'cancelada' => (int) ($row['canceladas'] ?? 0),
+                'inasistencia' => $inasistencias,
+            ],
             'por_origen' => [
                 'web' => (int) ($row['web'] ?? 0),
                 'kiosco' => (int) ($row['kiosco'] ?? 0),
                 'recepcion' => (int) ($row['recepcion'] ?? 0),
             ],
+            'tasa_asistencia' => $baseAsistencia > 0
+                ? round(($atendidas / $baseAsistencia) * 100, 2)
+                : 0.0,
             'total_pacientes' => $pacientes,
             'total_medicos' => $medicos,
+        ];
+    }
+
+    /**
+     * Avisos operativos del médico para una fecha: reconsultas pendientes,
+     * inasistencias y cancelaciones del día.
+     *
+     * @return array{reconsultas: int, inasistencias: int, canceladas: int}
+     */
+    public function notificacionesMedico(int $medicoId, string $fecha): array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT COUNT(*) FILTER (
+                        WHERE es_reconsulta = TRUE
+                          AND estado IN ('programada', 'confirmada')
+                    ) AS reconsultas,
+                    COUNT(*) FILTER (WHERE estado = 'inasistencia') AS inasistencias,
+                    COUNT(*) FILTER (WHERE estado = 'cancelada') AS canceladas
+             FROM citas
+             WHERE medico_id = :medico_id
+               AND fecha = CAST(:fecha AS date)"
+        );
+        $statement->execute(['medico_id' => $medicoId, 'fecha' => $fecha]);
+        $row = $statement->fetch() ?: [];
+
+        return [
+            'reconsultas' => (int) ($row['reconsultas'] ?? 0),
+            'inasistencias' => (int) ($row['inasistencias'] ?? 0),
+            'canceladas' => (int) ($row['canceladas'] ?? 0),
         ];
     }
 }

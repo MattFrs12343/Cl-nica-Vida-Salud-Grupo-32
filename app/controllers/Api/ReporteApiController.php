@@ -177,6 +177,9 @@ final class ReporteApiController extends AdminApiController
         $contadores = $this->comoPropietario(
             fn (): array => $this->citas->contadoresAgenda($medicoId, $fecha, $fecha)
         );
+        $notificaciones = $this->comoPropietario(
+            fn (): array => $this->reportes->notificacionesMedico($medicoId, $fecha)
+        );
 
         $agenda = [];
         $siguiente = null;
@@ -213,9 +216,229 @@ final class ReporteApiController extends AdminApiController
             'proximas' => $contadores['programadas'] + $contadores['confirmadas'],
             'pendientes' => $contadores['programadas'],
             'inasistencias' => $contadores['inasistencias'],
+            'reconsultas' => $notificaciones['reconsultas'],
+            'notificaciones' => $notificaciones,
             'siguiente_cita' => $siguiente,
             'agenda' => $agenda,
         ]);
+    }
+
+    /**
+     * Exporta cualquiera de los reportes a CSV.
+     *
+     * @param array<string, string> $params
+     */
+    public function csv(Request $request, array $params): Response
+    {
+        $this->asegurarRoles('admin', 'super_admin');
+        $tipo = strtolower(trim((string) ($params['tipo'] ?? '')));
+
+        if (!in_array($tipo, [
+            'citas',
+            'citas-por-medico',
+            'citas-por-especialidad',
+            'citas-por-estado',
+            'pacientes',
+            'asistencia',
+            'agenda-diaria',
+        ], true)) {
+            throw new HttpException(404, 'El reporte solicitado no existe.', [], 'NOT_FOUND');
+        }
+
+        [$columnas, $filas] = $this->datosCsv($tipo, $request);
+        $csv = $this->generarCsv($columnas, $filas);
+        $nombre = 'reporte-' . $tipo . '-' . date('Ymd-His') . '.csv';
+
+        return new Response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $nombre . '"',
+            'Cache-Control' => 'no-store',
+        ]);
+    }
+
+    /**
+     * @return array{0: array<int, string>, 1: array<int, array<int, mixed>>}
+     */
+    private function datosCsv(string $tipo, Request $request): array
+    {
+        if ($tipo === 'citas') {
+            $citas = $this->citasApi->exportar($request);
+
+            return [
+                ['codigo', 'fecha', 'hora_inicio', 'hora_fin', 'paciente', 'medico', 'especialidad', 'estado', 'origen', 'motivo'],
+                array_map(static fn (array $cita): array => [
+                    $cita['codigo'] ?? '',
+                    $cita['fecha'] ?? '',
+                    $cita['hora_inicio'] ?? '',
+                    $cita['hora_fin'] ?? '',
+                    $cita['paciente']['nombre_completo'] ?? '',
+                    $cita['medico']['nombre_completo'] ?? '',
+                    $cita['especialidad']['nombre'] ?? '',
+                    $cita['estado'] ?? '',
+                    $cita['origen'] ?? '',
+                    $cita['motivo'] ?? '',
+                ], $citas),
+            ];
+        }
+
+        if ($tipo === 'citas-por-medico') {
+            $datos = $this->datosDeRespuesta($this->citasPorMedico($request));
+
+            return [
+                ['medico_id', 'codigo', 'nombre_completo', 'total', 'programadas', 'confirmadas', 'atendidas', 'canceladas', 'inasistencias'],
+                array_map(static fn (array $fila): array => [
+                    $fila['medico_id'] ?? '',
+                    $fila['codigo'] ?? '',
+                    $fila['nombre_completo'] ?? '',
+                    $fila['total'] ?? 0,
+                    $fila['programadas'] ?? 0,
+                    $fila['confirmadas'] ?? 0,
+                    $fila['atendidas'] ?? 0,
+                    $fila['canceladas'] ?? 0,
+                    $fila['inasistencias'] ?? 0,
+                ], $datos),
+            ];
+        }
+
+        if ($tipo === 'citas-por-especialidad') {
+            $datos = $this->datosDeRespuesta($this->citasPorEspecialidad($request));
+
+            return [
+                ['especialidad_id', 'nombre', 'total', 'programadas', 'confirmadas', 'atendidas', 'canceladas', 'inasistencias'],
+                array_map(static fn (array $fila): array => [
+                    $fila['especialidad_id'] ?? '',
+                    $fila['nombre'] ?? '',
+                    $fila['total'] ?? 0,
+                    $fila['programadas'] ?? 0,
+                    $fila['confirmadas'] ?? 0,
+                    $fila['atendidas'] ?? 0,
+                    $fila['canceladas'] ?? 0,
+                    $fila['inasistencias'] ?? 0,
+                ], $datos),
+            ];
+        }
+
+        if ($tipo === 'citas-por-estado') {
+            $datos = $this->datosDeRespuesta($this->citasPorEstado($request));
+            $filas = [];
+
+            foreach ($datos as $estado => $total) {
+                $filas[] = [$estado, $total];
+            }
+
+            return [['estado', 'total'], $filas];
+        }
+
+        if ($tipo === 'pacientes') {
+            $datos = $this->datosDeRespuesta($this->pacientes($request));
+
+            return [
+                ['id', 'codigo', 'ci', 'nombre_completo', 'telefono', 'email', 'estado', 'created_at'],
+                array_map(static fn (array $fila): array => [
+                    $fila['id'] ?? '',
+                    $fila['codigo'] ?? '',
+                    $fila['ci'] ?? '',
+                    $fila['nombre_completo'] ?? '',
+                    $fila['telefono'] ?? '',
+                    $fila['email'] ?? '',
+                    $fila['estado'] ?? '',
+                    $fila['created_at'] ?? '',
+                ], $datos),
+            ];
+        }
+
+        if ($tipo === 'asistencia') {
+            $datos = $this->datosDeRespuesta($this->asistencia($request));
+
+            return [
+                ['total', 'programadas', 'confirmadas', 'atendidas', 'canceladas', 'inasistencias', 'porcentaje_asistencia'],
+                [[
+                    $datos['total'] ?? 0,
+                    $datos['programadas'] ?? 0,
+                    $datos['confirmadas'] ?? 0,
+                    $datos['atendidas'] ?? 0,
+                    $datos['canceladas'] ?? 0,
+                    $datos['inasistencias'] ?? 0,
+                    $datos['porcentaje_asistencia'] ?? 0,
+                ]],
+            ];
+        }
+
+        $datos = $this->datosDeRespuesta($this->agendaDiaria($request));
+        $citas = is_array($datos['citas'] ?? null) ? $datos['citas'] : [];
+        $medico = (string) ($datos['medico']['nombre_completo'] ?? '');
+
+        return [
+            ['codigo', 'fecha', 'hora_inicio', 'hora_fin', 'medico', 'paciente', 'estado', 'motivo'],
+            array_map(static fn (array $cita): array => [
+                $cita['codigo'] ?? '',
+                $cita['fecha'] ?? '',
+                $cita['hora_inicio'] ?? '',
+                $cita['hora_fin'] ?? '',
+                $medico,
+                $cita['paciente']['nombre_completo'] ?? '',
+                $cita['estado'] ?? '',
+                $cita['motivo'] ?? '',
+            ], $citas),
+        ];
+    }
+
+    /** @return array<int|string, mixed> */
+    private function datosDeRespuesta(Response $response): array
+    {
+        $datos = json_decode($response->body(), true);
+
+        if (!is_array($datos) || !is_array($datos['data'] ?? null)) {
+            return [];
+        }
+
+        return $datos['data'];
+    }
+
+    /** @param array<int, string> $columnas @param array<int, array<int, mixed>> $filas */
+    private function generarCsv(array $columnas, array $filas): string
+    {
+        $handle = fopen('php://temp', 'r+');
+
+        if ($handle === false) {
+            throw new HttpException(500, 'No se pudo generar el CSV.', [], 'CSV_ERROR');
+        }
+
+        fputcsv($handle, $columnas, ',', '"', '');
+
+        foreach ($filas as $fila) {
+            fputcsv($handle, array_map([$this, 'csvValor'], $fila), ',', '"', '');
+        }
+
+        rewind($handle);
+        $contenido = stream_get_contents($handle);
+        fclose($handle);
+
+        return "\xEF\xBB\xBF" . ($contenido === false ? '' : $contenido);
+    }
+
+    private function csvValor(mixed $valor): string
+    {
+        if ($valor === null) {
+            return '';
+        }
+
+        if (is_bool($valor)) {
+            return $valor ? '1' : '0';
+        }
+
+        $texto = (string) $valor;
+
+        if ($texto !== '') {
+            $primer = $texto[0];
+
+            if (in_array($primer, ['=', '+', '@'], true)
+                || ($primer === '-' && !is_numeric($texto))) {
+                return "'" . $texto;
+            }
+        }
+
+        return $texto;
     }
 
     /** @return array{desde: string, hasta: string} */

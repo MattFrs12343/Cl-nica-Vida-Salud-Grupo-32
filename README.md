@@ -114,6 +114,7 @@ docker compose exec app php bin/test-auth.php         # pruebas de login, bloque
 docker compose exec app php bin/test-public.php       # pruebas de catálogo público, disponibilidad y reserva web
 docker compose exec app php bin/test-admin.php        # pruebas de CRUDs administrativos, permisos y CSRF
 docker compose exec app php bin/test-reportes.php     # pruebas de citas, agenda, reportes y auditoría
+docker compose exec app php bin/test-reportes-avanzados.php # CSV, métricas de dashboards y alias de orden
 docker compose exec app php bin/test-integracion.php  # flujo landing → reserva → cupo → correo → admin → reportes
 docker compose exec app php bin/test-kiosco.php       # pruebas de token HMAC y middleware del kiosco
 docker compose exec app php bin/test-kiosco-api.php   # flujo de kiosco: identificar, alta, catálogos, cupo y reserva
@@ -140,7 +141,7 @@ La recuperación de contraseña se envía a Mailpit (`http://localhost:8025`). S
 - **Fase 1 backend completada:** modelo de datos 001–010, RLS, seeders, auth real (login por usuario/email/CI, bloqueo, reset, activación), middlewares y correo con PHPMailer/Mailpit.
 - **Fase 2 backend completada:** catálogo público (`/api/public/especialidades`, `/medicos`, `/disponibilidad`), reserva web con cupo, ficha y correo (`POST /api/public/reservar`), landing PHP en `/`, `/reservar`, `/kiosco`, APIs administrativas (M-20/M-21) y pruebas de integración (M-22).
 - **Fase 3 backend completada:** kiosco (M-23–M-26), APIs de recepción (M-27), fichas/pagos (M-28) y pruebas cruzadas (M-29).
-- **Fase 4 backend en curso:** APIs del médico (M-30), consultas/pedidos (M-31), pagos/QR del médico (M-32) y portal del paciente (M-33) completados. Pendientes: dashboards/reportes (M-34), pruebas cruzadas médico + portal (M-35) y hardening/deploy/QA (M-36–M-39).
+- **Fase 4 backend en curso:** APIs del médico (M-30), consultas/pedidos (M-31), pagos/QR del médico (M-32), portal del paciente (M-33) y dashboards/reportes (M-34) completados. Pendientes: pruebas cruzadas médico + portal (M-35) y hardening/deploy/QA (M-36-M-39).
 - **UI:** autenticación, shell de paneles y panel de recepción completos. Quedan los módulos admin (L-14–L-19), las secciones del médico (L-26–L-31), el portal del paciente (L-32–L-33) y el pulido final (L-34–L-37); por ahora se muestran como placeholders estilizados.
 - **Portal del paciente (API):** `GET /api/me/perfil`, `PUT /api/me/perfil`, `GET /api/me/citas`, `GET /api/me/historial`, `PUT /api/me/password` y cancelación con `PATCH /api/citas/{id}/cancelar`. La UI del portal queda a cargo de Lucas.
 
