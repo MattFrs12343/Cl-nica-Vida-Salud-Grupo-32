@@ -105,7 +105,7 @@ $saludo = $hora < 12 ? 'Buenos días' : ($hora < 19 ? 'Buenas tardes' : 'Buenas 
             <section class="card card-accent">
                 <span class="card-kicker">Siguiente paso</span>
                 <h2>Completa la operación diaria</h2>
-                <p>Los módulos de usuarios, horarios y reportes ya tienen API. La interfaz se integrará de forma gradual.</p>
+                <p>Usuarios, médicos, especialidades, horarios, citas, reportes y auditoría ya están disponibles desde el menú lateral.</p>
                 <a class="btn btn-light btn-sm" href="<?= e(url('/admin/reportes')) ?>">
                     Explorar reportes
                     <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-arrow-right"></use></svg></span>
