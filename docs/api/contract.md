@@ -1,6 +1,6 @@
 # Contrato de integración — API v1
 
-> **Estado:** congelado para la Fase 0 (2026-10-21).
+> **Estado:** contrato backend final (2026-10-27), con cambios posteriores acordados entre Matias y Lucas.
 > **Consumidor principal:** paneles de rol (`app/views/admin|recepcion|medico|paciente`) y landing/kiosco.
 > **Implementación:** `app/controllers/Api/**` + `app/controllers/AuthController.php` + `PublicController.php` + `KioscoController.php`.
 > **Cambios:** se acuerdan entre Matias y Lucas antes de modificar este archivo.
