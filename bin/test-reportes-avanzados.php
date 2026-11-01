@@ -314,8 +314,10 @@ try {
     comprobar('CSV por estado incluye los cinco estados', count(lineasCsv($csvEstados)) === 6);
     comprobar('CSV por estado tiene las columnas esperadas', encabezadoCsv($csvEstados) === ['estado', 'total']);
 
+    // Rango explícito: sin él el reporte usa el mes actual y el test dependía
+    // de que los pacientes del seed se hubieran creado en el mes en curso.
     $csvPacientes = $reportesCtrl->csv(
-        peticionConQuery([], '/api/reportes/pacientes/csv'),
+        peticionConQuery(['desde' => '2020-01-01', 'hasta' => '2099-12-31'], '/api/reportes/pacientes/csv'),
         ['tipo' => 'pacientes']
     );
     comprobar('CSV de pacientes responde', $csvPacientes->status() === 200);
