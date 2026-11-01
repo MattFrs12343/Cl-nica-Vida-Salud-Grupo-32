@@ -23,7 +23,7 @@
     <div class="toolbar-filters">
         <label class="input-inline" aria-label="Fecha de las citas de origen">
             <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
-            <input type="date" data-reconsultas-fecha value="<?= e(date('Y-m-d')) ?>">
+            <input type="date" data-reconsultas-fecha aria-label="Fecha de las citas de origen" value="<?= e(date('Y-m-d')) ?>">
         </label>
         <div class="segmented" role="tablist" aria-label="Tipo de reconsulta">
             <button class="segmented-item is-active" type="button" role="tab" aria-selected="true"

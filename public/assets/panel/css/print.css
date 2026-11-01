@@ -1,0 +1,205 @@
+/* ==========================================================================
+   Impresión del panel · Clínica Vida Salud
+   Se carga con media="print" desde el layout del panel.
+   Objetivo: ficha, receta/documento/orden, QR y listados legibles en A4.
+   ========================================================================== */
+
+@page {
+    size: A4 portrait;
+    margin: 14mm;
+}
+
+html,
+body {
+    background: #fff !important;
+    color: #111 !important;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.45;
+}
+
+/* Ocultar el chrome del panel y cualquier acción de pantalla ---------------- */
+.sidebar,
+.sidebar-backdrop,
+.topbar,
+.panel-foot,
+.toast-stack,
+.skip-link,
+.panel-flashes,
+.page-head,
+.page-actions,
+.toolbar,
+.table-foot,
+.pagination,
+.row-actions,
+.btn,
+.icon-btn,
+.modal-backdrop,
+.modal-close,
+.modal-head-actions,
+.modal-foot,
+[data-flash-close],
+.no-print {
+    display: none !important;
+}
+
+.panel-main,
+.panel-content {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.panel-content > * {
+    animation: none !important;
+}
+
+.card,
+.ficha-ticket,
+.modal-panel,
+.history-profile,
+.agenda-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+}
+
+.card {
+    border: 1px solid #ddd !important;
+}
+
+a {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+
+/* Impresión de un modal abierto: solo su contenido ------------------------- */
+body.modal-open .panel-shell {
+    display: none !important;
+}
+
+body.modal-open .modal.is-open {
+    position: static !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    padding: 0 !important;
+}
+
+body.modal-open .modal.is-open .modal-panel {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+}
+
+body.modal-open .modal.is-open .modal-head,
+body.modal-open .modal.is-open .modal-body {
+    padding: 0 0 12px !important;
+}
+
+/* Ficha de atención -------------------------------------------------------- */
+.ficha-ticket {
+    border: 1px solid #555 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+}
+
+.ficha-ticket::before,
+.ficha-ticket::after {
+    display: none !important;
+}
+
+.ticket-head,
+.ticket-foot {
+    border-color: #999 !important;
+}
+
+.ticket-access {
+    border: 1px solid #444 !important;
+    background: #fff !important;
+    color: #000 !important;
+}
+
+.ticket-access strong,
+.ticket-access-code {
+    color: #000 !important;
+}
+
+.ticket-bars {
+    display: none !important;
+}
+
+/* Tablas y listados -------------------------------------------------------- */
+.table-wrap {
+    overflow: visible !important;
+}
+
+.data-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    border-collapse: collapse !important;
+    font-size: 9.5pt;
+}
+
+.data-table thead {
+    display: table-header-group;
+}
+
+.data-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.data-table th,
+.data-table td {
+    padding: 5px 6px !important;
+    border-bottom: 1px solid #ddd !important;
+    color: #111 !important;
+}
+
+.data-table th {
+    font-size: 8pt;
+    color: #444 !important;
+}
+
+/* QR del médico ------------------------------------------------------------ */
+body[data-page="qr"] .dashboard-grid {
+    display: block !important;
+}
+
+body[data-page="qr"] .dashboard-side,
+body[data-page="qr"] .qr-actions {
+    display: none !important;
+}
+
+body[data-page="qr"] .qr-card {
+    border: 0 !important;
+    text-align: center;
+}
+
+body[data-page="qr"] .qr-preview-body {
+    gap: 8mm;
+}
+
+body[data-page="qr"] .qr-preview-frame {
+    width: 62mm;
+    height: 62mm;
+    margin: 0 auto;
+    border: 1px solid #444 !important;
+}
+
+body[data-page="qr"] .qr-name {
+    font-size: 14pt;
+}
+
+body[data-page="qr"] .qr-meta {
+    color: #333 !important;
+    font-size: 10pt;
+}

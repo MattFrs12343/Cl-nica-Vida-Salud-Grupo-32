@@ -3,7 +3,7 @@
 ?>
 <header class="auth-head">
     <span class="auth-kicker">Recuperar acceso</span>
-    <h1>Vuelve a tu <em>cuenta.</em></h1>
+    <h1 id="auth-title">Vuelve a tu <em>cuenta.</em></h1>
     <p>Escribe el correo con el que te registraron. Te enviaremos un enlace para crear una nueva contraseña.</p>
 </header>
 

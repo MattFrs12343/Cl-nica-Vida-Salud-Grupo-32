@@ -46,7 +46,7 @@ $router->group('/medico', static function ($router): void {
 
 $router->group('/portal', static function ($router): void {
     $router->get('', [PanelController::class, 'portalDashboard']);
-    $router->get('/mis-citas', [PanelController::class, 'module']);
-    $router->get('/historial', [PanelController::class, 'module']);
-    $router->get('/perfil', [PanelController::class, 'module']);
+    $router->get('/mis-citas', [PanelController::class, 'portalMisCitas']);
+    $router->get('/historial', [PanelController::class, 'portalHistorial']);
+    $router->get('/perfil', [PanelController::class, 'portalPerfil']);
 }, ['auth', 'role:paciente']);

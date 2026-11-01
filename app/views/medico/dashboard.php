@@ -8,9 +8,13 @@ $saludo = $hora < 12 ? 'Buenos días' : ($hora < 19 ? 'Buenas tardes' : 'Buenas 
     <div class="page-head-copy">
         <span class="page-kicker"><span class="status-dot"></span> Mi consulta</span>
         <h1><?= e($saludo) ?>, <em><?= e(explode(' ', trim($nombre))[0] ?? 'doctor') ?>.</em></h1>
-        <p>Tu agenda de hoy y los pacientes que esperan por ti.</p>
+        <p data-doctor-meta>Tu agenda de hoy y los pacientes que esperan por ti.</p>
     </div>
     <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" type="button" data-doctor-refresh>
+            <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+            Actualizar
+        </button>
         <a class="btn btn-ghost btn-sm" href="<?= e(url('/medico/qr')) ?>">
             <svg class="icon" aria-hidden="true"><use href="#i-qr"></use></svg>
             Mi QR
@@ -37,17 +41,17 @@ $saludo = $hora < 12 ? 'Buenos días' : ($hora < 19 ? 'Buenas tardes' : 'Buenas 
             <strong class="kpi-value" data-doctor-kpi="<?= e($clave) ?>">
                 <span class="skeleton skeleton-value"></span>
             </strong>
-            <span class="kpi-foot">Hoy · <?= e(date('d/m/Y')) ?></span>
+            <span class="kpi-foot">Hoy · <span data-doctor-date><?= e(date('d/m/Y')) ?></span></span>
         </article>
     <?php endforeach; ?>
 </section>
 
 <div class="dashboard-grid">
-    <section class="card card-span-2">
+    <section class="card card-span-2" aria-labelledby="doctor-agenda-title">
         <div class="card-head">
             <div>
                 <span class="card-kicker">Hoy</span>
-                <h2>Pacientes en tu agenda</h2>
+                <h2 id="doctor-agenda-title">Pacientes en tu agenda</h2>
             </div>
             <a class="text-link" href="<?= e(url('/medico/agenda')) ?>">
                 Abrir agenda
@@ -64,6 +68,21 @@ $saludo = $hora < 12 ? 'Buenos días' : ($hora < 19 ? 'Buenas tardes' : 'Buenas 
     </section>
 
     <aside class="dashboard-side">
+        <section class="card">
+            <div class="card-head">
+                <div>
+                    <span class="card-kicker">Ahora</span>
+                    <h2>Siguiente cita</h2>
+                </div>
+            </div>
+            <div data-doctor-next>
+                <div class="table-loading">
+                    <div class="skeleton skeleton-row"></div>
+                    <div class="skeleton skeleton-row"></div>
+                </div>
+            </div>
+        </section>
+
         <section class="card">
             <div class="card-head">
                 <div>

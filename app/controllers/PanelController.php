@@ -14,36 +14,6 @@ use App\Core\Response;
  */
 final class PanelController extends Controller
 {
-    /**
-     * Módulos aún no implementados en la UI. Se registran para que el menú
-     * no lleve a un 404 mientras se completan las fases de cada rol.
-     *
-     * @var array<string, array{role: string, active: string, title: string, description: string, icon: string}>
-     */
-    private const MODULES = [
-        '/portal/mis-citas' => [
-            'role' => 'paciente',
-            'active' => 'citas',
-            'title' => 'Mis citas',
-            'description' => 'Próximas citas, reprogramaciones y cancelaciones.',
-            'icon' => 'calendar',
-        ],
-        '/portal/historial' => [
-            'role' => 'paciente',
-            'active' => 'historial',
-            'title' => 'Mi historial',
-            'description' => 'Atenciones, indicaciones y recetas.',
-            'icon' => 'file',
-        ],
-        '/portal/perfil' => [
-            'role' => 'paciente',
-            'active' => 'perfil',
-            'title' => 'Mi perfil',
-            'description' => 'Datos de contacto, médicos y emergencia.',
-            'icon' => 'user',
-        ],
-    ];
-
     public function adminDashboard(Request $request): Response
     {
         return $this->renderPanel(
@@ -65,7 +35,7 @@ final class PanelController extends Controller
             'Usuarios',
             'usuarios',
             [['label' => 'Administración'], ['label' => 'Usuarios']],
-            ['subtitle' => 'Altas, roles, bloqueos y desbloqueos de cuentas.']
+            ['subtitle' => 'Altas, roles, bloqueos y desbloqueos de cuentas.', 'script' => 'panel/js/admin.js']
         );
     }
 
@@ -76,7 +46,7 @@ final class PanelController extends Controller
             'Médicos',
             'medicos',
             [['label' => 'Administración'], ['label' => 'Médicos']],
-            ['subtitle' => 'Perfiles profesionales, especialidades y recepcionistas asignados.']
+            ['subtitle' => 'Perfiles profesionales, especialidades y recepcionistas asignados.', 'script' => 'panel/js/admin.js']
         );
     }
 
@@ -87,7 +57,7 @@ final class PanelController extends Controller
             'Especialidades',
             'especialidades',
             [['label' => 'Administración'], ['label' => 'Especialidades']],
-            ['subtitle' => 'Catálogo de especialidades, restricciones y destacados.']
+            ['subtitle' => 'Catálogo de especialidades, restricciones y destacados.', 'script' => 'panel/js/admin.js']
         );
     }
 
@@ -98,7 +68,7 @@ final class PanelController extends Controller
             'Horarios',
             'horarios',
             [['label' => 'Administración'], ['label' => 'Horarios']],
-            ['subtitle' => 'Franjas semanales, cupos por canal y bloqueos de agenda.']
+            ['subtitle' => 'Franjas semanales, cupos por canal y bloqueos de agenda.', 'script' => 'panel/js/admin.js']
         );
     }
 
@@ -109,7 +79,7 @@ final class PanelController extends Controller
             'Citas',
             'citas',
             [['label' => 'Administración'], ['label' => 'Citas']],
-            ['subtitle' => 'Supervisión global de la agenda y los estados de atención.']
+            ['subtitle' => 'Supervisión global de la agenda y los estados de atención.', 'script' => 'panel/js/admin.js']
         );
     }
 
@@ -120,7 +90,7 @@ final class PanelController extends Controller
             'Reportes',
             'reportes',
             [['label' => 'Administración'], ['label' => 'Reportes']],
-            ['subtitle' => 'Indicadores de demanda, asistencia y ocupación por médico.']
+            ['subtitle' => 'Indicadores de demanda, asistencia y ocupación por médico.', 'script' => 'panel/js/admin.js']
         );
     }
 
@@ -131,7 +101,7 @@ final class PanelController extends Controller
             'Auditoría',
             'auditoria',
             [['label' => 'Administración'], ['label' => 'Auditoría']],
-            ['subtitle' => 'Bitácora de cambios sensibles del sistema.']
+            ['subtitle' => 'Bitácora de cambios sensibles del sistema.', 'script' => 'panel/js/admin.js']
         );
     }
 
@@ -242,7 +212,7 @@ final class PanelController extends Controller
             [['label' => 'Médico'], ['label' => 'Dashboard']],
             [
                 'subtitle' => 'Tu jornada clínica, sin ruido.',
-                'script' => 'panel/js/recepcion.js',
+                'script' => 'panel/js/medico.js',
             ]
         );
     }
@@ -254,7 +224,10 @@ final class PanelController extends Controller
             'Mi agenda',
             'agenda',
             [['label' => 'Médico'], ['label' => 'Agenda']],
-            ['subtitle' => 'Consulta diaria, semana y bloqueos de atención.']
+            [
+                'subtitle' => 'Consulta diaria, semana y bloqueos de atención.',
+                'script' => 'panel/js/medico.js',
+            ]
         );
     }
 
@@ -265,7 +238,10 @@ final class PanelController extends Controller
             'Pacientes',
             'pacientes',
             [['label' => 'Médico'], ['label' => 'Pacientes']],
-            ['subtitle' => 'Pacientes atendidos y búsqueda por documento.']
+            [
+                'subtitle' => 'Pacientes atendidos y búsqueda por documento.',
+                'script' => 'panel/js/medico.js',
+            ]
         );
     }
 
@@ -276,7 +252,10 @@ final class PanelController extends Controller
             'Consultas',
             'consultas',
             [['label' => 'Médico'], ['label' => 'Consultas']],
-            ['subtitle' => 'Registro clínico de la atención y signos vitales.']
+            [
+                'subtitle' => 'Registro clínico de la atención y signos vitales.',
+                'script' => 'panel/js/medico.js',
+            ]
         );
     }
 
@@ -287,7 +266,10 @@ final class PanelController extends Controller
             'Historia clínica',
             'historia',
             [['label' => 'Médico'], ['label' => 'Historia clínica']],
-            ['subtitle' => 'Evolución cronológica y antecedentes del paciente.']
+            [
+                'subtitle' => 'Evolución cronológica y antecedentes del paciente.',
+                'script' => 'panel/js/medico.js',
+            ]
         );
     }
 
@@ -298,7 +280,10 @@ final class PanelController extends Controller
             'Recetas y órdenes',
             'pedidos',
             [['label' => 'Médico'], ['label' => 'Recetas y órdenes']],
-            ['subtitle' => 'Recetas, documentos y órdenes de estudio.']
+            [
+                'subtitle' => 'Recetas, documentos y órdenes de estudio.',
+                'script' => 'panel/js/medico.js',
+            ]
         );
     }
 
@@ -309,7 +294,10 @@ final class PanelController extends Controller
             'Pagos',
             'pagos',
             [['label' => 'Médico'], ['label' => 'Pagos']],
-            ['subtitle' => 'Movimientos asociados a tu atención.']
+            [
+                'subtitle' => 'Movimientos asociados a tu atención.',
+                'script' => 'panel/js/medico.js',
+            ]
         );
     }
 
@@ -320,7 +308,10 @@ final class PanelController extends Controller
             'Mi QR',
             'qr',
             [['label' => 'Médico'], ['label' => 'Mi QR']],
-            ['subtitle' => 'Credencial de acceso para el kiosco de fichas.']
+            [
+                'subtitle' => 'Credencial de acceso para el kiosco de fichas.',
+                'script' => 'panel/js/medico.js',
+            ]
         );
     }
 
@@ -333,34 +324,49 @@ final class PanelController extends Controller
             [['label' => 'Mi cuenta'], ['label' => 'Inicio']],
             [
                 'subtitle' => 'Tus citas y tu información de salud, en un solo lugar.',
+                'script' => 'panel/js/paciente.js',
             ]
         );
     }
 
-    /**
-     * Renderiza un módulo marcado como pendiente. El menú se mantiene vivo
-     * y el usuario siempre tiene un camino de vuelta a su panel.
-     */
-    public function module(Request $request): Response
+    public function portalMisCitas(Request $request): Response
     {
-        $path = rtrim($request->path(), '/') ?: '/';
-        $module = self::MODULES[$path] ?? null;
-
-        if ($module === null) {
-            abort(404, 'El módulo solicitado no existe.');
-        }
-
-        $roleHome = role_home((string) ($module['role'] === 'admin' ? 'admin' : $module['role']));
-
         return $this->renderPanel(
-            'panels/module',
-            $module['title'],
-            $module['active'],
-            [['label' => $module['role'] === 'paciente' ? 'Mi cuenta' : ucfirst($module['role'])], ['label' => $module['title']]],
+            'paciente/mis-citas',
+            'Mis citas',
+            'citas',
+            [['label' => 'Mi cuenta'], ['label' => 'Mis citas']],
             [
-                'subtitle' => $module['description'],
-                'module' => $module,
-                'roleHome' => $roleHome,
+                'subtitle' => 'Próximas atenciones, estado de cada reserva y cancelaciones.',
+                'script' => 'panel/js/paciente.js',
+            ]
+        );
+    }
+
+    public function portalHistorial(Request $request): Response
+    {
+        return $this->renderPanel(
+            'paciente/historial',
+            'Mi historial',
+            'historial',
+            [['label' => 'Mi cuenta'], ['label' => 'Mi historial']],
+            [
+                'subtitle' => 'Atenciones, indicaciones y signos vitales registrados.',
+                'script' => 'panel/js/paciente.js',
+            ]
+        );
+    }
+
+    public function portalPerfil(Request $request): Response
+    {
+        return $this->renderPanel(
+            'paciente/perfil',
+            'Mi perfil',
+            'perfil',
+            [['label' => 'Mi cuenta'], ['label' => 'Mi perfil']],
+            [
+                'subtitle' => 'Datos de contacto, información clínica y emergencia.',
+                'script' => 'panel/js/paciente.js',
             ]
         );
     }

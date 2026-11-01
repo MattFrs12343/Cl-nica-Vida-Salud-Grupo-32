@@ -3,7 +3,7 @@
 ?>
 <header class="auth-head">
     <span class="auth-kicker">Primera vez aquí</span>
-    <h1>Activa tu <em>cuenta.</em></h1>
+    <h1 id="auth-title">Activa tu <em>cuenta.</em></h1>
     <p>Si ya te atendimos en la clínica, confirma tus datos para entrar a tu portal de paciente.</p>
 </header>
 

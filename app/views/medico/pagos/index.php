@@ -1,13 +1,5 @@
 <?php
 /** @var array<string, mixed> $user */
-$pagos = [
-    ['paciente' => 'Juan Pérez', 'fecha' => '24/10/2026', 'metodo' => 'efectivo', 'monto' => '150.00', 'referencia' => 'Consulta control'],
-    ['paciente' => 'María Gómez', 'fecha' => '17/10/2026', 'metodo' => 'visa', 'monto' => '180.00', 'referencia' => 'Voucher #4821'],
-    ['paciente' => 'Pedro Fernández', 'fecha' => '10/10/2026', 'metodo' => 'efectivo', 'monto' => '150.00', 'referencia' => ''],
-    ['paciente' => 'Lucía Flores', 'fecha' => '02/10/2026', 'metodo' => 'mastercard', 'monto' => '200.00', 'referencia' => 'Voucher #4799'],
-];
-$metodoLabel = ['efectivo' => 'Efectivo', 'visa' => 'Visa', 'mastercard' => 'Mastercard'];
-$metodoBadge = ['efectivo' => 'badge-pine', 'visa' => 'badge-info', 'mastercard' => 'badge-accent'];
 ?>
 <header class="page-head">
     <div class="page-head-copy">
@@ -15,37 +7,40 @@ $metodoBadge = ['efectivo' => 'badge-pine', 'visa' => 'badge-info', 'mastercard'
         <h1>Pagos</h1>
         <p>Registra el cobro de tu atención y revisa tus movimientos.</p>
     </div>
+    <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" type="button" data-mpago-refresh>
+            <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+            Actualizar
+        </button>
+    </div>
 </header>
 
 <div class="pay-layout">
-    <section class="card pay-form-card" aria-labelledby="pago-form-title">
+    <section class="card pay-form-card" aria-labelledby="mpago-form-title">
         <div class="card-head">
             <div>
                 <span class="card-kicker">Nuevo movimiento</span>
-                <h2 id="pago-form-title">Registrar pago</h2>
+                <h2 id="mpago-form-title">Registrar pago</h2>
             </div>
         </div>
 
-        <form novalidate>
+        <form data-mpago-form novalidate>
             <div class="field">
-                <label>Paciente *</label>
-                <div class="picker-selected">
-                    <span class="avatar avatar-sm">J</span>
-                    <div class="picker-selected-copy">
-                        <strong>Juan Pérez</strong>
-                        <small>CI 10000001</small>
-                    </div>
-                    <button class="picker-selected-clear" type="button" aria-label="Quitar selección">
-                        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
-                    </button>
+                <label for="mpago-patient-search">Paciente *</label>
+                <div class="input-wrap">
+                    <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+                    <input id="mpago-patient-search" type="search" placeholder="Buscar por nombre o CI…" autocomplete="off" data-mpago-patient-search>
                 </div>
+                <div class="picker-results" data-mpago-patient-results hidden></div>
+                <div class="picker-selected" data-mpago-patient-selected hidden></div>
+                <input type="hidden" data-mpago-patient-id>
             </div>
 
             <div class="field">
-                <label for="pago-monto">Monto *</label>
+                <label for="mpago-monto">Monto *</label>
                 <div class="input-wrap input-money">
                     <span class="input-prefix">Bs</span>
-                    <input id="pago-monto" type="number" inputmode="decimal" min="0.01" step="0.01" value="150.00">
+                    <input id="mpago-monto" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" data-mpago-monto>
                 </div>
             </div>
 
@@ -80,11 +75,11 @@ $metodoBadge = ['efectivo' => 'badge-pine', 'visa' => 'badge-info', 'mastercard'
             </div>
 
             <div class="field">
-                <label for="pago-referencia">Referencia <span class="label-hint">(opcional)</span></label>
-                <input id="pago-referencia" type="text" maxlength="150" placeholder="N.º de recibo, voucher o nota">
+                <label for="mpago-referencia">Referencia <span class="label-hint">(opcional)</span></label>
+                <input id="mpago-referencia" type="text" maxlength="150" placeholder="N.º de recibo, voucher o nota" data-mpago-referencia>
             </div>
 
-            <button class="btn btn-primary btn-block" type="button">
+            <button class="btn btn-primary btn-block" type="submit">
                 <span class="btn-label">Registrar pago</span>
                 <span class="btn-icon" aria-hidden="true"><svg class="icon"><use href="#i-check"></use></svg></span>
             </button>
@@ -95,85 +90,63 @@ $metodoBadge = ['efectivo' => 'badge-pine', 'visa' => 'badge-info', 'mastercard'
         <section class="card pay-summary-card">
             <div class="card-head">
                 <div>
-                    <span class="card-kicker">Hoy</span>
+                    <span class="card-kicker">Rango seleccionado</span>
                     <h2>Resumen</h2>
                 </div>
                 <span class="badge badge-muted"><?= e(date('d/m/Y')) ?></span>
             </div>
             <div class="pay-total">
                 <span>Total registrado</span>
-                <strong>Bs 680,00</strong>
-                <small>4 movimientos</small>
+                <strong data-mpago-stat="total">Bs 0,00</strong>
+                <small><span data-mpago-stat="count">0</span> movimientos</small>
             </div>
             <div class="pay-breakdown">
                 <div class="pay-breakdown-row">
                     <span class="origin-dot efectivo"></span>
                     <span>Efectivo</span>
-                    <strong>Bs 300,00</strong>
+                    <strong data-mpago-stat="efectivo">Bs 0,00</strong>
                 </div>
                 <div class="pay-breakdown-row">
                     <span class="origin-dot visa"></span>
                     <span>Visa</span>
-                    <strong>Bs 180,00</strong>
+                    <strong data-mpago-stat="visa">Bs 0,00</strong>
                 </div>
                 <div class="pay-breakdown-row">
                     <span class="origin-dot mastercard"></span>
                     <span>Mastercard</span>
-                    <strong>Bs 200,00</strong>
+                    <strong data-mpago-stat="mastercard">Bs 0,00</strong>
                 </div>
             </div>
         </section>
     </aside>
 </div>
 
-<section class="card" aria-labelledby="lista-pagos-title">
+<section class="card" aria-labelledby="mpagos-title">
     <div class="card-head card-head-wrap">
         <div>
             <span class="card-kicker">Movimientos</span>
-            <h2 id="lista-pagos-title">Mis pagos</h2>
+            <h2 id="mpagos-title">Mis pagos</h2>
         </div>
         <div class="card-head-tools">
             <label class="input-inline" aria-label="Desde">
                 <span class="input-inline-label">Desde</span>
-                <input type="date" value="2026-10-01">
+                <input type="date" value="<?= e(date('Y-m-01')) ?>" data-mpago-desde>
             </label>
             <label class="input-inline" aria-label="Hasta">
                 <span class="input-inline-label">Hasta</span>
-                <input type="date" value="<?= e(date('Y-m-d')) ?>">
+                <input type="date" value="<?= e(date('Y-m-d')) ?>" data-mpago-hasta>
             </label>
         </div>
     </div>
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Paciente</th>
-                    <th>Fecha</th>
-                    <th>Método</th>
-                    <th>Monto</th>
-                    <th>Referencia</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($pagos as $pago): ?>
-                    <tr>
-                        <td>
-                            <div class="cell-person">
-                                <span class="avatar avatar-sm"><?= e(mb_strtoupper(mb_substr($pago['paciente'], 0, 1))) ?></span>
-                                <strong><?= e($pago['paciente']) ?></strong>
-                            </div>
-                        </td>
-                        <td><?= e($pago['fecha']) ?></td>
-                        <td><span class="badge <?= e($metodoBadge[$pago['metodo']]) ?>"><?= e($metodoLabel[$pago['metodo']]) ?></span></td>
-                        <td><strong>Bs <?= e($pago['monto']) ?></strong></td>
-                        <td><?= e($pago['referencia'] !== '' ? $pago['referencia'] : '—') ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <div data-mpago-table>
+        <div class="table-loading">
+            <?php for ($i = 0; $i < 4; $i++): ?>
+                <div class="skeleton skeleton-row"></div>
+            <?php endfor; ?>
+        </div>
     </div>
     <div class="table-foot">
-        <span>4 movimientos</span>
-        <strong>Total del rango: Bs 680,00</strong>
+        <span data-mpago-count>0 movimientos</span>
+        <strong>Total del rango: <span data-mpago-total>Bs 0,00</span></strong>
     </div>
 </section>

@@ -59,6 +59,36 @@
     color: var(--pine);
 }
 
+/* Accesibilidad ----------------------------------------------------------- */
+.panel-body :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible,
+.auth-body :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+.sidebar :where(a, button, summary):focus-visible {
+    outline-color: var(--accent-soft);
+    outline-offset: 2px;
+}
+
+.panel-content:focus,
+.auth-card:focus {
+    outline: none;
+}
+
+.nav-item:focus-visible {
+    background: rgba(244, 246, 240, 0.12);
+    color: var(--paper);
+}
+
+.user-trigger:focus-visible,
+.segmented-item:focus-visible,
+.modal-close:focus-visible,
+.icon-btn:focus-visible {
+    outline-offset: 2px;
+}
+
 .panel-body .icon,
 .auth-body .icon {
     width: 18px;
@@ -298,7 +328,7 @@
     font-weight: 400;
     letter-spacing: 0.17em;
     text-transform: uppercase;
-    color: rgba(244, 246, 240, 0.38);
+    color: rgba(244, 246, 240, 0.58);
 }
 
 .nav-item {
@@ -399,7 +429,7 @@
 .sidebar-scope p {
     margin: 1px 0 0;
     font-size: 11px;
-    color: rgba(244, 246, 240, 0.52);
+    color: rgba(244, 246, 240, 0.65);
 }
 
 .sidebar-foot {
@@ -444,7 +474,7 @@
 .sidebar-help p {
     margin: 1px 0 0;
     font-size: 10.5px;
-    color: rgba(244, 246, 240, 0.45);
+    color: rgba(244, 246, 240, 0.62);
 }
 
 .sidebar-site-link {
@@ -454,7 +484,7 @@
     gap: 10px;
     padding: 7px 10px;
     border-radius: 8px;
-    color: rgba(244, 246, 240, 0.52);
+    color: rgba(244, 246, 240, 0.68);
     font-size: 11.5px;
     transition: color var(--panel-duration) var(--ease), background var(--panel-duration) var(--ease);
 }

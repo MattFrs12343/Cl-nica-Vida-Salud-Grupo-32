@@ -4,7 +4,7 @@
 ?>
 <header class="auth-head">
     <span class="auth-kicker">Nueva contraseña</span>
-    <h1>Crea una clave <em>segura.</em></h1>
+    <h1 id="auth-title">Crea una clave <em>segura.</em></h1>
     <p>Usa al menos 8 caracteres e incluye una letra y un número.</p>
 </header>
 

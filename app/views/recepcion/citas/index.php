@@ -27,7 +27,7 @@
     <div class="toolbar-filters">
         <label class="input-inline" aria-label="Fecha de la cita">
             <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
-            <input type="date" data-cita-fecha value="<?= e(date('Y-m-d')) ?>">
+            <input type="date" data-cita-fecha aria-label="Fecha de la cita" value="<?= e(date('Y-m-d')) ?>">
         </label>
         <label class="select-wrap">
             <span class="sr-only">Filtrar por estado</span>
