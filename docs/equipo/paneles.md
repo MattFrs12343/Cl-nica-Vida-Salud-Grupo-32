@@ -151,8 +151,10 @@ Se verificó en cada página:
 
 ## 8. Limitaciones conocidas
 
-- **Cambio de contraseña del paciente (M-33):** la vista existe, pero la API
-  todavía no expone el endpoint; no se inventó uno desde el panel.
+- **Cambio de contraseña del paciente (M-33):** resuelto al integrar el panel
+  con la API. La tarjeta «Seguridad» de `/portal/perfil` consume
+  `PUT /api/me/password` (contraseña actual, nueva y confirmación) y muestra
+  los errores de validación por campo.
 - **Historial de recetas/documentos/órdenes (L-30):** no hay endpoint de
   listado histórico; se muestran las consultas recientes y los pedidos de la
   sesión.

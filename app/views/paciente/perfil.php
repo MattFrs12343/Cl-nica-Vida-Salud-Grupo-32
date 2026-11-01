@@ -150,17 +150,34 @@
             </div>
         </section>
 
-        <section class="card">
+        <section class="card" aria-labelledby="perfil-password-title">
             <div class="card-head">
                 <div>
                     <span class="card-kicker">Seguridad</span>
-                    <h2>Contraseña</h2>
+                    <h2 id="perfil-password-title">Contraseña</h2>
                 </div>
             </div>
-            <div class="callout callout-warning">
-                <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
-                <p>El cambio de contraseña desde el portal aún no está disponible. Solicítalo en recepción para proteger tu cuenta.</p>
-            </div>
+            <form data-perfil-password-form novalidate>
+                <div class="field">
+                    <label for="perfil-password-actual">Contraseña actual</label>
+                    <input id="perfil-password-actual" name="password_actual" type="password" autocomplete="current-password" required>
+                </div>
+                <div class="field">
+                    <label for="perfil-password-nueva">Nueva contraseña</label>
+                    <input id="perfil-password-nueva" name="password" type="password" autocomplete="new-password" required>
+                    <span class="field-hint">Mínimo 8 caracteres, con al menos una letra y un número.</span>
+                </div>
+                <div class="field">
+                    <label for="perfil-password-confirmacion">Repite la nueva contraseña</label>
+                    <input id="perfil-password-confirmacion" name="password_confirmation" type="password" autocomplete="new-password" required>
+                </div>
+                <div class="row-actions" style="gap:8px;margin-top:14px;">
+                    <button class="btn btn-primary btn-sm" type="submit" data-perfil-password-submit>
+                        <svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>
+                        Cambiar contraseña
+                    </button>
+                </div>
+            </form>
         </section>
 
         <section class="card card-accent">

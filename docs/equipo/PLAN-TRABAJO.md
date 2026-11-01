@@ -371,7 +371,7 @@ Lucas usa esos JSON para maquetar y luego cambia el `fetch` real. Si un mock no 
 - [x] **L-30 · Recetas, documentos y órdenes** — alta, listado, vista imprimible y modal de envío por WhatsApp. · *Deps:* M-31. · *Nota:* sin endpoint de listado histórico; se muestran las consultas recientes y los pedidos de la sesión actual.
 - [x] **L-31 · Pagos y QR** — registrar/listar pagos y gestionar QR propio. · *Deps:* M-32.
 - [x] **L-32 · Portal del paciente** — dashboard, mis citas y cancelación. · *Deps:* M-33.
-- [x] **L-33 · Portal: historial y perfil** — timeline, detalle, perfil y cambio de contraseña. · *Deps:* M-33. · *Nota:* cambio de contraseña pendiente porque la API aún no expone ese endpoint.
+- [x] **L-33 · Portal: historial y perfil** — timeline, detalle, perfil y cambio de contraseña. · *Deps:* M-33. · *Nota:* el cambio de contraseña se conectó al integrar con M-33 (`PUT /api/me/password`).
 
 **Criterio de salida Fase 4:** flujo completo cita → ficha → atención → receta → pago, y portal del paciente operativo.
 

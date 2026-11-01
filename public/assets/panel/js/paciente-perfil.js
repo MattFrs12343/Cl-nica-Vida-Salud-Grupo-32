@@ -21,6 +21,8 @@ const form = $('[data-perfil-form]');
 const submit = $('[data-perfil-submit]');
 const summary = $('[data-perfil-summary]');
 const identity = $('[data-perfil-identity]');
+const passwordForm = $('[data-perfil-password-form]');
+const passwordSubmit = $('[data-perfil-password-submit]');
 
 const PROFILE_FIELDS = [
     'telefono',
@@ -123,6 +125,35 @@ form?.addEventListener('submit', async (event) => {
         toast('error', apiErrorMessage(error));
     } finally {
         setLoading(submit, false);
+    }
+});
+
+passwordForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    clearFieldErrors(passwordForm);
+    setLoading(passwordSubmit, true);
+
+    const body = {};
+    ['password_actual', 'password', 'password_confirmation'].forEach((name) => {
+        const field = passwordForm.elements.namedItem(name);
+        body[name] = field ? String(field.value || '') : '';
+    });
+
+    try {
+        const response = await apiFetch('/api/me/password', {
+            method: 'PUT',
+            body,
+        });
+
+        passwordForm.reset();
+        toast('success', response?.message || 'Contraseña actualizada.');
+    } catch (error) {
+        if (error.fields && Object.keys(error.fields).length > 0) {
+            renderFieldErrors(passwordForm, error.fields);
+        }
+        toast('error', apiErrorMessage(error));
+    } finally {
+        setLoading(passwordSubmit, false);
     }
 });
 
