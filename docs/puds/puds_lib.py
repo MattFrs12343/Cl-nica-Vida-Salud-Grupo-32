@@ -13,7 +13,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 DOCS = os.path.join(ROOT, "docs", "puds")
 DIA = os.path.join(DOCS, "diagramas")
 ASSETS = os.path.join(DOCS, "assets")
-OUT_DOCX = os.path.join(DOCS, "Clinica_Vida_Salud_Grupo-32.docx")
+OUT_DOCX = os.path.join(DOCS, "PUDS-UML_Clinica_Vida_Salud_Grupo-32.docx")
 
 NAVY = RGBColor(0x0B, 0x3C, 0x5D)
 BLUE = RGBColor(0x0A, 0x6E, 0xBD)
@@ -469,17 +469,6 @@ class Builder:
                 elif idx % 2 == 1:
                     _shade(cell, "F4F8FC")
                 cell.text = ""
-                if isinstance(val, tuple) and val and val[0] == "img":
-                    img_name = val[1]
-                    img_width = val[2] if len(val) > 2 else 4.8
-                    img_path = os.path.join(DIA, img_name)
-                    if not os.path.exists(img_path):
-                        img_path = os.path.join(ASSETS, img_name)
-                    p = cell.paragraphs[0]
-                    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    p.paragraph_format.space_after = Pt(0)
-                    p.add_run().add_picture(img_path, width=Cm(img_width))
-                    continue
                 lines = str(val).split("\n")
                 for j, line in enumerate(lines):
                     p = cell.paragraphs[0] if j == 0 else cell.add_paragraph()

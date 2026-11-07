@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from puds_lib import b, cover, front_matter, OUT_DOCX
 from puds_content1 import chapter1, chapter2, chapter3, chapter4
 from puds_content2 import chapter5, chapter6
-from puds_content3 import chapter7, chapter8, closing, repo_section, annexes
+from puds_content3 import chapter7, chapter8, closing, annexes
 
 
 def main():
@@ -22,7 +22,6 @@ def main():
     chapter7()
     chapter8()
     closing()
-    repo_section()
     annexes()
     b.save(OUT_DOCX)
     print("Generado:", OUT_DOCX)
