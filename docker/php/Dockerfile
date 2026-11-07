@@ -14,4 +14,10 @@ COPY docker/php/vhost.conf /etc/apache2/sites-available/000-default.conf
 
 WORKDIR /var/www/html
 
+# En local, docker-compose monta el proyecto como volumen y estos archivos
+# copiados quedan tapados por el bind mount — esto solo importa para builds
+# standalone (p. ej. Render), que no tienen ese volumen.
+COPY . .
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
 EXPOSE 80
