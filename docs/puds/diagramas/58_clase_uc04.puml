@@ -1,0 +1,71 @@
+@startuml
+allowmixing
+left to right direction
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+skinparam nodesep 28
+skinparam ranksep 40
+skinparam class {
+  BackgroundColor #FDF6E3
+  BorderColor #8C6D4F
+  FontColor #3A2A1E
+  FontSize 10
+}
+skinparam class<<boundary>> {
+  BackgroundColor #FDF6E3
+  BorderColor #8C6D4F
+}
+skinparam class<<control>> {
+  BackgroundColor #FDF6E3
+  BorderColor #8C6D4F
+}
+skinparam class<<table>> {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+}
+skinparam actor {
+  BackgroundColor #F4CCCC
+  BorderColor #990000
+  FontSize 11
+}
+actor "Administrador" as ADM
+actor "Recepcionista" as REC
+actor "Médico" as MED
+actor "Paciente" as PAC
+class "LoginView" as UI <<boundary>> {
+  + usuario
+  + clave
+  + validar()
+  + mostrarError()
+}
+class "AuthController" as CC <<control>> {
+  + autenticar()
+  + validarEstado()
+  + registrarAcceso()
+}
+class "UsuarioModel" as UM <<entity>> {
+  + buscarPorCredencial()
+  + actualizarAcceso()
+}
+class "usuarios\n(tabla)" as U <<table>> {
+  + id : integer
+  + username : varchar
+  + email : varchar
+  + password_hash : varchar
+  + rol : rol_usuario
+  + activo : boolean
+  + intentos_fallidos : smallint
+  + bloqueado : boolean
+  + ultimo_acceso : timestamptz
+}
+ADM --> UI
+REC --> UI
+MED --> UI
+PAC --> UI
+UI --> CC
+CC --> UM
+UM --> U
+@enduml

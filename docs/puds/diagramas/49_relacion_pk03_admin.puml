@@ -1,0 +1,34 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam nodesep 16
+skinparam ranksep 32
+skinparam folder {
+  BackgroundColor #FDF6E3
+  BorderColor #5B4636
+  FontColor #3A2A1E
+  FontSize 13
+}
+skinparam usecase {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 11
+}
+left to right direction
+folder "PK-03\nAtención y\nadministración\n(casos de administración)" as PK03
+usecase "UC20 Gestionar médicos\ny especialidades" as UC20
+usecase "UC21 Configurar\nhorarios y cupos" as UC21
+usecase "UC22 Gestionar\nusuarios" as UC22
+usecase "UC23 Generar\nreportes" as UC23
+usecase "UC24 Auditar\ncatálogos" as UC24
+PK03 ..> UC20 : <<trace>>
+PK03 ..> UC21 : <<trace>>
+PK03 ..> UC22 : <<trace>>
+PK03 ..> UC23 : <<trace>>
+PK03 ..> UC24 : <<trace>>
+note right of UC24
+  La auditoría es transversal y
+  registra cambios de UC20–UC22.
+end note
+@enduml

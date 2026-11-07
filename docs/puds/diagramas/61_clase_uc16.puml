@@ -1,0 +1,89 @@
+@startuml
+allowmixing
+left to right direction
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+skinparam nodesep 20
+skinparam ranksep 30
+skinparam class {
+  BackgroundColor #FDF6E3
+  BorderColor #8C6D4F
+  FontColor #3A2A1E
+  FontSize 10
+}
+skinparam class<<table>> {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+}
+skinparam actor {
+  BackgroundColor #F4CCCC
+  BorderColor #990000
+  FontSize 10
+}
+actor "Médico" as MED
+class "HistoriaView" as HV <<boundary>> {
+  + motivo
+  + anamnesis
+  + signos_vitales
+  + diagnóstico
+  + tratamiento
+  + guardar()
+}
+class "ConsultaService" as CS <<control>> {
+  + crearConsulta()
+  + validarCita()
+  + marcarAtendida()
+}
+class "PedidoService" as PS <<control>> {
+  + crearReceta()
+  + crearDocumento()
+  + crearOrden()
+  + enviarWhatsApp()
+}
+package "Tablas PostgreSQL" as TABLAS {
+  class "citas" as TC <<table>> {
+    + id : integer
+    + paciente_id : integer
+    + medico_id : integer
+    + fecha : date
+    + hora_inicio : time
+    + estado : estado_cita
+  }
+  class "consultas" as TCO <<table>> {
+    + id : integer
+    + cita_id : integer
+    + paciente_id : integer
+    + medico_id : integer
+    + motivo : varchar
+    + anamnesis : text
+    + signos_vitales : jsonb
+    + diagnostico : text
+    + tratamiento : text
+  }
+  class "recetas" as TR <<table>> {
+    + id : integer
+    + codigo : varchar
+    + consulta_id : integer
+    + paciente_id : integer
+    + medico_id : integer
+    + codigo_acceso : varchar
+  }
+  class "ordenes" as TO <<table>> {
+    + id : integer
+    + codigo : varchar
+    + consulta_id : integer
+    + tipo : tipo_orden
+    + codigo_acceso : varchar
+  }
+}
+MED --> HV
+HV --> CS
+HV --> PS
+CS --> TC
+CS --> TCO
+PS --> TR
+PS --> TO
+@enduml

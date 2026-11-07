@@ -1,0 +1,78 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam nodesep 12
+skinparam ranksep 34
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam ArrowColor #5B6B7A
+skinparam ArrowFontColor #5B6B7A
+skinparam ArrowFontSize 10
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 14
+}
+skinparam usecase {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 10
+}
+
+package "PK-01  Acceso público y reserva web" as PK01 {
+  usecase "UC01 Navegar por la landing" as UC01
+  usecase "UC02 Buscar especialidad y médico" as UC02
+  usecase "UC03 Registrarse o activar cuenta" as UC03
+  usecase "UC04 Iniciar sesión" as UC04
+  usecase "UC05 Reservar cita web" as UC05
+  usecase "UC06 Cancelar cita" as UC06
+  usecase "UC07 Consultar mis citas e historial" as UC07
+}
+
+package "PK-02  Citas y agenda" as PK02 {
+  usecase "UC08 Gestionar pacientes" as UC08
+  usecase "UC09 Programar cita" as UC09
+  usecase "UC10 Reprogramar cita" as UC10
+  usecase "UC11 Cancelar cita en recepción" as UC11
+  usecase "UC12 Controlar asistencia" as UC12
+  usecase "UC13 Gestionar reconsultas" as UC13
+  usecase "UC14 Consultar agenda e historial" as UC14
+}
+
+package "PK-03  Atención y administración" as PK03 {
+  usecase "UC15 Emitir ficha en kiosco" as UC15
+  usecase "UC16 Registrar consulta" as UC16
+  usecase "UC17 Generar receta, documento u orden" as UC17
+  usecase "UC18 Enviar pedido por WhatsApp" as UC18
+  usecase "UC19 Registrar pago" as UC19
+  usecase "UC20 Gestionar médicos y especialidades" as UC20
+  usecase "UC21 Configurar horarios y cupos" as UC21
+  usecase "UC22 Gestionar usuarios" as UC22
+  usecase "UC23 Generar reportes" as UC23
+  usecase "UC24 Auditar catálogos" as UC24
+}
+
+package "PK-04  Servicios compartidos" as PK04 {
+  usecase "Autenticación · Correo · Auditoría · Persistencia" as PK04S
+}
+
+' Relaciones internas y entre paquetes
+UC05 ..> UC02 : <<include>>
+UC06 ..> UC07 : <<extend>>
+UC09 ..> UC04 : <<include>>
+UC11 ..> UC14 : <<extend>>
+UC13 ..> UC12 : <<extend>>
+UC15 ..> UC05 : <<include>>
+UC18 ..> UC17 : <<extend>>
+
+' Dependencias entre paquetes
+PK01 .[#0A6EBD].> PK02 : <<use>>\ndisponibilidad y registro
+PK01 .[#0A6EBD].> PK04 : <<use>>\nseguridad y correo
+PK02 .[#0A6EBD].> PK04 : <<use>>\npersistencia
+PK03 .[#0A6EBD].> PK01 : <<use>>\nreserva web
+PK03 .[#0A6EBD].> PK02 : <<use>>\nagenda
+PK03 .[#0A6EBD].> PK04 : <<use>>\ncorreo y auditoría
+
+@enduml

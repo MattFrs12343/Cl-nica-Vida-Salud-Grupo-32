@@ -1,0 +1,44 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam nodesep 20
+skinparam ranksep 38
+skinparam package {
+  BackgroundColor #FBFDFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 14
+}
+skinparam usecase {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 11
+}
+skinparam actor {
+  BackgroundColor #F4CCCC
+  BorderColor #990000
+  FontSize 11
+}
+left to right direction
+package "PK-01  Acceso público y reserva web" as PK01 {
+  actor "Público" as PUB
+  actor "Paciente" as PAC
+  usecase "UC01 Navegar\npor la landing" as UC01
+  usecase "UC02 Buscar especialidad\ny médico" as UC02
+  usecase "UC03 Registrarse o\nactivar cuenta" as UC03
+  usecase "UC04 Iniciar sesión" as UC04
+  usecase "UC05 Reservar cita web" as UC05
+  usecase "UC06 Cancelar cita" as UC06
+  usecase "UC07 Consultar mis\ncitas e historial" as UC07
+}
+PUB --> UC01
+PUB --> UC02
+PAC --> UC03
+PAC --> UC04
+PAC --> UC05
+PAC --> UC06
+PAC --> UC07
+UC05 ..> UC02 : <<include>>
+UC06 ..> UC07 : <<extend>>
+@enduml

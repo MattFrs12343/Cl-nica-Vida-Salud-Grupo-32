@@ -1,0 +1,27 @@
+@startuml
+allowmixing
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam nodesep 50
+skinparam ranksep 60
+skinparam object {
+  BackgroundColor #FDF6E3
+  BorderColor #8C6D4F
+  FontColor #3A2A1E
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #F4CCCC
+  BorderColor #990000
+  FontSize 12
+}
+actor "Usuario" as A
+object "LoginView" as V <<boundary>>
+object "AuthController" as C <<control>>
+object "UsuarioModel" as M <<entity>>
+database "PostgreSQL" as DB
+A -- V : 1 → ingresar(usuario, clave)\n9 ← redirigirPanel(rol)
+V -- C : 2 → autenticar(usuario, clave)\n8 ← crearSesion(rol)
+C -- M : 3 → buscarPorCredencial(usuario)\n6 ← usuario + password_hash
+M -- DB : 4 → SELECT usuarios\n5 ← registro
+@enduml

@@ -1,0 +1,58 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam nodesep 18
+skinparam ranksep 34
+skinparam package {
+  BackgroundColor #FBFDFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 14
+}
+skinparam usecase {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 11
+}
+skinparam actor {
+  BackgroundColor #F4CCCC
+  BorderColor #990000
+  FontSize 11
+}
+left to right direction
+package "PK-03  Atención y administración" as PK03 {
+  actor "Kiosco" as KIO
+  actor "Médico" as MED
+  actor "Recepción" as REC
+  actor "Administrador" as ADM
+  usecase "UC15 Emitir ficha\nen kiosco" as UC15
+  usecase "UC16 Registrar\nconsulta" as UC16
+  usecase "UC17 Generar receta,\ndocumento u orden" as UC17
+  usecase "UC18 Enviar pedido\npor WhatsApp" as UC18
+  usecase "UC19 Registrar\npago" as UC19
+  usecase "UC20 Gestionar médicos\ny especialidades" as UC20
+  usecase "UC21 Configurar\nhorarios y cupos" as UC21
+  usecase "UC22 Gestionar\nusuarios" as UC22
+  usecase "UC23 Generar\nreportes" as UC23
+  usecase "UC24 Auditar\ncatálogos" as UC24
+}
+package "PK-01 (relacionado)" as PK01 {
+  usecase "UC05 Reservar cita web" as UC05
+}
+KIO --> UC15
+MED --> UC16
+MED --> UC17
+MED --> UC18
+MED --> UC19
+REC --> UC17
+REC --> UC18
+REC --> UC19
+ADM --> UC20
+ADM --> UC21
+ADM --> UC22
+ADM --> UC23
+ADM --> UC24
+UC15 ..> UC05 : <<include>>
+UC18 ..> UC17 : <<extend>>
+@enduml

@@ -1,0 +1,33 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam nodesep 16
+skinparam ranksep 32
+skinparam folder {
+  BackgroundColor #FDF6E3
+  BorderColor #5B4636
+  FontColor #3A2A1E
+  FontSize 13
+}
+skinparam usecase {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 11
+}
+left to right direction
+folder "PK-03\nAtención y\nadministración\n(casos de atención)" as PK03
+usecase "UC15 Emitir ficha\nen kiosco" as UC15
+usecase "UC16 Registrar\nconsulta" as UC16
+usecase "UC17 Generar receta,\ndocumento u orden" as UC17
+usecase "UC18 Enviar pedido\npor WhatsApp" as UC18
+usecase "UC19 Registrar\npago" as UC19
+usecase "UC05 Reservar cita web\n(PK-01)" as UC05 #F4F8FC
+PK03 ..> UC15 : <<trace>>
+PK03 ..> UC16 : <<trace>>
+PK03 ..> UC17 : <<trace>>
+PK03 ..> UC18 : <<trace>>
+PK03 ..> UC19 : <<trace>>
+UC15 ..> UC05 : <<include>>
+UC18 ..> UC17 : <<extend>>
+@enduml

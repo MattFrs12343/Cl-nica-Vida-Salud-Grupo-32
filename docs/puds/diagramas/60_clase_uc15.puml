@@ -1,0 +1,99 @@
+@startuml
+allowmixing
+left to right direction
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+skinparam nodesep 20
+skinparam ranksep 30
+skinparam class {
+  BackgroundColor #FDF6E3
+  BorderColor #8C6D4F
+  FontColor #3A2A1E
+  FontSize 10
+}
+skinparam class<<table>> {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+}
+skinparam actor {
+  BackgroundColor #F4CCCC
+  BorderColor #990000
+  FontSize 10
+}
+actor "Paciente" as PAC
+actor "Kiosco" as KIO
+class "KioscoView" as KV <<boundary>> {
+  + ci
+  + especialidad
+  + medico
+  + slot
+  + confirmar()
+}
+class "KioscoController" as KC <<control>> {
+  + firmarToken()
+  + identificarPaciente()
+  + registrarCita()
+  + emitirFicha()
+}
+class "CitaService" as CS <<control>> {
+  + registrarCita()
+  + revalidarSlot()
+}
+class "FichaService" as FS <<control>> {
+  + emitirFicha()
+  + confirmarCita()
+}
+package "Tablas PostgreSQL" as TABLAS {
+  class "pacientes" as TP <<table>> {
+    + id : integer
+    + ci : varchar
+    + nombres : varchar
+    + fecha_nacimiento : date
+    + sexo : sexo
+  }
+  class "especialidades" as TE <<table>> {
+    + id : integer
+    + nombre : varchar
+    + sexo_permitido : sexo_permitido
+    + edad_min : smallint
+    + edad_max : smallint
+  }
+  class "horarios" as TH <<table>> {
+    + id : integer
+    + medico_id : integer
+    + cupos_kiosco : smallint
+  }
+  class "citas" as TC <<table>> {
+    + id : integer
+    + codigo : varchar
+    + paciente_id : integer
+    + medico_id : integer
+    + fecha : date
+    + hora_inicio : time
+    + estado : estado_cita
+    + origen : origen_cita
+  }
+  class "fichas" as TF <<table>> {
+    + id : integer
+    + codigo : varchar
+    + cita_id : integer
+    + canal : canal_ficha
+    + codigo_acceso : varchar
+    + verificacion_biometrica : boolean
+  }
+}
+PAC --> KV
+KIO --> KV
+KV --> KC
+KC --> CS
+KC --> FS
+KC --> TP
+CS --> TC
+CS --> TH
+CS --> TE
+FS --> TF
+FS --> TC
+@enduml

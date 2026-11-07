@@ -1,0 +1,54 @@
+@startuml
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam nodesep 18
+skinparam ranksep 34
+skinparam package {
+  BackgroundColor #FBFDFF
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 14
+}
+skinparam usecase {
+  BackgroundColor #EAF4FB
+  BorderColor #0A6EBD
+  FontColor #0B3C5D
+  FontSize 11
+}
+skinparam actor {
+  BackgroundColor #F4CCCC
+  BorderColor #990000
+  FontSize 11
+}
+left to right direction
+package "PK-02  Citas y agenda" as PK02 {
+  actor "Recepcionista" as REC
+  actor "Recepcionista\nde médico" as RECM
+  actor "Médico" as MED
+  usecase "UC08 Gestionar\npacientes" as UC08
+  usecase "UC09 Programar\ncita" as UC09
+  usecase "UC10 Reprogramar\ncita" as UC10
+  usecase "UC11 Cancelar cita\nen recepción" as UC11
+  usecase "UC12 Controlar\nasistencia" as UC12
+  usecase "UC13 Gestionar\nreconsultas" as UC13
+  usecase "UC14 Consultar agenda\ne historial" as UC14
+}
+package "PK-01 (relacionado)" as PK01 {
+  usecase "UC04 Iniciar sesión" as UC04
+}
+REC --> UC08
+REC --> UC09
+REC --> UC10
+REC --> UC11
+RECM --> UC08
+RECM --> UC09
+RECM --> UC10
+RECM --> UC11
+MED --> UC12
+MED --> UC13
+MED --> UC14
+REC --> UC14
+UC09 ..> UC04 : <<include>>
+UC11 ..> UC14 : <<extend>>
+UC13 ..> UC12 : <<extend>>
+@enduml

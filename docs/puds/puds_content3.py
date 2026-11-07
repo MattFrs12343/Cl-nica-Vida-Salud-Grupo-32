@@ -6,7 +6,7 @@ from puds_lib import b, ASSETS, _set_run_font, NAVY
 
 
 def chapter7():
-    b.h1("7. IMPLEMENTACIÓN DEL SISTEMA")
+    b.h1("7. FT. IMPLEMENTACIÓN")
     b.h2("7.1 Herramientas de desarrollo de la aplicación web")
     b.p("La implementación utiliza PHP 8.1+ con arquitectura MVC manual, PostgreSQL 16 como base de datos, HTML5, CSS3 y JavaScript para la interfaz. Los paneles internos se apoyan en la plantilla Gentelella; la landing y el kiosco tienen un diseño propio, responsive y táctil. El correo se envía con PHPMailer y Brevo, y los códigos QR se generan en el servidor.")
     b.p("El equipo de desarrollo complementa el stack con un editor de código, contenedores para reproducir el entorno local, control de versiones y una herramienta de modelado UML. Estas herramientas no forman parte de la aplicación en producción, pero sostienen la construcción, la revisión y la documentación del sistema.")
@@ -17,7 +17,7 @@ def chapter7():
             ("Lenguaje backend", "PHP 8.1+", "Controladores, servicios, modelos y vistas."),
             ("Base de datos", "PostgreSQL 16", "Persistencia, enums, JSONB, RLS e índices."),
             ("Acceso a datos", "PDO", "Consultas preparadas y transacciones."),
-            ("Frontend", "HTML5, CSS3, JavaScript", "Landing, paneles y kiosco."),
+            ("Frontend", "HTML5, CSS3, JavaScript", "Landing, paneles, kiosco y chatbot de síntomas Dr. Alex."),
             ("Plantilla administrativa", "Gentelella", "Dashboard y vistas de gestión."),
             ("Correo", "PHPMailer + Brevo", "Recuperación y notificaciones."),
             ("QR", "Librería PHP de QR", "Fichas, pedidos y enlace del repositorio."),
@@ -30,6 +30,74 @@ def chapter7():
         caption="Herramientas y tecnologías de desarrollo de la aplicación web",
         font_size=8.1,
     )
+
+    b.h3("7.1.1 Estructura del repositorio")
+    b.p("El repositorio se organiza por responsabilidades. `public` es la raíz web y contiene el router frontal; `app` agrupa configuración, núcleo, middleware, controladores, servicios, modelos y vistas; `database` contiene migraciones y seeders; `docs` reúne las especificaciones y el presente documento.")
+    b.code("""Clinica/
+├── public/
+│   ├── index.php
+│   ├── .htaccess
+│   ├── assets/
+│   │   └── kiosco/
+│   │       ├── css/kiosco.css
+│   │       └── js/
+│   │           ├── kiosco-sintomas.js
+│   │           └── kiosco-chat-buddy.js
+│   └── uploads/
+├── app/
+│   ├── config/
+│   ├── core/
+│   ├── middlewares/
+│   ├── controllers/
+│   ├── services/
+│   ├── models/
+│   └── views/
+│       ├── kiosco/index.php
+│       └── layouts/kiosco.php
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── docs/
+│   ├── specs/
+│   └── puds/
+├── docker-compose.yml
+└── .env.example""")
+
+    b.h3("7.1.2 Implementación del chatbot de síntomas Dr. Alex (UC25)")
+    b.p("El chatbot \"Dr. Alex\" se implementa como un módulo de frontend del kiosco. Se activa automáticamente en la pantalla de bienvenida y guía al paciente mediante un árbol de decisión fijo, sin IA generativa ni llamadas a servicios externos. Su objetivo es orientar la selección de especialidad y, opcionalmente, conducir al paciente al flujo existente de agendamiento.")
+    b.table(
+        ["Componente", "Archivo", "Responsabilidad"],
+        [
+            ("Árbol de síntomas", "`public/assets/kiosco/js/kiosco-sintomas.js`", "Captura texto libre, detecta palabras clave, clasifica en 10 categorías generales, formula al menos 3 preguntas de confirmación de opción múltiple, gestiona ambigüedad/fallback y recomienda especialidad."),
+            ("Animación Dr. Alex", "`public/assets/kiosco/js/kiosco-chat-buddy.js`", "Presenta al personaje en la apertura del chat y lo mantiene acoplado al modal durante la conversación; comportamiento visual sin lógica de negocio."),
+            ("Estilos del chat", "`public/assets/kiosco/css/kiosco.css`", "Define la apariencia del modal y componentes `.chat-*` del asistente."),
+            ("Markup del modal", "`app/views/kiosco/index.php`", "Contiene la estructura HTML del chatbot en la bienvenida del kiosco."),
+            ("Carga de scripts", "`app/views/layouts/kiosco.php`", "Incluye los scripts y estilos necesarios para el kiosco y el chatbot."),
+        ],
+        [3.4, 7.0, 5.6],
+        caption="Componentes implementados del chatbot Dr. Alex",
+        font_size=8.0,
+    )
+    b.bullets([
+        ("Clasificación inicial: ", "el paciente describe síntomas en texto libre; el motor busca palabras clave y ubica el caso en una de 10 categorías generales (por ejemplo, dolor de cabeza, estómago, piel, garganta, niño o embarazo)."),
+        ("Confirmación mínima: ", "antes de recomendar, el chatbot formula siempre al menos 3 preguntas de confirmación de opción múltiple para reducir errores por coincidencia aislada de palabras."),
+        ("Manejo de ambigüedad: ", "si la descripción no se comprende, solicita una nueva descripción una vez; si persiste, muestra una lista de categorías generales para que el paciente elija y el flujo no quede bloqueado."),
+        ("Control de entrada: ", "los números se bloquean fuera del paso de cédula, porque los demás pasos corresponden a la descripción de síntomas u opciones."),
+        ("Handoff al agendamiento: ", "al aceptar la recomendación, el chat solicita la cédula, llama a `/api/kiosco/identificar` y continúa con el flujo existente de agendar cita con la especialidad preseleccionada. No duplica pantallas ni agrega lógica PHP nueva en el servidor."),
+    ])
+    b.note("Toda la lógica del chatbot reside en el frontend del kiosco. El backend solo participa mediante la reutilización de la API de identificación de pacientes ya existente, por lo que no se requieren migraciones, tablas ni servicios nuevos para UC25.", "Impacto en backend")
+
+    b.h3("7.1.3 Convenciones de código")
+    b.bullets([
+        ("Nomenclatura: ", "`snake_case` en base de datos, `camelCase` en métodos y `PascalCase` en clases."),
+        ("Consultas: ", "siempre preparadas con PDO; prohibida la concatenación de SQL."),
+        ("Contraseñas: ", "`password_hash()` al crear y `password_verify()` al autenticar."),
+        ("Salida: ", "escape con `htmlspecialchars()` mediante el helper `e()`."),
+        ("CSRF: ", "token en formularios y peticiones que mutan estado."),
+        ("Errores: ", "mensaje genérico al usuario y detalle en el log interno."),
+        ("Capas: ", "el controlador no contiene SQL; el modelo no contiene HTML."),
+        ("Transacciones: ", "las operaciones de cita y ficha se ejecutan en una unidad atómica."),
+    ])
 
     b.h2("7.2 Implementación de la arquitectura del sistema")
     b.p("La arquitectura del sistema se materializa en una aplicación web monolítica modular cuyo punto de entrada es `public/index.php`. Ese componente, identificado como `main`, carga las variables de entorno, registra las rutas de `app/routes`, aplica los middlewares de sesión, rol y CSRF, y despacha la petición hacia el controlador correspondiente. A partir de allí la solicitud recorre controlador, servicio y modelo antes de llegar a PostgreSQL.")
@@ -75,77 +143,7 @@ def chapter7():
         font_size=7.9,
     )
 
-    b.h2("7.3 Implementación de la arquitectura de los subsistemas")
-    b.p("Los subsistemas se descomponen en tres niveles de componentes: los formularios y reportes de interfaz, las clases de negocio que aplican las reglas y las tablas que persisten el estado. La figura siguiente conserva la notación del diagrama de componentes y muestra, para cada subsistema, qué formulario invoca a qué clase y qué tabla alimenta.")
-    b.figure("44_impl_arquitectura_subsistemas.png", 15.6,
-             "Diagrama de componentes de los subsistemas P1, P2 y P3",
-             max_height_cm=21.0)
-    b.p("En P1, el formulario de registro abre la consulta; la consulta médica toma la cita confirmada, registra signos vitales, diagnóstico y tratamiento; y la historia clínica consolida consultas, recetas, documentos, órdenes y resultados. GestionFicha confirma la atención y ReporteConsulta produce la salida imprimible. Las tablas T_Ficha, T_Consulta, T_Paciente y T_Historia soportan el flujo; esta última agrupa las relaciones clínicas del paciente.")
-    b.p("En P2, FReservaWeb y FKiosco comparten DisponibilidadService y CitaService; FProgramarCita y FReprogramarCita usan la misma validación transaccional. ReconsultaService crea citas prioritarias y FichaService emite la ficha con QR. Las tablas T_Cita, T_Horario, T_Bloqueo y T_Ficha concentran el estado de la agenda y de la atención.")
-    b.p("En P3, FLogin pasa por AuthService; FUsuarios, FMedicos y FReportes operan sobre UsuarioModel, MedicoModel y ReporteModel. Las tablas T_Usuario, T_Medico, T_Especialidad y T_Auditoria sostienen la seguridad y la trazabilidad. La tabla siguiente resume la correspondencia entre subsistemas, componentes de interfaz, clases, tablas y casos de uso.")
-    b.table(
-        ["Subsistema", "Interfaz", "Negocio", "Datos", "Casos de uso"],
-        [
-            ("P1 Gestión de Consultas Médicas",
-             "`FRegistroConsulta`, `FConsultaMedica`, `FHistoriaClinica`, `RHistoriaClinica`",
-             "`GestionFicha`, `GestionConsulta`, `GestionHistoria`, `ReporteConsulta`, `ConsultaService`",
-             "`fichas`, `consultas`, `pacientes`, `recetas`, `documentos`, `ordenes`, `resultados`",
-             "UC15–UC18"),
-            ("P2 Gestión de Citas y Agenda",
-             "`FReservaWeb`, `FProgramarCita`, `FReprogramarCita`, `FKiosco`",
-             "`DisponibilidadService`, `CitaService`, `ReconsultaService`, `FichaService`, `ReservaWebService`",
-             "`citas`, `horarios`, `bloqueos`, `fichas`, `citas_estado_historial`",
-             "UC05–UC15"),
-            ("P3 Administración, Seguridad y Reportes",
-             "`FLogin`, `FUsuarios`, `FMedicos`, `FReportes`",
-             "`AuthService`, `UsuarioModel`, `MedicoModel`, `ReporteModel`, `PagoModel`, `AuditoriaModel`",
-             "`usuarios`, `medicos`, `especialidades`, `pagos`, `auditoria`",
-             "UC04, UC19–UC24"),
-        ],
-        [3.2, 4.2, 4.3, 3.5, 1.8],
-        caption="Subsistemas y componentes implementados",
-        font_size=7.7,
-    )
-    b.note("En el diagrama, el prefijo T_ identifica el componente de datos y en la base de datos corresponde al nombre físico en plural. Las clases Gestion* agrupan las operaciones de ConsultaService, CitaService y FichaService; las dependencias discontinuas no implican acceso directo entre subsistemas, porque P1, P2 y P3 comparten P4 y la capa de datos.", "Trazabilidad de componentes")
-
-    b.h2("7.4 Estructura del repositorio")
-    b.p("El repositorio se organiza por responsabilidades. `public` es la raíz web y contiene el router frontal; `app` agrupa configuración, núcleo, middleware, controladores, servicios, modelos y vistas; `database` contiene migraciones y seeders; `docs` reúne las especificaciones y el presente documento.")
-    b.code("""Clinica/
-├── public/
-│   ├── index.php
-│   ├── .htaccess
-│   ├── assets/
-│   └── uploads/
-├── app/
-│   ├── config/
-│   ├── core/
-│   ├── middlewares/
-│   ├── controllers/
-│   ├── services/
-│   ├── models/
-│   └── views/
-├── database/
-│   ├── migrations/
-│   └── seeders/
-├── docs/
-│   ├── specs/
-│   └── puds/
-├── docker-compose.yml
-└── .env.example""")
-
-    b.h2("7.5 Convenciones de código")
-    b.bullets([
-        ("Nomenclatura: ", "`snake_case` en base de datos, `camelCase` en métodos y `PascalCase` en clases."),
-        ("Consultas: ", "siempre preparadas con PDO; prohibida la concatenación de SQL."),
-        ("Contraseñas: ", "`password_hash()` al crear y `password_verify()` al autenticar."),
-        ("Salida: ", "escape con `htmlspecialchars()` mediante el helper `e()`."),
-        ("CSRF: ", "token en formularios y peticiones que mutan estado."),
-        ("Errores: ", "mensaje genérico al usuario y detalle en el log interno."),
-        ("Capas: ", "el controlador no contiene SQL; el modelo no contiene HTML."),
-        ("Transacciones: ", "las operaciones de cita y ficha se ejecutan en una unidad atómica."),
-    ])
-
-    b.h2("7.6 Componentes y servicios implementados")
+    b.h3("7.2.1 Componentes y servicios implementados")
     b.table(
         ["Componente", "Responsabilidad", "Artefactos"],
         [
@@ -165,7 +163,7 @@ def chapter7():
         font_size=8.0,
     )
 
-    b.h2("7.7 Implementación de la base de datos")
+    b.h3("7.2.2 Implementación de la base de datos")
     b.p("Las migraciones se ejecutan en orden y crean enums, tablas, índices, políticas RLS y triggers. Los códigos visibles se generan con secuencias por prefijo. La tabla `citas` incorpora un índice único parcial para impedir superposiciones y el servicio complementa la validación por rango cuando la duración no es fija.")
     b.code("""CREATE UNIQUE INDEX ux_cita_no_superpone
   ON citas (medico_id, fecha, hora_inicio)
@@ -178,7 +176,7 @@ INSERT INTO citas (...) VALUES (...);
 COMMIT;""")
     b.p("La auditoría se implementa con la función `fn_auditar()` marcada como `SECURITY DEFINER`. La aplicación no escribe directamente en `auditoria`; el trigger captura la IP y los valores antes y después. Las políticas RLS se activan con `FORCE ROW LEVEL SECURITY` en las tablas sensibles.")
 
-    b.h2("7.8 Seguridad implementada")
+    b.h3("7.2.3 Seguridad implementada")
     b.table(
         ["Mecanismo", "Implementación", "Verificación"],
         [
@@ -196,7 +194,7 @@ COMMIT;""")
         font_size=8.0,
     )
 
-    b.h2("7.9 Integraciones")
+    b.h3("7.2.4 Integraciones")
     b.p("El correo transaccional se envía con PHPMailer a través de Brevo. Si el envío falla, el sistema registra el evento y marca el correo como pendiente sin interrumpir la operación. Los pedidos se comparten por un enlace profundo de WhatsApp con mensaje precargado y código de acceso. Los códigos QR se generan para la ficha y para el perfil profesional del médico.")
     b.table(
         ["Integración", "Mecanismo", "Alcance"],
@@ -210,7 +208,7 @@ COMMIT;""")
         caption="Integraciones del sistema",
     )
 
-    b.h2("7.10 Despliegue y operación")
+    b.h3("7.2.5 Despliegue y operación")
     b.p("El despliegue previsto utiliza un hosting cPanel para la aplicación PHP y una instancia PostgreSQL en Neon o Railway. Se requiere HTTPS, `pdo_pgsql` habilitado, variables de entorno para la cadena de conexión y credenciales SMTP. El kiosco se ejecuta en un iPad con acceso a `/kiosco` y reinicio automático por inactividad.")
     b.table(
         ["Actividad", "Responsable", "Criterio de salida"],
@@ -228,7 +226,40 @@ COMMIT;""")
     )
     b.note("Riesgo crítico: si el hosting compartido no ofrece `pdo_pgsql`, la conexión a PostgreSQL fallará. Antes de la puesta en producción se debe verificar la extensión o migrar a un hosting que la soporte.", "Verificación previa")
 
-    b.h2("7.11 Estado de avance")
+    b.h2("7.3 Implementación de la arquitectura de los subsistemas")
+    b.p("Los subsistemas se descomponen en tres niveles de componentes: los formularios y reportes de interfaz, las clases de negocio que aplican las reglas y las tablas que persisten el estado. La figura siguiente conserva la notación del diagrama de componentes y muestra, para cada subsistema, qué formulario invoca a qué clase y qué tabla alimenta.")
+    b.figure("44_impl_arquitectura_subsistemas.png", 15.6,
+             "Diagrama de componentes de los subsistemas P1, P2 y P3",
+             max_height_cm=21.0)
+    b.p("En P1, el formulario de registro abre la consulta; la consulta médica toma la cita confirmada, registra signos vitales, diagnóstico y tratamiento; y la historia clínica consolida consultas, recetas, documentos, órdenes y resultados. GestionFicha confirma la atención y ReporteConsulta produce la salida imprimible. Las tablas T_Ficha, T_Consulta, T_Paciente y T_Historia soportan el flujo; esta última agrupa las relaciones clínicas del paciente.")
+    b.p("En P2, FReservaWeb y FKiosco comparten DisponibilidadService y CitaService; FProgramarCita y FReprogramarCita usan la misma validación transaccional. ReconsultaService crea citas prioritarias y FichaService emite la ficha con QR. En la bienvenida del kiosco, el chatbot Dr. Alex (UC25) orienta por síntomas con un árbol de decisión frontend y, si el paciente acepta, reutiliza `/api/kiosco/identificar` para continuar con el flujo existente de agendamiento sin lógica PHP adicional. Las tablas T_Cita, T_Horario, T_Bloqueo y T_Ficha concentran el estado de la agenda y de la atención.")
+    b.p("En P3, FLogin pasa por AuthService; FUsuarios, FMedicos y FReportes operan sobre UsuarioModel, MedicoModel y ReporteModel. Las tablas T_Usuario, T_Medico, T_Especialidad y T_Auditoria sostienen la seguridad y la trazabilidad. La tabla siguiente resume la correspondencia entre subsistemas, componentes de interfaz, clases, tablas y casos de uso.")
+    b.table(
+        ["Subsistema", "Interfaz", "Negocio", "Datos", "Casos de uso"],
+        [
+            ("P1 Gestión de Consultas Médicas",
+             "`FRegistroConsulta`, `FConsultaMedica`, `FHistoriaClinica`, `RHistoriaClinica`",
+             "`GestionFicha`, `GestionConsulta`, `GestionHistoria`, `ReporteConsulta`, `ConsultaService`",
+             "`fichas`, `consultas`, `pacientes`, `recetas`, `documentos`, `ordenes`, `resultados`",
+             "UC15–UC18"),
+            ("P2 Gestión de Citas y Agenda",
+             "`FReservaWeb`, `FProgramarCita`, `FReprogramarCita`, `FKiosco`, `Chat Dr. Alex`",
+             "`DisponibilidadService`, `CitaService`, `ReconsultaService`, `FichaService`, `ReservaWebService`, árbol de síntomas JS",
+             "`citas`, `horarios`, `bloqueos`, `fichas`, `citas_estado_historial` (UC25 sin persistencia nueva)",
+             "UC05–UC15, UC25"),
+            ("P3 Administración, Seguridad y Reportes",
+             "`FLogin`, `FUsuarios`, `FMedicos`, `FReportes`",
+             "`AuthService`, `UsuarioModel`, `MedicoModel`, `ReporteModel`, `PagoModel`, `AuditoriaModel`",
+             "`usuarios`, `medicos`, `especialidades`, `pagos`, `auditoria`",
+             "UC04, UC19–UC24"),
+        ],
+        [3.2, 4.2, 4.3, 3.5, 1.8],
+        caption="Subsistemas y componentes implementados",
+        font_size=7.7,
+    )
+    b.note("En el diagrama, el prefijo T_ identifica el componente de datos y en la base de datos corresponde al nombre físico en plural. Las clases Gestion* agrupan las operaciones de ConsultaService, CitaService y FichaService; las dependencias discontinuas no implican acceso directo entre subsistemas, porque P1, P2 y P3 comparten P4 y la capa de datos.", "Trazabilidad de componentes")
+
+    b.h3("7.3.1 Estado de avance")
     b.table(
         ["Módulo", "Estado", "Observación"],
         [
@@ -237,7 +268,7 @@ COMMIT;""")
             ("Catálogos", "Diseñado", "Pacientes, médicos y especialidades."),
             ("Horarios y cupos", "Diseñado", "Motor de disponibilidad y cupos 50/50."),
             ("Citas y estados", "Diseñado", "Reserva transaccional, reprogramación y cancelación."),
-            ("Kiosco y fichas", "Diseñado", "Flujo táctil y ficha con QR."),
+            ("Kiosco y fichas", "Diseñado", "Flujo táctil, ficha con QR y chatbot Dr. Alex de orientación por síntomas."),
             ("Historia clínica", "Diseñado", "Consulta, recetas, documentos y órdenes."),
             ("Pagos y reportes", "Diseñado", "Registro y métricas operativas."),
             ("Pruebas", "Planificado", "Casos y criterios definidos en el capítulo 8."),
@@ -248,13 +279,10 @@ COMMIT;""")
     )
 
 
-# -*- coding: utf-8 -*-
-
-
 def chapter8():
-    b.h1("8. PRUEBAS DEL SISTEMA")
+    b.h1("8. FT. PRUEBAS")
     b.h2("8.1 Enfoque de pruebas de caja negra")
-    b.p("Las pruebas se abordan con la técnica de caja negra: el evaluador desconoce la implementación interna y verifica el comportamiento observable del sistema a partir de los casos de uso y de las reglas de negocio. Se priorizan los casos de uso más relevantes —los clasificados como P1 Crítica en la sección 4.6.1— y se agrupan por paquete de análisis para asegurar que cada paquete tenga cobertura funcional. Para cada caso se documentan la interfaz de usuario desde la que se ejecuta la acción, los datos de entrada que se ingresan en la web, las condiciones que deben cumplirse y los datos de salida que se esperan. El procedimiento de uso se detalla, paso a paso, para la funcionalidad más relevante del proyecto en la sección 8.2.1.")
+    b.p("Las pruebas se abordan con la técnica de caja negra: el evaluador desconoce la implementación interna y verifica el comportamiento observable del sistema a partir de los casos de uso y de las reglas de negocio. Se priorizan los casos de uso más relevantes —los clasificados como P1 Crítica en la sección 4.2.1— y se agrupan por paquete de análisis para asegurar que cada paquete tenga cobertura funcional. Para cada caso se documentan la interfaz de usuario desde la que se ejecuta la acción, los datos de entrada que se ingresan en la web, las condiciones que deben cumplirse y los datos de salida que se esperan. El procedimiento de uso se detalla, paso a paso, para la funcionalidad más relevante del proyecto en la sección 8.2.1.")
     b.p("Los datos de prueba son ficticios y se cargan con seeders sobre una base de datos limpia. Se utilizan los seis roles del sistema y un conjunto reducido de pacientes, médicos, especialidades y franjas que cubre los casos válidos, los valores límite y los escenarios de rechazo. Cada ejecución se registra con fecha, responsable, resultado obtenido y evidencia asociada.")
     b.table(
         ["Paquete", "Casos de uso", "Casos de prueba", "Interfaces principales", "Criterio de selección"],
@@ -267,10 +295,10 @@ def chapter8():
              "P05, P14, P18, P19, P27–P29",
              "Panel de recepción, agenda, reprogramación e historial.",
              "Pacientes, programación, reprogramación, estados y reconsultas."),
-            ("PK-03 Atención y administración", "UC15–UC24",
-             "P06–P08, P17, P20–P24, P30, P31",
-             "Kiosco, panel médico, pagos, reportes y catálogos.",
-             "Ficha, consulta, pedidos, pagos, reportes y administración."),
+            ("PK-03 Atención y administración", "UC15–UC25",
+             "P06–P08, P17, P20–P24, P30, P31, P36–P40",
+             "Kiosco, chatbot Dr. Alex, panel médico, pagos, reportes y catálogos.",
+             "Ficha, orientación por síntomas, consulta, pedidos, pagos, reportes y administración."),
             ("PK-04 Servicios compartidos", "Transversal",
              "P03, P04, P26, P32–P35",
              "Login, middleware, correo, QR y auditoría.",
@@ -368,7 +396,7 @@ def chapter8():
     )
 
     b.h3("8.2.1 Procedimiento de uso: reserva de cita web (P10)")
-    b.p("El procedimiento describe cómo se usa la aplicación para la funcionalidad más relevante del proyecto: la reserva de una cita por el paciente. Se ejecuta con el paciente de prueba `María Quispe` (CI `7123456`), la médico `Dra. Ana Torres` y la especialidad `Medicina general`. El flujo se apoya en el prototipo de reserva web presentado en la sección 4.8.1 y en el stepper de cuatro pasos implementado en la aplicación.")
+    b.p("El procedimiento describe cómo se usa la aplicación para la funcionalidad más relevante del proyecto: la reserva de una cita por el paciente. Se ejecuta con el paciente de prueba `María Quispe` (CI `7123456`), la médico `Dra. Ana Torres` y la especialidad `Medicina general`. El flujo se apoya en el prototipo de reserva web presentado en la sección 4.4.1 y en el stepper de cuatro pasos implementado en la aplicación.")
     b.table(
         ["Paso", "Pantalla o interfaz", "Acción del usuario", "Datos de entrada", "Salida esperada"],
         [
@@ -503,6 +531,31 @@ def chapter8():
              "Médico `Dr. Luis Rojas`; registro `MP-67890`; especialidad `Cardiología`; correo `luis@vidasalud.bo`.",
              "Administrador autenticado; registro profesional único; especialidad activa.",
              "Médico creado y asociado; disponible para la agenda; aparece en el directorio."),
+            ("P36 · Recomendación por síntomas (UC25)",
+             "Bienvenida del kiosco — chatbot Dr. Alex.",
+             "Texto libre `me duele la cabeza`; respuestas de opción múltiple en 3 preguntas de confirmación.",
+             "Chat abierto automáticamente; árbol de decisión cargado; palabras clave reconocibles.",
+             "Se clasifica la descripción, se formulan al menos 3 preguntas de confirmación y se muestra una especialidad recomendada con opción de agendar."),
+            ("P37 · Ambigüedad y fallback de categorías (UC25)",
+             "Chatbot Dr. Alex — entrada de síntomas.",
+             "Primer intento `xyz` (no reconocible); segundo intento `abc123?` (persistente).",
+             "Ninguna palabra clave coincide en los intentos de texto libre.",
+             "El chatbot solicita una nueva descripción una vez; ante la segunda ambigüedad muestra categorías generales seleccionables y el flujo no queda bloqueado."),
+            ("P38 · Bloqueo de números fuera de cédula (UC25)",
+             "Chatbot Dr. Alex — pasos de síntomas y confirmación.",
+             "Entrada `tengo 38 de fiebre` o `2 días` en un paso distinto al de cédula.",
+             "Usuario no está en el paso de identificación por cédula.",
+             "El sistema bloquea la entrada numérica con un mensaje claro y mantiene el paso actual sin avanzar con datos inválidos."),
+            ("P39 · Handoff a agendamiento con especialidad preseleccionada (UC25)",
+             "Chatbot Dr. Alex — aceptación de recomendación y paso de cédula.",
+             "Acepta agendar; cédula `7123456`.",
+             "Especialidad recomendada disponible; `/api/kiosco/identificar` responde correctamente; flujo de reserva existente operativo.",
+             "El chatbot identifica al paciente, reutiliza la API existente y continúa al flujo de agendamiento/ficha con la especialidad preseleccionada, sin duplicar pantallas."),
+            ("P40 · Cancelación del agendamiento desde el chat (UC25)",
+             "Chatbot Dr. Alex — pregunta «¿Quieres agendar una cita para esto?».",
+             "Respuesta `No` / opción de rechazo.",
+             "Recomendación ya mostrada; usuario en la bienvenida del kiosco.",
+             "El chat no solicita cédula ni invoca identificación; el usuario permanece en la bienvenida del kiosco sin cambios en citas ni datos."),
         ],
         [2.7, 3.2, 3.4, 3.1, 3.6],
         caption="Pruebas de caja negra del paquete PK-03",
@@ -575,9 +628,10 @@ def chapter8():
             ("RNF05", "P25", "Alta", "Integridad transaccional y ausencia de superposición."),
             ("RNF09", "P24, P32", "Media", "Auditoría de catálogos y trazabilidad del correo."),
             ("Integraciones", "P21, P32, P33", "Media", "WhatsApp, correo y código QR."),
+            ("Mejora UC25 (kiosco)", "P36–P40", "Media", "Orientación por síntomas, fallback sin bloqueo, control de entrada y handoff al flujo existente."),
         ],
         [2.6, 6.8, 2.6, 4.0],
-        caption="Cobertura de requisitos por pruebas de caja negra",
+        caption="Cobertura de requisitos/mejoras por pruebas de caja negra",
         font_size=7.9,
         align_center_cols={0, 2},
     )
@@ -588,7 +642,7 @@ def chapter8():
         ["Tipo de evidencia", "Contenido"],
         [
             ("Registro de ejecución", "ID, fecha, responsable, resultado obtenido, estado y observaciones."),
-            ("Capturas de pantalla", "Landing, login, reserva, kiosco, ficha, consulta, pagos y reportes."),
+            ("Capturas de pantalla", "Landing, login, reserva, kiosco, chatbot Dr. Alex, ficha, consulta, pagos y reportes."),
             ("Salida de base de datos", "Citas, fichas, historial de estados, pagos y auditoría."),
             ("Respuestas HTTP", "Códigos 200, 201, 302, 401, 403, 409 y 422."),
             ("Log de correo", "Envío, fallback a cola y errores SMTP."),
@@ -631,16 +685,17 @@ def chapter8():
         "La caída del correo no debe interrumpir la reserva ni la recuperación de contraseña (P32).",
         "El QR de la ficha debe ser legible y coincidir con el código emitido (P33).",
         "Las solicitudes sin CSRF o con token de kiosco vencido deben rechazarse (P34, P35).",
+        "El chatbot Dr. Alex debe orientar sin bloquear el flujo: ante ambigüedad ofrece categorías, bloquea números fuera de cédula y, al agendar, reutiliza la identificación y el flujo existente sin persistir síntomas (P36–P40).",
     ])
 
 
 def closing():
-    b.h1("CONCLUSIONES")
+    b.h1("CONCLUSIÓN")
     b.p("El proyecto demuestra que un sistema web de gestión de citas puede resolver los problemas operativos de la Clínica Vida Salud mediante una arquitectura sencilla, una base de datos relacional robusta y un conjunto claro de reglas de negocio. La separación entre requisitos, análisis, diseño, implementación y pruebas permite comprender y mantener la solución.")
     b.p("La validación de disponibilidad en el servidor, el uso de transacciones y el índice único parcial constituyen la defensa principal contra citas superpuestas. La distribución de cupos 50/50, la emisión de fichas y la reconsulta prioritaria responden a las necesidades reales de la clínica. La seguridad se refuerza con roles, RLS, CSRF, bloqueo de cuentas y auditoría.")
-    b.p("El documento evidencia la trazabilidad entre los requisitos RF01–RF13, los casos de uso UC01–UC24, las clases de análisis, los componentes de diseño y los casos de prueba. Esta trazabilidad facilita la evaluación académica y sirve como base para la implementación y la puesta en producción.")
+    b.p("El documento evidencia la trazabilidad entre los requisitos RF01–RF13, la mejora UC25, los casos de uso UC01–UC25, las clases de análisis, los componentes de diseño y los casos de prueba. Esta trazabilidad facilita la evaluación académica y sirve como base para la implementación y la puesta en producción.")
 
-    b.h1("RECOMENDACIONES")
+    b.h1("RECOMENDACIÓN")
     b.numbered([
         "Verificar en el hosting la disponibilidad de `pdo_pgsql` antes del despliegue y documentar el plan alternativo.",
         "Implementar pruebas automatizadas de regresión para los flujos de cita, ficha y cancelación.",
@@ -677,8 +732,24 @@ def closing():
         _set_run_font(r, size=9.5, color=NAVY)
 
 
+def repo_section():
+    b.h1("CÓDIGO FUENTE Y REPOSITORIO")
+    b.p("El código fuente y la documentación se encuentran en el repositorio público del grupo. El acceso puede realizarse mediante el siguiente enlace o escaneando el código QR.")
+    p = b.doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(4)
+    p.add_run().add_picture(os.path.join(ASSETS, "qr_repositorio.png"), width=Cm(5.2))
+    p = b.doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r = p.add_run("https://github.com/MattFrs12343/Cl-nica-Vida-Salud-Grupo-32")
+    _set_run_font(r, size=10, bold=True, color=NAVY)
+    b.caption("Figura", "Código QR de acceso al repositorio del proyecto")
+
+
 def annexes():
-    b.h1("ANEXO A. GLOSARIO")
+    b.h1("ANEXOS")
+    b.h2("Anexo A. Glosario")
     b.table(
         ["Término", "Definición"],
         [
@@ -692,12 +763,13 @@ def annexes():
             ("RLS", "Row Level Security; aislamiento de filas por rol en PostgreSQL."),
             ("RUP", "Rational Unified Process; proceso iterativo e incremental."),
             ("UML", "Unified Modeling Language; lenguaje de modelado de software."),
+            ("Chatbot Dr. Alex", "Asistente de orientación del kiosco que recomienda una especialidad mediante un árbol de decisión fijo; no usa IA generativa ni altera datos clínicos."),
         ],
         [3.4, 12.6],
         caption="Glosario de términos",
     )
 
-    b.h1("ANEXO B. DICCIONARIO DE DATOS RESUMIDO")
+    b.h2("Anexo B. Diccionario de datos resumido")
     b.table(
         ["Tabla", "Campo", "Tipo", "Descripción"],
         [
@@ -717,7 +789,7 @@ def annexes():
         font_size=8.1,
     )
 
-    b.h1("ANEXO C. MATRIZ DE CONSISTENCIA")
+    b.h2("Anexo C. Matriz de consistencia")
     b.table(
         ["Requisito", "Caso de uso", "Clase/servicio", "Prueba"],
         [
@@ -735,25 +807,26 @@ def annexes():
             ("RNF05", "UC05, UC09", "CitaService, índice único parcial", "P25"),
             ("RNF09", "UC24", "fn_auditar(), AuditoriaModel", "P24, P32"),
             ("Integraciones", "UC18, UC19", "MailService, generador QR", "P21, P32, P33"),
+            ("Mejora UC25 (kiosco)", "UC25", "ChatSintomas JS, DrAlexBuddy, reutiliza /api/kiosco/identificar", "P36–P40"),
         ],
         [2.2, 5.0, 6.4, 2.4],
         caption="Matriz de consistencia requisito–caso de uso–clase–prueba",
         font_size=7.9,
     )
 
-    b.h1("ANEXO D. INVENTARIO DE DIAGRAMAS")
-    b.p("La distribución mantiene el criterio del documento de referencia PROYECTOCOMPLETO1: los casos de uso se concentran en la captura de requisitos; los prototipos se separan por ciclo y nivel de fidelidad, con el panel administrativo del Ciclo 1 y la reserva web y el kiosco del Ciclo 2 como prototipos de baja fidelidad, y once vistas implementadas como prototipos de alta fidelidad; el análisis reúne las clases, el dominio y las secuencias de los flujos del Ciclo 2; el diseño reúne la arquitectura lógica y física, las secuencias de diseño del Ciclo 1, el despliegue y el modelo entidad-relación; y la implementación incorpora los diagramas de componentes del sistema y de los subsistemas. Como diferencia, este PUDS representa los paquetes con una tabla en la sección 4.9 y añade una vista de navegación por rol.")
+    b.h2("Anexo D. Inventario de diagramas")
+    b.p("La distribución mantiene el criterio del documento de referencia PROYECTOCOMPLETO1: los casos de uso se concentran en la captura de requisitos; los prototipos se separan por ciclo y nivel de fidelidad, con el panel administrativo del Ciclo 1 y la reserva web y el kiosco del Ciclo 2 como prototipos de baja fidelidad, y diecinueve capturas de vistas implementadas como prototipos de alta fidelidad (once vistas generales y ocho flujos operativos del Ciclo 2); el análisis reúne las clases, el dominio y las secuencias de los flujos del Ciclo 2; el diseño reúne la arquitectura lógica y física, las secuencias de diseño del Ciclo 1, el despliegue y el modelo entidad-relación; y la implementación incorpora los diagramas de componentes del sistema y de los subsistemas. Como diferencia, este PUDS representa los paquetes con una tabla en la sección 4.5 y añade una vista de navegación por rol, además de diagramas actor–caso de uso en el detalle (4.3) y una vista integral de paquetes (5.4).")
     b.table(
         ["Capítulo", "Tipos de diagrama", "Diagramas"],
         [
             ("2", "RUP: fases y disciplinas", "2"),
             ("3", "Actividad de negocio", "1"),
-            ("4", "Casos de uso y prototipos de interfaz (baja y alta fidelidad)", "17"),
+            ("4", "Casos de uso, detalle de actores y prototipos de interfaz", "35"),
             ("5", "Paquetes, clases, secuencia y estados", "10"),
             ("6", "Componentes, paquetes, arquitectura física, secuencia de diseño, despliegue, entidad-relación y navegación", "15"),
             ("7", "Componentes de la arquitectura del sistema y de los subsistemas", "2"),
             ("8", "Flujo de pruebas", "1"),
-            ("Anexo E", "QR del repositorio (no es diagrama UML)", "1"),
+            ("Código fuente y repositorio", "QR del repositorio (no es diagrama UML)", "1"),
         ],
         [2.2, 10.2, 3.6],
         caption="Distribución de diagramas por capítulo",
@@ -783,7 +856,25 @@ def annexes():
             ("40_vista_recepcion_panel.png", "Vista de alta fidelidad del panel de recepción", "Prototipo", "4"),
             ("41_vista_recepcion_medica_panel.png", "Vista de alta fidelidad del panel de recepción médica", "Prototipo", "4"),
             ("42_vista_admin_usuarios.png", "Vista de alta fidelidad del panel de administración de usuarios", "Prototipo", "4"),
-            ("21_paquetes_analisis.png", "Paquetes del análisis", "Paquetes", "5"),
+            ("63_uc04_actores.png", "Actores del caso de uso UC04 Iniciar sesión", "Casos de uso", "4"),
+            ("64_uc05_actores.png", "Actores del caso de uso UC05 Reservar cita web", "Casos de uso", "4"),
+            ("65_uc09_actores.png", "Actores del caso de uso UC09 Programar cita", "Casos de uso", "4"),
+            ("66_uc10_actores.png", "Actores del caso de uso UC10 Reprogramar cita", "Casos de uso", "4"),
+            ("67_uc15_actores.png", "Actores del caso de uso UC15 Emitir ficha en kiosco", "Casos de uso", "4"),
+            ("68_uc16_actores.png", "Actores del caso de uso UC16 Registrar consulta", "Casos de uso", "4"),
+            ("fecha y hora al agendar cita.png", "Ciclo 2: selección de fecha y hora al agendar cita (UC05)", "Prototipo", "4"),
+            ("confirmar cita.png", "Ciclo 2: confirmación de cita antes de registrar (UC05)", "Prototipo", "4"),
+            ("cita confirmada.png", "Ciclo 2: confirmación exitosa de cita reservada (UC05)", "Prototipo", "4"),
+            ("ficha emitida vista desde recepcion.png", "Ciclo 2: ficha emitida vista desde recepción (UC15)", "Prototipo", "4"),
+            ("reprogramar una cita.png", "Ciclo 2: reprogramación de cita (UC10)", "Prototipo", "4"),
+            ("cita reprogramada.png", "Ciclo 2: confirmación de cita reprogramada (UC10)", "Prototipo", "4"),
+            ("cambio de estado de cita a atendida.png", "Ciclo 2: cambio de estado de cita a atendida (UC12)", "Prototipo", "4"),
+            ("registro de pago.png", "Ciclo 2: registro de pago y método de pago (UC19)", "Prototipo", "4"),
+            ("inicio conversacion chat bot.jpeg", "Ciclo 2: inicio de conversación con el chatbot Dr. Alex en el kiosco (UC25)", "Prototipo", "4"),
+            ("primer mensaje de consulta del bot.jpeg", "Ciclo 2: primer mensaje de consulta del chatbot Dr. Alex (UC25)", "Prototipo", "4"),
+            ("respuesta del paciente.jpeg", "Ciclo 2: respuesta del paciente en la conversación del chatbot Dr. Alex (UC25)", "Prototipo", "4"),
+            ("especialidad recomendada por el bot.jpeg", "Ciclo 2: especialidad recomendada por el chatbot Dr. Alex (UC25)", "Prototipo", "4"),
+            ("62_paquetes_integral.png", "Vista integral de paquetes del análisis", "Paquetes / Casos de uso", "5"),
             ("05_analisis_clases.png", "Clases de análisis", "Clases", "5"),
             ("03_clases_dominio_core.png", "Dominio núcleo", "Clases", "5"),
             ("04_clases_dominio_clinico.png", "Dominio clínico", "Clases", "5"),
@@ -811,7 +902,7 @@ def annexes():
             ("43_impl_arquitectura_sistema.png", "Componentes de la arquitectura del sistema", "Componentes", "7"),
             ("44_impl_arquitectura_subsistemas.png", "Componentes de los subsistemas P1, P2 y P3", "Componentes", "7"),
             ("pruebas_workflow.png", "Flujo de pruebas", "Actividad", "8"),
-            ("qr_repositorio.png", "QR del repositorio", "No UML", "Anexo E"),
+            ("qr_repositorio.png", "QR del repositorio", "No UML", "Código fuente y repositorio"),
         ],
         [6.2, 4.4, 2.8, 2.6],
         caption="Inventario de figuras del documento",
@@ -819,27 +910,14 @@ def annexes():
         align_center_cols={2, 3},
     )
 
-    b.h1("ANEXO E. REPOSITORIO DEL PROYECTO")
-    b.p("El código fuente y la documentación se encuentran en el repositorio público del grupo. El acceso puede realizarse mediante el siguiente enlace o escaneando el código QR.")
-    p = b.doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(6)
-    p.paragraph_format.space_after = Pt(4)
-    p.add_run().add_picture(os.path.join(ASSETS, "qr_repositorio.png"), width=Cm(5.2))
-    p = b.doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = p.add_run("https://github.com/MattFrs12343/Cl-nica-Vida-Salud-Grupo-32")
-    _set_run_font(r, size=10, bold=True, color=NAVY)
-    b.caption("Figura", "Código QR de acceso al repositorio del proyecto")
-
-    b.h1("ANEXO F. LISTA DE VERIFICACIÓN")
+    b.h2("Anexo E. Lista de verificación")
     b.table(
         ["Ítem", "Estado"],
         [
             ("Repositorio con código y documentación.", "Cumplido"),
             ("Diagramas UML en formato editable y PNG.", "Cumplido"),
             ("Especificación de requisitos RF01–RF13.", "Cumplido"),
-            ("Catálogo de casos de uso UC01–UC24.", "Cumplido"),
+            ("Catálogo de casos de uso UC01–UC25.", "Cumplido"),
             ("Modelo de datos y políticas RLS.", "Cumplido"),
             ("Diseño de arquitectura lógica, física y despliegue.", "Cumplido"),
             ("Plan y casos de prueba.", "Cumplido"),
@@ -850,3 +928,4 @@ def annexes():
         caption="Lista de verificación de entrega",
         align_center_cols={1},
     )
+
