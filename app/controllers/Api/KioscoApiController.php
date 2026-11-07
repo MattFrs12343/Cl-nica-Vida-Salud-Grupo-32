@@ -121,18 +121,23 @@ final class KioscoApiController extends Controller
         return $this->sinCache(json_ok($resultado, [], 'Cita reservada.', 201));
     }
 
+    public function estadoPago(Request $request, array $params): Response
+    {
+        $citaId = $params['id'] ?? null;
+        $resultado = $this->comoKiosco(
+            fn (): array => $this->kiosco->estadoPago($citaId)
+        );
+
+        return $this->sinCache(json_ok($resultado));
+    }
+
     public function ficha(Request $request): Response
     {
         $body = $request->body();
-        $verificacion = filter_var(
-            $body['verificacion_biometrica'] ?? false,
-            FILTER_VALIDATE_BOOL
-        );
 
         $resultado = $this->comoKiosco(
             fn (): array => $this->kiosco->emitirFicha(
                 $body['cita_id'] ?? null,
-                $verificacion,
                 $request->ip()
             )
         );

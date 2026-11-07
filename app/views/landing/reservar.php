@@ -224,8 +224,8 @@ $nombrePaciente = trim((string) ($usuario['nombre'] ?? 'paciente'));
                 <span class="success-kicker">Reserva confirmada</span>
                 <h2 tabindex="-1">Todo listo, <?= e($nombrePaciente) ?>.</h2>
                 <p>
-                    Tu cita quedó programada. Revisa tu correo para la confirmación y
-                    presenta tu ficha digital al llegar.
+                    Tu cita quedó reservada. Para asegurar el cupo, paga el adelanto con el QR
+                    y recepción lo confirmará. El saldo se cancela al terminar la consulta.
                 </p>
 
                 <div class="success-ticket">
@@ -234,6 +234,35 @@ $nombrePaciente = trim((string) ($usuario['nombre'] ?? 'paciente'));
                     <div><span>Fecha</span><strong data-success-fecha>—</strong></div>
                     <div><span>Hora</span><strong data-success-hora>—</strong></div>
                     <div><span>Médico</span><strong data-success-medico>—</strong></div>
+                </div>
+
+                <div class="success-payment" data-success-payment hidden>
+                    <div class="success-payment-head">
+                        <div>
+                            <span class="success-kicker">Adelanto de consulta</span>
+                            <strong data-success-adelanto>Bs 150,00</strong>
+                            <small data-success-precio>Precio de la consulta: Bs 300,00</small>
+                        </div>
+                        <span class="badge badge-pine">
+                            <svg class="icon" aria-hidden="true"><use href="#i-qr"></use></svg>
+                            Pago por QR
+                        </span>
+                    </div>
+
+                    <div class="success-payment-body">
+                        <div class="success-qr" data-success-qr aria-label="Código QR para pagar el adelanto"></div>
+                        <dl class="success-payment-list">
+                            <div><dt>Referencia</dt><dd data-success-referencia>—</dd></div>
+                            <div><dt>Titular</dt><dd data-success-titular>—</dd></div>
+                            <div><dt>Saldo al terminar</dt><dd data-success-saldo>—</dd></div>
+                            <div><dt>Vence</dt><dd data-success-expira>—</dd></div>
+                        </dl>
+                    </div>
+
+                    <p class="success-payment-note">
+                        <svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg>
+                        <span>Presenta el comprobante en recepción para confirmar el adelanto. Sin adelanto confirmado no se atiende la cita y el cupo se libera al vencer.</span>
+                    </p>
                 </div>
 
                 <div class="success-actions">
@@ -277,3 +306,5 @@ $nombrePaciente = trim((string) ($usuario['nombre'] ?? 'paciente'));
         </aside>
     </div>
 </section>
+
+<script src="<?= e(asset('kiosco/vendor/qrcode.js')) ?>"></script>

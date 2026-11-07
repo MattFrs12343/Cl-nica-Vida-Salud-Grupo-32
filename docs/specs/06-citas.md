@@ -7,16 +7,17 @@
 
 ## 1. Objetivo
 
-Registrar citas verificando disponibilidad en el servidor, impedir superposiciones y conflictos (RN07/RF07), permitir reprogramar (RF08) y cancelar (RF09) respetando la regla de anticipación (RX04), generando un código único de cita y registrando origen y prioridad.
+Registrar citas verificando disponibilidad en el servidor, impedir superposiciones y conflictos (RN07/RF07), permitir reprogramar (RF08) y cancelar (RF09) con reprogramación sugerida o reembolso del adelanto, generando un código único de cita y registrando origen y prioridad.
 
 ## 2. Alcance
 
 - RF06: registrar cita (paciente, especialidad, médico, fecha, hora, motivo).
 - RF07: prevención de citas duplicadas/superpuestas y fuera de horario.
 - RF08: reprogramación de citas programadas (y confirmadas) con validación.
-- RF09: cancelación (solo hasta el día anterior; con motivo).
+- RF09: cancelación con motivo, reprogramación sugerida (+7 días) o reembolso con comprobante. Se permite cancelar el mismo día.
 - Generación de `codigo` de cita (`CM-####`).
 - Registro de `origen` (web/kiosco/recepcion) y flags `es_reconsulta`, `es_prioritaria`.
+- Registro del estado de pago de la cita (adelanto, saldo y reembolso — Spec 12).
 
 **Fuera de alcance:** reprogramación directa de citas atendidas/canceladas (requiere procedimiento autorizado — ver RF10).
 
@@ -44,10 +45,20 @@ Registrar citas verificando disponibilidad en el servidor, impedir superposicion
 | `origen` | enum | `web`,`kiosco`,`recepcion` |
 | `es_prioritaria` | boolean | default false (reconsultas) |
 | `es_reconsulta` | boolean | default false |
-| `reconsulta_tipo` | enum | `ausencia_medico`,`seguimiento` (nullable) |
+| `reconsulta_tipo` | enum | `ausencia_medico`,`seguimiento`,`reprogramacion` (nullable) |
 | `cita_origen_id` | FK `citas.id` | nullable (cita que origina la reconsulta) |
 | `motivo` | varchar(200) | opcional |
 | `motivo_cancelacion` | varchar(200) | nullable |
+| `precio_total` | numeric(10,2) | 300 Bs por defecto (Spec 12) |
+| `adelanto` | numeric(10,2) | 50 % al reservar |
+| `saldo` | numeric(10,2) | pendiente al terminar |
+| `estado_pago` | enum `estado_pago_cita` | `pendiente`,`adelanto_pagado`,`pagado`,`reembolso_pendiente`,`reembolsado`,`transferido`,`perdido`,`expirado`,`sin_pago` |
+| `pago_adelanto_id` | FK `pagos.id` | nullable |
+| `pago_expira_en` | timestamptz | nullable |
+| `reembolso_codigo` | varchar(20) | único, `REE-XXXXXX` |
+| `reembolso_monto` | numeric(10,2) | |
+| `reembolso_solicitado_en` | timestamptz | |
+| `reembolso_entregado_en` | timestamptz | |
 | `fecha_registro` | timestamptz | default now() |
 | `created_at`,`updated_at` | timestamptz | |
 
@@ -66,8 +77,11 @@ CREATE UNIQUE INDEX ux_cita_no_superpone
 | POST | `/api/citas` | Registrar cita | recepción, paciente, kiosco |
 | GET | `/api/citas` | Listar (filtros fecha/medico/especialidad/estado) | según rol |
 | GET | `/api/citas/{id}` | Detalle | según rol |
-| PUT | `/api/citas/{id}/reprogramar` | Cambiar fecha/hora | recepción |
+| PUT | `/api/citas/{id}/reprogramar` | Cambiar fecha/hora (recepción) | recepción |
 | PATCH | `/api/citas/{id}/cancelar` | Cancelar con motivo | recepción, paciente |
+| GET | `/api/citas/{id}/cancelacion/opciones` | Sugerencia +7 días, slots libres y política de reembolso | dueño, recepción, médico |
+| POST | `/api/citas/{id}/cancelacion/reprogramar` | Reprogramar como reconsulta transfiriendo el adelanto | dueño, recepción, médico |
+| POST | `/api/citas/{id}/cancelacion/definitiva` | Cancelar y generar comprobante de reembolso | dueño, recepción, médico |
 | GET | `/api/disponibilidad` | (ver Spec 05) | — |
 
 ## 6. Reglas de negocio
@@ -87,8 +101,12 @@ CREATE UNIQUE INDEX ux_cita_no_superpone
 | RF08-C | `atendida`/`cancelada`/`inasistencia` no se reprograman directamente. |
 | RF09-A | Cancelar registra estado `cancelada` + motivo; no se elimina (RN10). |
 | RF09-B | Cancelada libera el slot (RN09). |
-| RF09-C | **Cancelación solo hasta el día anterior** (RX04). El día de la cita no se permite. |
+| RF09-C | Se puede cancelar hasta el mismo día de la cita; el motivo es obligatorio en la cancelación definitiva. |
 | RF09-D | Cita `atendida` no puede cancelarse como si no hubiera ocurrido. |
+| RF09-E | Con adelanto pagado, cancelar ofrece reprogramar (+7 días, misma hora) o reembolso con comprobante. |
+| RF09-F | La reprogramación crea una reconsulta (`reconsulta_tipo='reprogramacion'`) y transfiere el adelanto; la cita origen queda `transferido`. |
+| RF09-G | La cancelación definitiva con adelanto deja `estado_pago='reembolso_pendiente'` y avisa a recepción. |
+| RF09-H | La inasistencia retiene el adelanto (`estado_pago='perdido'`). |
 
 ## 7. Validaciones
 
@@ -97,7 +115,8 @@ CREATE UNIQUE INDEX ux_cita_no_superpone
 - Elegibilidad sexo/edad (RX02/RX03) vía `EspecialidadModel::esElegiblePaciente()`.
 - Fecha no pasada; hora dentro de franja; slot no ocupado; cupo de canal disponible.
 - Motivo ≤ 200 chars.
-- Cancelación: `fecha_cita >= hoy + 1 día`.
+- Cancelación: estado `programada`/`confirmada`; motivo obligatorio en la cancelación definitiva.
+- Reprogramación: fecha/hora distinta a la original, slot libre en el canal del usuario.
 
 **Cliente (JS):**
 - Fecha mínima = mañana; selectores dependientes; deshabilitar días sin disponibilidad.
@@ -137,14 +156,27 @@ Intento fuera de horario:
   → notificar al paciente (correo)
 ```
 
-### 8.4 Cancelación (RF09 + RX04)
+### 8.4 Cancelación (RF09)
 ```
 [PATCH /api/citas/{id}/cancelar] {motivo}
   → validar estado ∈ {programada, confirmada}
-  → if fecha_cita <= hoy → 422 "Solo puede cancelar hasta el día anterior a la cita."
   → UPDATE estado='cancelada', motivo_cancelacion=?, updated_at=now()
   → slot liberado automáticamente (RN09)
   → notificar al paciente
+```
+
+### 8.5 Cancelación con reprogramación o reembolso (RF09-E/F/G)
+```
+[GET /api/citas/{id}/cancelacion/opciones]
+  → propone misma hora + 7 días y lista slots libres del médico
+  → informa si puede reembolsar y el monto
+[POST /api/citas/{id}/cancelacion/reprogramar] {fecha?, hora?, motivo?}
+  → crea reconsulta ligada a la cita origen
+  → transfiere el adelanto a la nueva cita (sin doble cobro)
+  → origen: cancelada + estado_pago='transferido'
+[POST /api/citas/{id}/cancelacion/definitiva] {motivo}
+  → si hay adelanto/pago: REE-XXXXXX + estado_pago='reembolso_pendiente'
+  → aviso a recepción y comprobante para el paciente
 ```
 
 ## 9. UI / Pantallas
@@ -153,7 +185,7 @@ Intento fuera de horario:
 |---|---|---|
 | Programar cita | recepción | Wizard: paciente → especialidad → médico → fecha → slot → motivo |
 | Reprogramar | recepción | Cita actual + nuevos slots |
-| Cancelar | recepción/paciente | Motivo + confirmación; botón deshabilitado si es el día de la cita |
+| Cancelar | recepción/paciente | Reprogramar (+7 días u otro horario) o reembolso con comprobante |
 | Mis citas (web) | paciente | Reservar, ver, cancelar |
 | Cita detalle | varios | Datos, estado, ficha, historial |
 
@@ -164,7 +196,9 @@ Intento fuera de horario:
 - [ ] Reserva fuera del horario → rechazada (prueba #5 enunciado).
 - [ ] Reprogramar respeta disponibilidad.
 - [ ] Cancelar cambia a `cancelada` y conserva historial (prueba #6 enunciado).
-- [ ] Cancelar el día de la cita → rechazado (RX04).
+- [ ] Cancelar el mismo día está permitido (motivo obligatorio en la cancelación definitiva).
+- [ ] Cancelar con adelanto ofrece reprogramar (+7 días) o reembolso con comprobante.
+- [ ] Reprogramar no vuelve a cobrar el adelanto.
 - [ ] Cita atendida no se cancela (RF09-D).
 - [ ] Se genera código `CM-####` único.
 
@@ -177,18 +211,21 @@ Intento fuera de horario:
 | Fecha pasada | "No se pueden programar citas en fechas pasadas." |
 | Cupo agotado | "No hay cupos disponibles para este canal en ese horario." |
 | No elegible | "La especialidad no está disponible para este paciente." |
-| Cancelación tardía | "Solo puede cancelar hasta el día anterior a la cita." |
+| Cancelación sin motivo | "Indica el motivo de la cancelación." |
+| Reprogramación sin cambio | "Elige una fecha u hora distinta a la cita original." |
+| Reembolso pendiente | "La cita tiene un reembolso pendiente; recepción debe entregarlo antes de reprogramar." |
 | Estado inválido | "Esta cita no puede reprogramarse/cancelarse en su estado actual." |
 
 ## 12. Tareas de implementación
 
-1. Migración `citas` + índice único parcial + secuencia `CM`.
+1. Migración `citas` + índice único parcial + secuencia `CM` + campos de pago (Spec 12).
 2. `CitaModel` (CRUD, selección con bloqueo, conteos por canal).
 3. `DisponibilidadService` (reutilizado).
 4. `CitaService` (registrar, reprogramar, cancelar con transacciones).
-5. `CitaController` + validaciones.
-6. Vistas Gentelella + wizard JS.
-7. Integración ficha (Spec 09) y correo (Spec 11/00).
+5. `CancelacionService` (opciones, reprogramación con transferencia y reembolso).
+6. `CitaController` + validaciones.
+7. Vistas Gentelella + wizard JS.
+8. Integración ficha (Spec 09), cobros (Spec 12) y correo (Spec 11/00).
 
 ## 13. Pruebas
 
@@ -200,7 +237,8 @@ Intento fuera de horario:
 | 4 | Fecha pasada | RF06-D | Rechazada |
 | 5 | Reprogramar válido | RF08 | Modificada |
 | 6 | Reprogramar a slot ocupado | RF08-B | Rechazada |
-| 7 | Cancelar > 1 día antes | RF09 | Cancelada |
-| 8 | Cancelar el mismo día | RX04 | Rechazada |
-| 9 | Cancelar atendida | RF09-D | Rechazada |
-| 10 | Concurrencia misma slot | RF07-B | Solo una cita creada |
+| 7 | Cancelar el mismo día | RF09-C | Cancelada |
+| 8 | Cancelar con adelanto y reprogramar | RF09-E/F | Sin doble cobro |
+| 9 | Cancelar con adelanto y reembolsar | RF09-G | Comprobante emitido |
+| 10 | Cancelar atendida | RF09-D | Rechazada |
+| 11 | Concurrencia misma slot | RF07-B | Solo una cita creada |

@@ -422,10 +422,10 @@ Errores: `422 VALIDATION_ERROR`, `403 NOT_ELIGIBLE`, `403 PATIENT_INACTIVE`, `40
 
 ```json
 POST /api/kiosco/ficha
-{ "cita_id": 120, "verificacion_biometrica": true }
+{ "cita_id": 120 }
 ```
 
-Emite la ficha de una cita de kiosco o recupera la existente (idempotente por cita). La emisión confirma la cita (`programada → confirmada`), registra el cambio en `citas_estado_historial` y devuelve los datos para pantalla e impresión. `verificacion_biometrica` es opcional (por defecto `false`) y refleja la verificación facial simulada.
+Emite la ficha de una cita de kiosco o recupera la existente (idempotente por cita). La emisión confirma la cita (`programada → confirmada`), registra el cambio en `citas_estado_historial` y devuelve los datos para pantalla e impresión.
 
 Respuesta `201` si la ficha es nueva y `200` si ya existía:
 
@@ -436,7 +436,6 @@ Respuesta `201` si la ficha es nueva y `200` si ya existía:
     "codigo": "FIC-0120",
     "codigo_acceso": "4821",
     "canal": "kiosco",
-    "verificacion_biometrica": true,
     "emitida_at": "2026-10-24T09:15:00-04:00",
     "qr_contenido": "VIDASALUD|FIC-0120|CM-0120",
     "cita": {
@@ -830,7 +829,6 @@ Respuesta del listado (`GET /api/fichas`):
       "origen": "kiosco",
       "canal": "kiosco",
       "codigo_acceso": "4821",
-      "verificacion_biometrica": false,
       "emitida_at": "2026-10-24 01:17:05-04",
       "reimpresiones": 0,
       "ultima_reimpresion_at": null,

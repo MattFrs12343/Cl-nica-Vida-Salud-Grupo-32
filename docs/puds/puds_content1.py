@@ -671,5 +671,4 @@ def chapter4():
         ("Restricción: ", "PHP 8.1+ sin framework, PostgreSQL 16 y despliegue en hosting cPanel."),
         ("Restricción: ", "la base de datos productiva se aloja en Neon o Railway y requiere `pdo_pgsql`."),
         ("Restricción: ", "el envío por WhatsApp es un enlace profundo, no una integración con la API Business."),
-        ("Restricción: ", "la verificación facial es simulada; la identidad se valida por CI."),
     ])

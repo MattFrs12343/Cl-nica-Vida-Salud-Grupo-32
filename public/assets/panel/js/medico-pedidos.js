@@ -6,6 +6,7 @@ import {
     clearFieldErrors,
     escapeHtml,
     formatDateNumeric,
+    formatMoney,
     formatTimeValue,
     patientName,
     renderFieldErrors,
@@ -42,6 +43,7 @@ const ordenDetalle = $('[data-orden-detalle]');
 let currentPatient = null;
 let currentConsulta = null;
 let sessionItems = readSession();
+let examenes = [];
 
 const picker = new PatientPicker({
     search,
@@ -274,11 +276,37 @@ function addOrdenRow(values = {}) {
     row.className = 'history-block';
     row.dataset.ordenRow = '';
     row.style.marginBottom = '8px';
+
+    const estudioField = examenes.length > 0
+        ? `
+            <label class="select-wrap">
+                <select data-orden-field="examen_id">
+                    <option value="">Selecciona un examen…</option>
+                    ${examenes.map((examen) => `
+                        <option value="${escapeHtml(examen.id)}"
+                                data-nombre="${escapeHtml(examen.nombre)}"
+                                data-precio="${escapeHtml(examen.precio)}"
+                                ${Number(values.examen_id) === Number(examen.id) ? 'selected' : ''}>
+                            ${escapeHtml(examen.nombre)} · ${escapeHtml(formatMoney(examen.precio))}
+                        </option>
+                    `).join('')}
+                </select>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+            </label>
+            <p class="field-help" data-orden-precio>Elige un estudio del catálogo de recepción.</p>
+        `
+        : `
+            <input type="text" maxlength="150" data-orden-field="estudio"
+                   placeholder="Ej. Hemograma completo"
+                   value="${escapeHtml(values.estudio || '')}">
+            <p class="field-help">El catálogo está vacío; recepción debe cargar los precios.</p>
+        `;
+
     row.innerHTML = `
         <div class="field-grid">
             <div class="field field-span-2">
                 <label>Estudio *</label>
-                <input type="text" maxlength="150" data-orden-field="estudio" placeholder="Ej. Hemograma completo" value="${escapeHtml(values.estudio || '')}">
+                ${estudioField}
             </div>
             <div class="field field-span-2">
                 <label>Observaciones</label>
@@ -293,17 +321,59 @@ function addOrdenRow(values = {}) {
         </div>
     `;
 
+    const select = row.querySelector('[data-orden-field="examen_id"]');
+
+    const updatePrice = () => {
+        const priceNode = row.querySelector('[data-orden-precio]');
+        const option = select?.selectedOptions?.[0];
+
+        if (priceNode) {
+            priceNode.textContent = option?.value
+                ? `Precio de la clínica: ${formatMoney(Number(option.dataset.precio || 0))}`
+                : 'Elige un estudio del catálogo de recepción.';
+        }
+
+        updateOrdenTotal();
+    };
+
+    select?.addEventListener('change', updatePrice);
+    updatePrice();
+
     row.querySelector('[data-remove-orden]')?.addEventListener('click', () => {
         if (ordenDetalle.querySelectorAll('[data-orden-row]').length > 1) {
             row.remove();
+            updateOrdenTotal();
         } else {
-            row.querySelectorAll('input').forEach((input) => {
+            row.querySelectorAll('input, select').forEach((input) => {
                 input.value = '';
             });
+            updatePrice();
         }
     });
 
     ordenDetalle.appendChild(row);
+}
+
+function updateOrdenTotal() {
+    if (!ordenDetalle) {
+        return;
+    }
+
+    let total = 0;
+
+    ordenDetalle.querySelectorAll('[data-orden-row]').forEach((row) => {
+        const option = row.querySelector('[data-orden-field="examen_id"]')?.selectedOptions?.[0];
+
+        if (option?.value) {
+            total += Number(option.dataset.precio || 0);
+        }
+    });
+
+    const totalNode = $('[data-orden-total]');
+
+    if (totalNode) {
+        totalNode.textContent = formatMoney(total);
+    }
 }
 
 function renderResult(tipo, item) {
@@ -557,8 +627,14 @@ $('[data-orden-form]')?.addEventListener('submit', async (event) => {
     const rows = $$('[data-orden-row]', ordenDetalle);
     const detalle = rows.map((row) => {
         const value = (key) => row.querySelector(`[data-orden-field="${key}"]`)?.value?.trim() || '';
+        const select = row.querySelector('[data-orden-field="examen_id"]');
+        const option = select?.selectedOptions?.[0];
+        const examenId = select?.value ? Number(select.value) : null;
+
         return {
-            estudio: value('estudio'),
+            examen_id: examenId,
+            estudio: select ? (option?.dataset.nombre || '') : value('estudio'),
+            precio: examenId ? Number(option?.dataset.precio || 0) : null,
             observaciones: value('observaciones') || null,
         };
     }).filter((item) => item.estudio !== '');
@@ -589,10 +665,22 @@ $('[data-orden-form]')?.addEventListener('submit', async (event) => {
     }
 });
 
+async function loadExamenes() {
+    try {
+        const response = await apiFetch('/api/examenes?solo_activos=1');
+        examenes = Array.isArray(response?.data) ? response.data : [];
+    } catch (error) {
+        examenes = [];
+        toast('error', apiErrorMessage(error));
+    }
+}
+
 async function init() {
     if (!requireMedicoId()) {
         return;
     }
+
+    await loadExamenes();
 
     addRecetaRow();
     addOrdenRow();

@@ -1146,9 +1146,62 @@
             }
         };
 
+        const money = (value) =>
+            `Bs ${Number(value || 0).toLocaleString("es-BO", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            })}`;
+
+        const shortDateTime = (value) => {
+            if (!value) {
+                return "—";
+            }
+
+            const date = new Date(value);
+
+            if (Number.isNaN(date.getTime())) {
+                return "—";
+            }
+
+            return new Intl.DateTimeFormat("es-BO", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+            }).format(date);
+        };
+
+        const renderQr = (container, contenido, alt) => {
+            if (!container) {
+                return;
+            }
+
+            container.replaceChildren();
+
+            if (typeof window.qrcode !== "function" || !contenido) {
+                container.textContent = "QR no disponible";
+                return;
+            }
+
+            try {
+                const code = window.qrcode(0, "M");
+                code.addData(String(contenido));
+                code.make();
+                container.innerHTML = code.createSvgTag({
+                    cellSize: 5,
+                    margin: 3,
+                    scalable: true,
+                    alt,
+                });
+            } catch (error) {
+                container.textContent = "QR no disponible";
+            }
+        };
+
         const showSuccess = (data) => {
             const cita = data?.cita || {};
             const ficha = data?.ficha || {};
+            const pago = data?.pago || null;
 
             const values = {
                 "[data-success-cita]": cita.codigo || "—",
@@ -1166,6 +1219,36 @@
                     node.textContent = value;
                 }
             });
+
+            const paymentPanel = $("[data-success-payment]", reservaApp);
+
+            if (paymentPanel) {
+                paymentPanel.hidden = !pago;
+
+                if (pago) {
+                    const paymentValues = {
+                        "[data-success-adelanto]": money(pago.adelanto),
+                        "[data-success-precio]": `Precio de la consulta: ${money(pago.precio_total)}`,
+                        "[data-success-referencia]": pago.referencia || "—",
+                        "[data-success-titular]": pago.qr_titular || "Clínica Vida Salud",
+                        "[data-success-saldo]": money(pago.saldo),
+                        "[data-success-expira]": shortDateTime(pago.expira_en),
+                    };
+
+                    Object.entries(paymentValues).forEach(([selector, value]) => {
+                        const node = $(selector, reservaApp);
+                        if (node) {
+                            node.textContent = value;
+                        }
+                    });
+
+                    renderQr(
+                        $("[data-success-qr]", reservaApp),
+                        pago.qr_contenido,
+                        `Código QR para pagar el adelanto de la cita ${cita.codigo || ""}`
+                    );
+                }
+            }
 
             card.hidden = true;
             successPanel.hidden = false;

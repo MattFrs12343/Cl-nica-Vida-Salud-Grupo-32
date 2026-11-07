@@ -7,7 +7,7 @@ declare(strict_types=1);
  * M-33 - APIs del portal del paciente.
  *
  * Cubre perfil, mis citas, historial clínico, detalle de cita propia,
- * cancelación con la regla del día anterior y cambio de contraseña.
+ * cancelación (reprogramación o reembolso) y cambio de contraseña.
  */
 
 use App\Core\DB;
@@ -560,12 +560,12 @@ try {
     );
 
     $respuesta = $enviar(solicitud('PATCH', '/api/citas/' . $citaTardiaId . '/cancelar', [], [
-        'motivo' => 'Aviso tardío',
+        'motivo' => 'Aviso el mismo día',
     ]));
     comprobar(
-        'la cancelación del mismo día se rechaza',
-        $respuesta->status() === 422
-        && (cuerpo($respuesta)['error']['code'] ?? '') === 'CANCELLATION_TOO_LATE'
+        'la cancelación del mismo día ya no se rechaza',
+        $respuesta->status() === 200
+        && (cuerpo($respuesta)['data']['estado'] ?? '') === 'cancelada'
     );
 
     $respuesta = $enviar(solicitud('PATCH', '/api/citas/' . $citaAjenaId . '/cancelar', [], [

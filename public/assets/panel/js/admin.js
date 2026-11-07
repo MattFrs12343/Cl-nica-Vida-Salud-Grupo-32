@@ -9,6 +9,7 @@ const PAGE_MODULES = {
     citas: () => import('./admin-citas.js'),
     reportes: () => import('./admin-reportes.js'),
     auditoria: () => import('./admin-auditoria.js'),
+    examenes: () => import('./recepcion-examenes.js'),
 };
 
 const page = document.body.dataset.page || 'dashboard';

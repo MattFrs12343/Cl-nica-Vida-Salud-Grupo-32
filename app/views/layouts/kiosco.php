@@ -34,7 +34,6 @@ $ttl = (int) ($kiosk['expires_in'] ?? 600);
         data-token-url="<?= e(url('/kiosco/token')) ?>"
         data-api-base="<?= e(url('/api/kiosco')) ?>"
         data-img-base="<?= e(asset('kiosco/img')) ?>"
-        data-demo-ci="10000001"
     >
         <?= $content ?>
     </div>
@@ -45,5 +44,7 @@ $ttl = (int) ($kiosk['expires_in'] ?? 600);
 
     <script src="<?= e(asset('kiosco/vendor/qrcode.js')) ?>"></script>
     <script src="<?= e(asset('kiosco/js/kiosco.js')) ?>"></script>
+    <script src="<?= e(asset('kiosco/js/kiosco-sintomas.js')) ?>"></script>
+    <script src="<?= e(asset('kiosco/js/kiosco-chat-buddy.js')) ?>"></script>
 </body>
 </html>

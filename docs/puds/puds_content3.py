@@ -205,7 +205,6 @@ COMMIT;""")
             ("WhatsApp", "Deep link `wa.me`", "Envío de recetas, documentos y órdenes."),
             ("QR", "Generación en servidor", "Fichas y perfil del médico."),
             ("Pago", "Formulario visual Visa/Mastercard", "Solo UI; no procesa tarjetas."),
-            ("Cámara", "getUserMedia", "Verificación facial simulada en kiosco."),
         ],
         [3.2, 7.0, 5.8],
         caption="Integraciones del sistema",

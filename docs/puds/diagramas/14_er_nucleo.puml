@@ -109,7 +109,6 @@ entity "fichas" as fichas {
   * cita_id : integer <<UQ,FK>>
   * canal : canal_ficha
   * codigo_acceso : varchar(4)
-  * verificacion_biometrica : boolean
   * emitida_at : timestamptz
 }
 entity "citas_estado_historial" as hist {

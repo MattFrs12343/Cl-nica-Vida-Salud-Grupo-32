@@ -44,16 +44,18 @@ Tabla auxiliar de historial de estados (opcional, recomendada):
 ## 5. Máquina de estados (transiciones válidas)
 
 ```
-programada  → confirmada   (ficha emitida)
-programada  → cancelada    (hasta día anterior)
+programada  → confirmada   (ficha emitida o adelanto confirmado)
+programada  → cancelada    (mismo día permitido)
 programada  → inasistencia (paciente no llegó, ya pasó la hora)
 confirmada  → atendida     (consulta realizada)
-confirmada  → cancelada    (hasta día anterior)
+confirmada  → cancelada    (mismo día permitido)
 confirmada  → inasistencia (no se presentó)
 atendida    → (terminal)
 cancelada   → (terminal; no se marca atendida sin procedimiento autorizado)
 inasistencia→ (terminal, salvo reconsulta autorizada)
 ```
+
+> Cancelar con adelanto pagado no pierde el dinero: se reprograma (transfiere el adelanto) o se emite un comprobante de reembolso. La inasistencia retiene el adelanto (Spec 12).
 
 | De \ A | programada | confirmada | atendida | cancelada | inasistencia |
 |---|:-:|:-:|:-:|:-:|:-:|

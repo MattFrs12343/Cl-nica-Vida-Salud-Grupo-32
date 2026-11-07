@@ -772,6 +772,81 @@
     color: var(--panel-ink);
 }
 
+/* Cobros pendientes ------------------------------------------------------- */
+.pay-pending-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    padding: 0 18px 18px;
+}
+
+.pay-pending-title {
+    margin: 0 0 8px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--panel-muted);
+}
+
+.pay-pending-grid .table-wrap {
+    border: 1px solid var(--panel-line);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.pay-pending-grid .data-table th,
+.pay-pending-grid .data-table td {
+    padding: 8px 10px;
+    font-size: 11px;
+}
+
+.cobro-summary {
+    margin-bottom: 14px;
+}
+
+.cobro-summary-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f7f8f4;
+}
+
+.cobro-summary-list > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cobro-summary-list dt {
+    font-size: 11px;
+    color: var(--panel-muted);
+}
+
+.cobro-summary-list dd {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--panel-ink);
+    text-align: right;
+}
+
+.row-actions {
+    display: inline-flex;
+    gap: 4px;
+}
+
+@media (max-width: 1100px) {
+    .pay-pending-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Portal ------------------------------------------------------------------ */
 .portal-hero {
     display: flex;
@@ -1524,4 +1599,148 @@
     .audit-diff-row {
         grid-template-columns: minmax(0, 1fr);
     }
+}
+
+/* Cancelación del paciente ------------------------------------------------ */
+.cancel-summary {
+    margin-bottom: 14px;
+}
+
+.cancel-summary-list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f7f8f4;
+}
+
+.cancel-summary-list > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--panel-line);
+}
+
+.cancel-summary-list > div:last-child {
+    border-bottom: 0;
+}
+
+.cancel-summary-list dt {
+    font-size: 11.5px;
+    color: var(--panel-muted);
+}
+
+.cancel-summary-list dd {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--panel-ink);
+    text-align: right;
+}
+
+.cancel-option {
+    margin-top: 16px;
+    padding: 16px;
+    border: 1px solid var(--panel-line);
+    border-radius: 14px;
+    background: var(--panel-surface, #fff);
+}
+
+.cancel-option-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.cancel-option-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    flex: none;
+    background: #eef5f0;
+    color: var(--pine);
+}
+
+.cancel-option-icon.tone-accent {
+    background: #fbf1e6;
+    color: #a4661f;
+}
+
+.cancel-option-head h3 {
+    margin: 0 0 3px;
+    font-size: 14px;
+}
+
+.cancel-option-head p {
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--panel-muted);
+    line-height: 1.5;
+}
+
+.cancel-sugerencia {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border: 1px dashed var(--panel-line);
+    border-radius: 10px;
+    background: #fbfcf9;
+    cursor: pointer;
+}
+
+.cancel-sugerencia strong {
+    font-family: var(--mono);
+    font-size: 12px;
+}
+
+.cancel-sugerencia small {
+    flex: 1 1 100%;
+    color: var(--panel-muted);
+    font-size: 11px;
+}
+
+.cancel-slots {
+    margin-top: 12px;
+}
+
+.cancel-slots .slot-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.cancel-comprobante-code {
+    display: grid;
+    gap: 4px;
+    margin: 14px 0;
+    padding: 16px;
+    border-radius: 14px;
+    background:
+        radial-gradient(220px 130px at 100% 0, rgba(207, 232, 218, 0.26), transparent 70%),
+        var(--pine);
+    color: var(--paper);
+}
+
+.cancel-comprobante-code span {
+    font-family: var(--mono);
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(244, 246, 240, 0.6);
+}
+
+.cancel-comprobante-code strong {
+    font-family: var(--mono);
+    font-size: 20px;
+    letter-spacing: 0.06em;
 }

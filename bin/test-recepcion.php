@@ -510,12 +510,12 @@ try {
     $citaHoyId = (int) $statement->fetchColumn();
 
     $respuesta = $enviar(solicitud('PATCH', '/api/citas/' . $citaHoyId . '/cancelar', [], [
-        'motivo' => 'Intento el mismo día',
+        'motivo' => 'Cancelación el mismo día',
     ]));
     comprobar(
-        'no se puede cancelar el mismo día',
-        $respuesta->status() === 422
-        && (cuerpo($respuesta)['error']['code'] ?? '') === 'CANCELLATION_TOO_LATE'
+        'se puede cancelar el mismo día (nueva política)',
+        $respuesta->status() === 200
+        && (cuerpo($respuesta)['data']['estado'] ?? '') === 'cancelada'
     );
 
     // El paciente solo cancela sus propias citas ---------------------------

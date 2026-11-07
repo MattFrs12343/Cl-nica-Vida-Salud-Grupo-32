@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\DB;
 use App\Core\HttpException;
 use App\Models\CitaModel;
+use App\Models\ConfiguracionModel;
 use App\Models\EspecialidadModel;
 use App\Models\MedicoModel;
 use App\Models\PacienteModel;
@@ -29,7 +30,8 @@ final class ReservaWebService
         private ?CitaModel $citas = null,
         private ?DisponibilidadService $disponibilidad = null,
         private ?FichaService $fichas = null,
-        private ?MailService $mail = null
+        private ?MailService $mail = null,
+        private ?ConfiguracionModel $configuracion = null
     ) {
         $this->pacientes ??= new PacienteModel();
         $this->medicos ??= new MedicoModel();
@@ -38,6 +40,7 @@ final class ReservaWebService
         $this->disponibilidad ??= new DisponibilidadService();
         $this->fichas ??= new FichaService();
         $this->mail ??= new MailService();
+        $this->configuracion ??= new ConfiguracionModel();
     }
 
     /**
@@ -188,9 +191,32 @@ final class ReservaWebService
                     $motivo
                 );
 
-                $ficha = $this->fichas->emitir((int) $cita['id'], 'web', false);
+                $config = $this->configuracion->pago();
+                $precio = $config['precio_consulta'];
+                $adelanto = round($precio * ($config['adelanto_porcentaje'] / 100), 2);
+                $expira = (new DateTimeImmutable('now'))
+                    ->modify('+' . $config['pago_expira_minutos'] . ' minutes')
+                    ->format('Y-m-d H:i:sP');
 
-                return ['cita' => $cita, 'ficha' => $ficha];
+                $this->citas->aplicarCobroInicial((int) $cita['id'], $precio, $adelanto, $expira);
+
+                $ficha = $this->fichas->emitir((int) $cita['id'], 'web');
+                $cita = $this->citas->findRawById((int) $cita['id']) ?? $cita;
+
+                return [
+                    'cita' => $cita,
+                    'ficha' => $ficha,
+                    'pago' => [
+                        'precio_total' => $precio,
+                        'adelanto' => $adelanto,
+                        'saldo' => round($precio - $adelanto, 2),
+                        'estado_pago' => (string) $cita['estado_pago'],
+                        'expira_en' => $expira,
+                        'referencia' => 'PAGO-' . (string) $cita['codigo'],
+                        'qr_contenido' => $config['contenido'],
+                        'qr_titular' => $config['titular'],
+                    ],
+                ];
             });
         } catch (PDOException $exception) {
             if ((string) $exception->getCode() === '23505') {
@@ -234,6 +260,7 @@ final class ReservaWebService
                 'codigo' => (string) $ficha['codigo'],
                 'codigo_acceso' => (string) $ficha['codigo_acceso'],
             ],
+            'pago' => $resultado['pago'] ?? null,
         ];
     }
 }

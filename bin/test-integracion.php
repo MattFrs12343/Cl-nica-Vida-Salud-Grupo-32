@@ -495,7 +495,7 @@ try {
     comprobar('reserva devuelve cita y ficha', $citaId > 0
         && str_starts_with($codigo, 'CM-')
         && str_starts_with((string) ($ficha['codigo'] ?? ''), 'FIC-'));
-    comprobar('cita creada como programada y origen web', ($cita['estado'] ?? '') === 'programada'
+    comprobar('cita creada con origen web y ficha emitida', ($cita['estado'] ?? '') === 'confirmada'
         && ($cita['origen'] ?? '') === 'web');
 
     $citaDb = comoPropietario(function () use ($pdo, $citaId): array {
@@ -518,6 +518,13 @@ try {
     comprobar('cita persistida con fecha, hora y motivo', (string) ($citaDb['fecha'] ?? '') === $fecha
         && substr((string) ($citaDb['hora_inicio'] ?? ''), 0, 5) === $slot['hora']
         && str_contains((string) ($citaDb['motivo'] ?? ''), $sufijo));
+    comprobar(
+        'la reserva web deja el adelanto pendiente',
+        ($citaDb['estado_pago'] ?? '') === 'pendiente'
+        && abs((float) ($citaDb['adelanto'] ?? 0) - 150.0) < 0.001
+        && abs((float) ($citaDb['saldo'] ?? 0) - 150.0) < 0.001
+        && ($citaDb['pago_expira_en'] ?? null) !== null
+    );
 
     $fichaDb = comoPropietario(function () use ($pdo, $citaId): array {
         $statement = $pdo->prepare(

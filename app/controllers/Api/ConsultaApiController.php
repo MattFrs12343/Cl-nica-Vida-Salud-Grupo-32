@@ -323,15 +323,38 @@ final class ConsultaApiController extends AdminApiController
                 $this->validacion(['detalle' => 'Revisa los estudios ingresados.']);
             }
 
+            $examenId = null;
+            $crudoExamen = $item['examen_id'] ?? null;
+
+            if ($crudoExamen !== null && $crudoExamen !== '') {
+                if (!is_scalar($crudoExamen) || !ctype_digit((string) $crudoExamen) || (int) $crudoExamen <= 0) {
+                    $this->validacion(['detalle' => 'Selecciona exámenes válidos del catálogo.']);
+                }
+
+                $examenId = (int) $crudoExamen;
+            }
+
             $estudio = $this->limpiarTexto($item['estudio'] ?? '');
 
-            if ($estudio === '' || mb_strlen($estudio) > 150) {
+            if ($estudio === '' && $examenId === null) {
                 $this->validacion(['detalle' => 'Cada estudio debe tener un nombre válido.']);
             }
 
+            if (mb_strlen($estudio) > 150) {
+                $this->validacion(['detalle' => 'Cada estudio debe tener un nombre válido.']);
+            }
+
+            $precio = $item['precio'] ?? null;
+
+            if ($precio !== null && (!is_numeric($precio) || (float) $precio < 0)) {
+                $this->validacion(['detalle' => 'Revisa los precios de los estudios.']);
+            }
+
             $detalle[] = [
+                'examen_id' => $examenId,
                 'estudio' => $estudio,
                 'observaciones' => $this->campoCorto($item['observaciones'] ?? null, 200, 'detalle'),
+                'precio' => $precio !== null ? round((float) $precio, 2) : null,
             ];
         }
 

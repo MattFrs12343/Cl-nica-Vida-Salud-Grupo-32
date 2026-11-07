@@ -15,7 +15,6 @@
     const API = (app.dataset.apiBase || '/api/kiosco').replace(/\/$/, '');
     const IMG_BASE = (app.dataset.imgBase || '/assets/kiosco/img').replace(/\/$/, '');
     const TOKEN_URL = app.dataset.tokenUrl || '/kiosco/token';
-    const DEMO_CI = app.dataset.demoCi || '10000001';
     const INACTIVITY_MS = 120000;
     const FICHA_RESET_MS = 30000;
 
@@ -50,11 +49,13 @@
         slotsRequest: 0,
         cita: null,
         ficha: null,
+        pago: null,
+        pagoTimer: null,
+        pagoDeadline: 0,
         inactivityTimer: null,
         fichaTimer: null,
         fichaDeadline: 0,
-        verifyFrame: null,
-        demo: false,
+        sintomaPendiente: null,
     };
 
     const els = {
@@ -93,6 +94,23 @@
         confirmDuration: $('[data-confirm-duration]'),
         confirmBtn: $('[data-action="confirm"]'),
         confirmLabel: $('[data-confirm-label]'),
+        pagoQr: $('[data-pago-qr]'),
+        pagoAdelanto: $('[data-pago-adelanto]'),
+        pagoReferencia: $('[data-pago-referencia]'),
+        pagoTitular: $('[data-pago-titular]'),
+        pagoSaldo: $('[data-pago-saldo]'),
+        pagoExpira: $('[data-pago-expira]'),
+        pagoKicker: $('[data-pago-kicker]'),
+        pagoStatus: $('[data-pago-status]'),
+        pagoWait: $('[data-pago-wait]'),
+        pagoWaitText: $('[data-pago-wait-text]'),
+        pagoError: $('[data-pago-error]'),
+        pagoTabs: $('[data-pago-tabs]'),
+        pagoInstrucciones: $('[data-pago-instrucciones]'),
+        pagoEfectivoMonto: $('[data-pago-efectivo-monto]'),
+        pagoEfectivoRef: $('[data-pago-efectivo-ref]'),
+        pagoTarjetaForm: $('[data-pago-tarjeta-form]'),
+        pagoTarjetaSubmit: $('[data-pago-tarjeta-submit]'),
         fichaContent: $('[data-ficha-content]'),
         fichaFallback: $('[data-ficha-fallback]'),
         fichaError: $('[data-ficha-error]'),
@@ -100,9 +118,6 @@
         fichaQr: $('[data-ficha-qr]'),
         resetCount: $('[data-reset-count]'),
         resetProgress: $('[data-reset-progress]'),
-        verifyTitle: $('[data-verify-title]'),
-        verifyText: $('[data-verify-text]'),
-        verifyProgress: $('[data-verify-progress]'),
         toast: $('[data-toast]'),
         overlay: $('[data-overlay]'),
         overlayText: $('[data-overlay-text]'),
@@ -118,6 +133,9 @@
         elderly: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="5" r="3"/><path d="M10 8v6l-3 7M10 14l4 7M7 11h7"/><path d="M17 4v16"/></svg>',
         heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 5.6a5.5 5.5 0 0 0-7.8 0L12 6.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 22l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>',
         female: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M12 13v8M9 18h6"/></svg>',
+        skin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M9 8v8M15 8v8"/></svg>',
+        ent: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14c0 3 2 5 4 5a2 2 0 0 0 2-2c0-2-2-2-2-4"/><path d="M9 14a5 5 0 1 1 9-3c0 2-1 3-2 4"/></svg>',
+        stomach: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v4c0 2-3 3-3 7a7 7 0 0 0 14 0c0-2-1-3-2-4"/><path d="M8 13c1.5 2 3.5 3 5 1"/></svg>',
         default: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
     };
 
@@ -127,6 +145,9 @@
         elderly: 'especialidad-geriatria.jpg',
         heart: 'especialidad-cardiologia.jpg',
         female: 'especialidad-ginecologia.jpg',
+        skin: 'especialidad-dermatologia.jpg',
+        ent: 'especialidad-otorrinolaringologia.jpg',
+        stomach: 'especialidad-gastroenterologia.jpg',
     };
 
     function esc(value) {
@@ -149,6 +170,9 @@
         if (nombre.includes('geriatr')) return ICONS.elderly;
         if (nombre.includes('cardio')) return ICONS.heart;
         if (nombre.includes('gineco')) return ICONS.female;
+        if (nombre.includes('dermat')) return ICONS.skin;
+        if (nombre.includes('otorrino')) return ICONS.ent;
+        if (nombre.includes('gastro')) return ICONS.stomach;
         if (nombre.includes('general')) return ICONS.stethoscope;
 
         return ICONS.default;
@@ -166,6 +190,9 @@
         if (nombre.includes('geriatr')) return `${IMG_BASE}/${PHOTOS.elderly}`;
         if (nombre.includes('cardio')) return `${IMG_BASE}/${PHOTOS.heart}`;
         if (nombre.includes('gineco')) return `${IMG_BASE}/${PHOTOS.female}`;
+        if (nombre.includes('dermat')) return `${IMG_BASE}/${PHOTOS.skin}`;
+        if (nombre.includes('otorrino')) return `${IMG_BASE}/${PHOTOS.ent}`;
+        if (nombre.includes('gastro')) return `${IMG_BASE}/${PHOTOS.stomach}`;
         if (nombre.includes('general')) return `${IMG_BASE}/${PHOTOS.stethoscope}`;
 
         return null;
@@ -183,6 +210,32 @@
 
     function firstName(nombre) {
         return String(nombre || '').split(/\s+/).filter(Boolean)[0] || '';
+    }
+
+    function money(value) {
+        return `Bs ${Number(value || 0).toLocaleString('es-BO', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+    }
+
+    function shortDateTime(value) {
+        if (!value) {
+            return '—';
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return '—';
+        }
+
+        return new Intl.DateTimeFormat('es-BO', {
+            day: '2-digit',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+        }).format(date);
     }
 
     function isoDate(date) {
@@ -400,6 +453,7 @@
         doctor: 2,
         schedule: 3,
         confirm: 3,
+        pago: 3,
         ficha: 4,
     };
 
@@ -429,9 +483,13 @@
 
         stopInactivity();
         stopFichaTimer();
+        stopPagoTimer();
 
         if (screen === 'ficha') {
             startFichaTimer();
+        } else if (screen === 'pago') {
+            startPagoPolling();
+            armInactivity();
         } else if (screen !== 'welcome') {
             armInactivity();
         }
@@ -442,7 +500,7 @@
     function resetFlow(silent = false) {
         window.clearTimeout(state.inactivityTimer);
         stopFichaTimer();
-        cancelAnimationFrame(state.verifyFrame);
+        stopPagoTimer();
 
         state.paciente = null;
         state.especialidades = [];
@@ -455,8 +513,9 @@
         state.slot = null;
         state.cita = null;
         state.ficha = null;
+        state.pago = null;
         state.ci = '';
-        state.demo = false;
+        state.sintomaPendiente = null;
 
         if (els.ciInput) {
             els.ciInput.value = '';
@@ -614,11 +673,7 @@
                 }
 
                 state.paciente = result.paciente;
-                runVerification(
-                    'Verificando identidad…',
-                    `Hola, ${firstName(result.paciente.nombre_completo)}. Estamos comparando tus datos con el registro de la clínica.`,
-                    () => loadSpecialties()
-                );
+                await loadSpecialties();
             } catch (error) {
                 handleError(error, els.ciError);
             }
@@ -653,11 +708,7 @@
                 });
 
                 state.paciente = paciente;
-                runVerification(
-                    'Registrando tu identidad…',
-                    'Estamos creando tu registro de atención y preparando las especialidades.',
-                    () => loadSpecialties()
-                );
+                await loadSpecialties();
             } catch (error) {
                 if (error instanceof KioskError && error.code === 'CI_TAKEN') {
                     setError(els.registerError, 'Esa CI ya está registrada. Vuelve e ingrésala de nuevo para identificarte.');
@@ -667,34 +718,6 @@
                 handleError(error, els.registerError);
             }
         });
-    }
-
-    function runVerification(title, text, done) {
-        cancelAnimationFrame(state.verifyFrame);
-        show('verify');
-
-        if (els.verifyTitle) els.verifyTitle.textContent = title;
-        if (els.verifyText) els.verifyText.textContent = text;
-        if (els.verifyProgress) els.verifyProgress.style.width = '0%';
-
-        const start = performance.now();
-        const duration = 2200;
-
-        const tick = (now) => {
-            const progress = Math.min(100, ((now - start) / duration) * 100);
-
-            if (els.verifyProgress) {
-                els.verifyProgress.style.width = `${progress}%`;
-            }
-
-            if (progress < 100) {
-                state.verifyFrame = requestAnimationFrame(tick);
-            } else {
-                done();
-            }
-        };
-
-        state.verifyFrame = requestAnimationFrame(tick);
     }
 
     /* Catálogos ----------------------------------------------------------- */
@@ -716,17 +739,29 @@
         if (els.specialtiesError) els.specialtiesError.hidden = true;
 
         try {
-            // TEMPORAL: se omite `paciente_id` para mostrar todas las
-            // especialidades sin el filtro de sexo/edad (solo para capturas
-            // de pantalla). Volver a `?paciente_id=${state.paciente.id}`
-            // cuando se revise ese filtro.
-            const data = await api('/especialidades');
+            const data = await api(`/especialidades?paciente_id=${state.paciente.id}`);
             state.especialidades = Array.isArray(data) ? data : [];
             renderSpecialties();
 
             if (state.especialidades.length === 0) {
                 setError(els.specialtiesErrorText, 'No hay especialidades disponibles para tu perfil.');
                 if (els.specialtiesError) els.specialtiesError.hidden = false;
+            }
+
+            if (state.sintomaPendiente) {
+                const pendiente = state.sintomaPendiente;
+                state.sintomaPendiente = null;
+
+                const especialidad = state.especialidades.find(
+                    (item) => item.nombre.toLowerCase() === pendiente.toLowerCase()
+                );
+
+                if (especialidad) {
+                    await chooseSpecialty(especialidad);
+                    return;
+                }
+
+                showToast('La especialidad recomendada no está disponible para tu perfil. Elige otra en la lista.', 'error');
             }
         } catch (error) {
             if (els.specialtiesErrorText) {
@@ -1095,7 +1130,34 @@
         }
     }
 
-    /* Confirmación y ficha ------------------------------------------------ */
+    /* Confirmación y pago ------------------------------------------------- */
+
+    function drawQr(container, contenido, alt) {
+        if (!container) {
+            return;
+        }
+
+        container.innerHTML = '';
+
+        if (typeof window.qrcode !== 'function' || !contenido) {
+            container.textContent = 'QR no disponible';
+            return;
+        }
+
+        try {
+            const code = window.qrcode(0, 'M');
+            code.addData(String(contenido));
+            code.make();
+            container.innerHTML = code.createSvgTag({
+                cellSize: 5,
+                margin: 3,
+                scalable: true,
+                alt,
+            });
+        } catch (error) {
+            container.textContent = 'QR no disponible';
+        }
+    }
 
     function renderConfirm() {
         if (!state.paciente || !state.especialidad || !state.medico || !state.fecha || !state.slot) {
@@ -1113,6 +1175,163 @@
         if (els.confirmDuration) els.confirmDuration.textContent = `${Number(state.medico.duracion_cita_min) || 30} minutos`;
         setError(els.confirmError, '');
         show('confirm');
+    }
+
+    /**
+     * Las 3 pestañas son solo distintas formas de mostrarle al paciente qué
+     * hacer; la confirmación real siempre la hace recepción (el QR/tarjeta/
+     * efectivo no cambian qué llamadas se hacen al servidor, solo la
+     * pantalla). Elegir una pestaña no manda nada al servidor.
+     */
+    const INSTRUCCIONES_PAGO = {
+        qr: [
+            'Abre tu app bancaria y escanea el QR.',
+            'Muestra el comprobante en recepción.',
+            'La ficha aparece automáticamente al confirmar.',
+        ],
+        tarjeta: [
+            'Completa los datos de la tarjeta (es una simulación).',
+            'Confirma el pago con el botón.',
+            'Recepción valida el pago y tu ficha se emite sola.',
+        ],
+        efectivo: [
+            'Acércate a caja con la referencia que aparece abajo.',
+            'Paga el adelanto en efectivo.',
+            'La ficha aparece automáticamente al confirmar.',
+        ],
+    };
+
+    function setPagoMetodo(metodo) {
+        if (els.pagoTabs) {
+            $$('[data-pago-tab]', els.pagoTabs).forEach((tab) => {
+                const activo = tab.dataset.pagoTab === metodo;
+                tab.classList.toggle('is-active', activo);
+                tab.setAttribute('aria-selected', activo ? 'true' : 'false');
+            });
+        }
+
+        $$('[data-pago-panel]', app).forEach((panel) => {
+            panel.hidden = panel.dataset.pagoPanel !== metodo;
+        });
+
+        if (els.pagoInstrucciones) {
+            els.pagoInstrucciones.innerHTML = '';
+            (INSTRUCCIONES_PAGO[metodo] || []).forEach((texto) => {
+                const item = document.createElement('li');
+                item.textContent = texto;
+                els.pagoInstrucciones.appendChild(item);
+            });
+        }
+    }
+
+    function renderPago(cita) {
+        const pago = state.pago || {};
+
+        if (els.pagoAdelanto) els.pagoAdelanto.textContent = money(pago.adelanto);
+        if (els.pagoReferencia) els.pagoReferencia.textContent = pago.referencia || '—';
+        if (els.pagoTitular) els.pagoTitular.textContent = pago.qr_titular || 'Clínica Vida Salud';
+        if (els.pagoSaldo) els.pagoSaldo.textContent = money(pago.saldo);
+        if (els.pagoExpira) els.pagoExpira.textContent = shortDateTime(pago.expira_en);
+        if (els.pagoEfectivoMonto) els.pagoEfectivoMonto.textContent = money(pago.adelanto);
+        if (els.pagoEfectivoRef) els.pagoEfectivoRef.textContent = pago.referencia || '—';
+        if (els.pagoKicker) els.pagoKicker.textContent = 'Esperando pago';
+        if (els.pagoStatus) {
+            els.pagoStatus.textContent = 'El adelanto asegura tu cupo. El saldo se cancela al terminar la consulta.';
+        }
+        if (els.pagoWait) els.pagoWait.hidden = false;
+        if (els.pagoWaitText) els.pagoWaitText.textContent = 'Verificando el pago…';
+        setError(els.pagoError, '');
+
+        if (els.pagoTarjetaForm) {
+            els.pagoTarjetaForm.reset();
+            els.pagoTarjetaForm.hidden = false;
+            if (els.pagoTarjetaSubmit) {
+                els.pagoTarjetaSubmit.disabled = false;
+                els.pagoTarjetaSubmit.textContent = 'Confirmar pago con tarjeta';
+            }
+        }
+
+        setPagoMetodo('qr');
+
+        state.pagoDeadline = pago.expira_en ? new Date(pago.expira_en).getTime() : 0;
+
+        drawQr(
+            els.pagoQr,
+            pago.qr_contenido,
+            `Código QR para pagar el adelanto de la cita ${cita?.codigo || ''}`
+        );
+
+        show('pago');
+    }
+
+    function stopPagoTimer() {
+        if (state.pagoTimer) {
+            window.clearTimeout(state.pagoTimer);
+            state.pagoTimer = null;
+        }
+    }
+
+    function startPagoPolling() {
+        stopPagoTimer();
+
+        if (!state.cita) {
+            return;
+        }
+
+        const tick = async () => {
+            if (state.screen !== 'pago' || !state.cita) {
+                return;
+            }
+
+            try {
+                const data = await api(`/citas/${state.cita.id}/pago`);
+
+                if (state.screen !== 'pago') {
+                    return;
+                }
+
+                if (data?.puede_emitir_ficha) {
+                    stopPagoTimer();
+
+                    if (els.pagoWait) els.pagoWait.hidden = true;
+                    if (els.pagoKicker) els.pagoKicker.textContent = 'Pago confirmado';
+
+                    await emitFicha();
+                    return;
+                }
+
+                const estado = String(data?.estado || '');
+                const estadoPago = String(data?.estado_pago || '');
+
+                if (estado === 'cancelada' || ['expirado', 'perdido'].includes(estadoPago)) {
+                    stopPagoTimer();
+
+                    if (els.pagoWait) els.pagoWait.hidden = true;
+                    if (els.pagoKicker) els.pagoKicker.textContent = 'Adelanto no confirmado';
+                    setError(
+                        els.pagoError,
+                        estadoPago === 'perdido'
+                            ? 'La cita se marcó como inasistencia y el adelanto se retuvo.'
+                            : 'El plazo del adelanto venció y el cupo se liberó. Vuelve a reservar.'
+                    );
+                    return;
+                }
+
+                if (state.pagoDeadline > 0 && Date.now() >= state.pagoDeadline && els.pagoWaitText) {
+                    els.pagoWaitText.textContent = 'El plazo terminó. Si ya pagaste, muestra el comprobante en recepción.';
+                }
+            } catch (error) {
+                if (els.pagoWaitText) {
+                    els.pagoWaitText.textContent = 'Sin conexión. Reintentando…';
+                }
+            }
+
+            if (state.screen === 'pago') {
+                state.pagoTimer = window.setTimeout(tick, 4000);
+            }
+        };
+
+        state.pagoTimer = window.setTimeout(tick, 1200);
     }
 
     async function confirmReservation() {
@@ -1137,7 +1356,13 @@
                 });
 
                 state.cita = cita;
-                await emitFicha();
+                state.pago = cita && cita.pago ? cita.pago : null;
+
+                if (state.pago) {
+                    renderPago(cita);
+                } else {
+                    await emitFicha();
+                }
             } catch (error) {
                 handleError(error, els.confirmError);
 
@@ -1163,7 +1388,6 @@
                 method: 'POST',
                 body: {
                     cita_id: state.cita.id,
-                    verificacion_biometrica: true,
                 },
             });
 
@@ -1214,31 +1438,14 @@
         set('[data-ficha-cita-side]', cita.codigo);
         set('[data-ficha-instrucciones]', impresion.instrucciones);
         set('[data-ficha-estado]', cita.estado === 'confirmada' ? 'Confirmada' : (cita.estado || 'Emitida'));
-        set('[data-ficha-verificacion]', ficha.verificacion_biometrica ? 'Simulada (rostro)' : 'No realizada');
 
         const qr = $('[data-ficha-qr]');
 
-        if (qr) {
-            qr.innerHTML = '';
-
-            if (typeof window.qrcode === 'function' && ficha.qr_contenido) {
-                try {
-                    const code = window.qrcode(0, 'M');
-                    code.addData(String(ficha.qr_contenido));
-                    code.make();
-                    qr.innerHTML = code.createSvgTag({
-                        cellSize: 5,
-                        margin: 3,
-                        scalable: true,
-                        alt: `Código QR de la ficha ${ficha.codigo}`,
-                    });
-                } catch (error) {
-                    qr.textContent = 'QR no disponible';
-                }
-            } else {
-                qr.textContent = 'QR no disponible';
-            }
-        }
+        drawQr(
+            qr,
+            ficha.qr_contenido,
+            `Código QR de la ficha ${ficha.codigo}`
+        );
     }
 
     async function retryFicha() {
@@ -1258,13 +1465,6 @@
             switch (action) {
                 case 'start':
                     startFlow();
-                    break;
-                case 'demo':
-                    startFlow();
-                    if (els.ciInput) {
-                        els.ciInput.value = DEMO_CI;
-                        identify();
-                    }
                     break;
                 case 'identify':
                     identify();
@@ -1365,6 +1565,28 @@
         }
     }
 
+    if (els.pagoTabs) {
+        els.pagoTabs.addEventListener('click', (event) => {
+            const tab = event.target.closest('[data-pago-tab]');
+            if (tab) setPagoMetodo(tab.dataset.pagoTab);
+        });
+    }
+
+    if (els.pagoTarjetaForm) {
+        els.pagoTarjetaForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            if (els.pagoTarjetaSubmit) {
+                els.pagoTarjetaSubmit.disabled = true;
+                els.pagoTarjetaSubmit.textContent = 'Esperando confirmación de recepción…';
+            }
+
+            if (els.pagoWaitText) {
+                els.pagoWaitText.textContent = 'Pago con tarjeta registrado. Verificando con recepción…';
+            }
+        });
+    }
+
     document.addEventListener('pointerdown', noteActivity, { passive: true });
     document.addEventListener('keydown', noteActivity);
 
@@ -1417,4 +1639,57 @@
     updateClock();
     window.setInterval(updateClock, 15000);
     show('welcome');
+
+    /**
+     * Puente para el asistente de síntomas (kiosco-sintomas.js). El chat
+     * recomienda una especialidad antes de identificarse.
+     */
+    window.KioscoAsistente = {
+        /**
+         * Manda al paciente a la pantalla táctil de identificación (teclado
+         * numérico). `loadSpecialties()` aplica la recomendación sola apenas
+         * carga su lista de especialidades filtrada por edad/sexo.
+         */
+        agendarConRecomendacion(nombreEspecialidad) {
+            state.sintomaPendiente = nombreEspecialidad;
+            startFlow();
+        },
+
+        /**
+         * Identifica al paciente por CI sin salir del chat (la cédula se
+         * tipeó ahí mismo) y, si existe y está activo, continúa directo al
+         * flujo normal de especialidad → médico → horario → ficha.
+         *
+         * @return {Promise<{ok: boolean, motivo?: string, paciente?: string}>}
+         */
+        async identificarYContinuar(ci, nombreEspecialidad) {
+            const limpio = sanitizeCi(ci);
+
+            if (!/^\d{5,10}(-[A-Z0-9]{1,2})?$/.test(limpio)) {
+                return { ok: false, motivo: 'ci_invalida' };
+            }
+
+            state.ci = limpio;
+
+            try {
+                const result = await api('/identificar', { method: 'POST', body: { ci: limpio } });
+
+                if (!result || result.existe !== true || !result.paciente) {
+                    return { ok: false, motivo: 'no_encontrado' };
+                }
+
+                if (result.paciente.estado !== 'activo') {
+                    return { ok: false, motivo: 'inactivo' };
+                }
+
+                state.paciente = result.paciente;
+                state.sintomaPendiente = nombreEspecialidad;
+                await loadSpecialties();
+
+                return { ok: true, paciente: result.paciente.nombre_completo };
+            } catch (error) {
+                return { ok: false, motivo: error.message || 'error' };
+            }
+        },
+    };
 })();

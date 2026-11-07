@@ -21,6 +21,7 @@ $router->group('/admin', static function ($router): void {
     $router->get('/citas', [PanelController::class, 'adminCitas']);
     $router->get('/reportes', [PanelController::class, 'adminReportes']);
     $router->get('/auditoria', [PanelController::class, 'adminAuditoria']);
+    $router->get('/examenes', [PanelController::class, 'adminExamenes']);
 }, ['auth', 'role:admin,super_admin']);
 
 $router->group('/recepcion', static function ($router): void {
@@ -31,6 +32,7 @@ $router->group('/recepcion', static function ($router): void {
     $router->get('/reconsultas', [PanelController::class, 'recepcionReconsultas']);
     $router->get('/fichas', [PanelController::class, 'recepcionFichas']);
     $router->get('/pagos', [PanelController::class, 'recepcionPagos']);
+    $router->get('/examenes', [PanelController::class, 'recepcionExamenes']);
 }, ['auth', 'role:recepcionista,recepcionista_medico']);
 
 $router->group('/medico', static function ($router): void {
