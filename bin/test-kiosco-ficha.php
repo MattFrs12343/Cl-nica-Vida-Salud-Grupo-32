@@ -246,7 +246,7 @@ try {
         'POST',
         '/api/kiosco/ficha',
         [],
-        ['cita_id' => $citaId, 'verificacion_biometrica' => true],
+        ['cita_id' => $citaId],
         $token
     ));
     $datos = cuerpo($respuesta)['data'] ?? [];
@@ -256,8 +256,7 @@ try {
         && str_starts_with($codigoFicha, 'FIC-')
         && preg_match('/^\d{4}$/', (string) ($datos['codigo_acceso'] ?? '')) === 1);
     comprobar('la ficha confirma la cita', ($datos['cita']['estado'] ?? '') === 'confirmada'
-        && ($datos['canal'] ?? '') === 'kiosco'
-        && ($datos['verificacion_biometrica'] ?? false) === true);
+        && ($datos['canal'] ?? '') === 'kiosco');
     comprobar('el QR identifica ficha y cita', str_starts_with($qr, 'VIDASALUD|' . $codigoFicha . '|CM-')
         && str_contains((string) ($datos['cita']['codigo'] ?? ''), 'CM-'));
     comprobar('la ficha trae datos de impresión', ($datos['impresion']['codigo'] ?? '') === $codigoFicha
@@ -271,13 +270,12 @@ try {
     comprobar('la respuesta de ficha no se cachea', ($respuesta->headers()['Cache-Control'] ?? '') === 'no-store');
 
     $fichaDb = $pdo->query(
-        'SELECT codigo, cita_id, canal, verificacion_biometrica
+        'SELECT codigo, cita_id, canal
          FROM fichas WHERE cita_id = ' . $citaId
     )->fetch();
     comprobar('la ficha queda guardada en el canal kiosco', is_array($fichaDb)
         && $fichaDb['codigo'] === $codigoFicha
-        && $fichaDb['canal'] === 'kiosco'
-        && $fichaDb['verificacion_biometrica'] === true);
+        && $fichaDb['canal'] === 'kiosco');
 
     $estadoDb = (string) $pdo->query(
         'SELECT estado FROM citas WHERE id = ' . $citaId
@@ -305,7 +303,7 @@ try {
         'POST',
         '/api/kiosco/ficha',
         [],
-        ['cita_id' => $citaId, 'verificacion_biometrica' => true],
+        ['cita_id' => $citaId],
         $token
     ));
     $repetida = cuerpo($respuesta)['data'] ?? [];
@@ -379,9 +377,9 @@ try {
         ['cita_id' => $citaCancelableId],
         $token
     ));
-    $sinVerificacion = cuerpo($respuesta)['data'] ?? [];
-    comprobar('la verificación facial es opcional', $respuesta->status() === 201
-        && ($sinVerificacion['verificacion_biometrica'] ?? true) === false);
+    $segundaFicha = cuerpo($respuesta)['data'] ?? [];
+    comprobar('se emite la ficha de la segunda cita', $respuesta->status() === 201
+        && str_starts_with((string) ($segundaFicha['codigo'] ?? ''), 'FIC-'));
 
     $pdo->exec("UPDATE citas SET estado = 'cancelada' WHERE id = " . $citaCancelableId);
 
@@ -397,7 +395,7 @@ try {
 
     $respuesta = $enviar(peticionKiosco(
         'GET',
-        '/api/kiosco/ficha/' . (string) ($sinVerificacion['codigo'] ?? ''),
+        '/api/kiosco/ficha/' . (string) ($segundaFicha['codigo'] ?? ''),
         [],
         null,
         $token

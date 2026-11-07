@@ -33,7 +33,6 @@ final class FichaService
     public function emitir(
         int $citaId,
         string $canal = 'web',
-        bool $verificacionBiometrica = false,
         ?string $observacion = null
     ): array {
         if ($citaId <= 0) {
@@ -50,7 +49,7 @@ final class FichaService
             throw new HttpException(422, 'El canal de la ficha no es válido.', [], 'VALIDATION_ERROR');
         }
 
-        return DB::transaction(function () use ($citaId, $canal, $verificacionBiometrica, $observacion): array {
+        return DB::transaction(function () use ($citaId, $canal, $observacion): array {
             $cita = $this->buscarCita($citaId, true);
 
             if ($cita === null) {
@@ -73,21 +72,18 @@ final class FichaService
                 $codigoAcceso = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
                 $statement = $this->pdo->prepare(
-                    'INSERT INTO fichas (cita_id, canal, codigo_acceso, verificacion_biometrica)
+                    'INSERT INTO fichas (cita_id, canal, codigo_acceso)
                      VALUES (
                          :cita_id,
                          CAST(:canal AS canal_ficha),
-                         :codigo_acceso,
-                         :verificacion
+                         :codigo_acceso
                      )
-                     RETURNING id, codigo, cita_id, canal, codigo_acceso,
-                               verificacion_biometrica, emitida_at'
+                     RETURNING id, codigo, cita_id, canal, codigo_acceso, emitida_at'
                 );
                 $statement->execute([
                     'cita_id' => $citaId,
                     'canal' => $canal,
                     'codigo_acceso' => $codigoAcceso,
-                    'verificacion' => $verificacionBiometrica ? 'true' : 'false',
                 ]);
 
                 $ficha = $statement->fetch() ?: [];
@@ -168,8 +164,7 @@ final class FichaService
     private function buscarFichaPorCita(int $citaId): ?array
     {
         $statement = $this->pdo->prepare(
-            'SELECT id, codigo, cita_id, canal, codigo_acceso,
-                    verificacion_biometrica, emitida_at
+            'SELECT id, codigo, cita_id, canal, codigo_acceso, emitida_at
              FROM fichas
              WHERE cita_id = :cita_id
              LIMIT 1'
@@ -223,7 +218,6 @@ final class FichaService
             'codigo' => $codigoFicha,
             'codigo_acceso' => (string) ($ficha['codigo_acceso'] ?? ''),
             'canal' => (string) ($ficha['canal'] ?? ''),
-            'verificacion_biometrica' => (bool) ($ficha['verificacion_biometrica'] ?? false),
             'emitida_at' => (string) ($ficha['emitida_at'] ?? ''),
             'qr_contenido' => 'VIDASALUD|' . $codigoFicha . '|' . $codigoCita,
             'cita' => [

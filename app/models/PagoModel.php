@@ -88,10 +88,14 @@ final class PagoModel
     {
         $statement = $this->pdo->prepare(
             'INSERT INTO pagos (
-                 paciente_id, medico_id, registrado_por, monto, metodo, referencia_paciente
+                 paciente_id, medico_id, registrado_por, monto, metodo, referencia_paciente,
+                 cita_id, orden_id, tipo, estado, referencia, confirmado_por, confirmado_en,
+                 reembolso_de
              ) VALUES (
                  :paciente_id, :medico_id, :registrado_por, :monto,
-                 CAST(:metodo AS metodo_pago), :referencia_paciente
+                 CAST(:metodo AS metodo_pago), :referencia_paciente,
+                 :cita_id, :orden_id, :tipo, :estado, :referencia, :confirmado_por,
+                 CAST(:confirmado_en AS timestamptz), :reembolso_de
              )
              RETURNING id'
         );
@@ -102,10 +106,73 @@ final class PagoModel
             'monto' => (string) $datos['monto'],
             'metodo' => (string) $datos['metodo'],
             'referencia_paciente' => $datos['referencia_paciente'] ?? null,
+            'cita_id' => isset($datos['cita_id']) && $datos['cita_id'] !== null ? (int) $datos['cita_id'] : null,
+            'orden_id' => isset($datos['orden_id']) && $datos['orden_id'] !== null ? (int) $datos['orden_id'] : null,
+            'tipo' => (string) ($datos['tipo'] ?? 'consulta'),
+            'estado' => (string) ($datos['estado'] ?? 'confirmado'),
+            'referencia' => $datos['referencia'] ?? null,
+            'confirmado_por' => isset($datos['confirmado_por']) && $datos['confirmado_por'] !== null
+                ? (int) $datos['confirmado_por']
+                : null,
+            'confirmado_en' => $datos['confirmado_en'] ?? null,
+            'reembolso_de' => isset($datos['reembolso_de']) && $datos['reembolso_de'] !== null
+                ? (int) $datos['reembolso_de']
+                : null,
         ]);
 
         return (int) $statement->fetchColumn();
     }
+
+    /** @return array<int, array<string, mixed>> */
+    public function porCita(int $citaId): array
+    {
+        $statement = $this->pdo->prepare(
+            $this->sqlSelect() . ' WHERE p.cita_id = :cita_id ORDER BY p.fecha ASC, p.id ASC'
+        );
+        $statement->execute(['cita_id' => $citaId]);
+
+        return array_map([$this, 'normalizar'], $statement->fetchAll());
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function porOrden(int $ordenId): array
+    {
+        $statement = $this->pdo->prepare(
+            $this->sqlSelect() . ' WHERE p.orden_id = :orden_id ORDER BY p.fecha ASC, p.id ASC'
+        );
+        $statement->execute(['orden_id' => $ordenId]);
+
+        return array_map([$this, 'normalizar'], $statement->fetchAll());
+    }
+
+    public function totalConfirmadoPorCita(int $citaId, ?string $tipo = null): float
+    {
+        $sql = "SELECT COALESCE(SUM(monto), 0) FROM pagos
+                WHERE cita_id = :cita_id AND estado = 'confirmado'";
+        $parametros = ['cita_id' => $citaId];
+
+        if ($tipo !== null) {
+            $sql .= ' AND tipo = :tipo';
+            $parametros['tipo'] = $tipo;
+        }
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($parametros);
+
+        return (float) $statement->fetchColumn();
+    }
+
+    public function totalConfirmadoPorOrden(int $ordenId): float
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT COALESCE(SUM(monto), 0) FROM pagos
+             WHERE orden_id = :orden_id AND estado = 'confirmado'"
+        );
+        $statement->execute(['orden_id' => $ordenId]);
+
+        return (float) $statement->fetchColumn();
+    }
+
 
     public function pacienteExiste(int $id): bool
     {
@@ -113,6 +180,18 @@ final class PagoModel
         $statement->execute(['id' => $id]);
 
         return $statement->fetchColumn() !== false;
+    }
+
+    public function ultimoPorCita(int $citaId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            $this->sqlSelect()
+            . ' WHERE p.cita_id = :cita_id ORDER BY p.fecha DESC, p.id DESC LIMIT 1'
+        );
+        $statement->execute(['cita_id' => $citaId]);
+        $fila = $statement->fetch();
+
+        return $fila === false ? null : $this->normalizar($fila);
     }
 
     public function medicoActivo(int $id): bool
@@ -136,6 +215,26 @@ final class PagoModel
         if ($medicoId !== null) {
             $where[] = 'p.medico_id = :medico';
             $parametros['medico'] = (int) $medicoId;
+        }
+
+        if (($filtros['cita_id'] ?? null) !== null) {
+            $where[] = 'p.cita_id = :cita_id';
+            $parametros['cita_id'] = (int) $filtros['cita_id'];
+        }
+
+        if (($filtros['orden_id'] ?? null) !== null) {
+            $where[] = 'p.orden_id = :orden_id';
+            $parametros['orden_id'] = (int) $filtros['orden_id'];
+        }
+
+        if (($filtros['tipo'] ?? null) !== null) {
+            $where[] = 'p.tipo = :tipo';
+            $parametros['tipo'] = (string) $filtros['tipo'];
+        }
+
+        if (($filtros['estado'] ?? null) !== null) {
+            $where[] = 'p.estado = :estado';
+            $parametros['estado'] = (string) $filtros['estado'];
         }
 
         if (($filtros['desde'] ?? null) !== null) {
@@ -173,16 +272,22 @@ final class PagoModel
     {
         return 'SELECT p.id, p.paciente_id, p.medico_id, p.registrado_por,
                        p.monto, p.metodo, p.referencia_paciente, p.fecha,
+                       p.cita_id, p.orden_id, p.tipo, p.estado, p.referencia,
+                       p.confirmado_por, p.confirmado_en, p.reembolso_de,
                        pac.codigo AS paciente_codigo, pac.ci AS paciente_ci,
                        pac.nombres AS paciente_nombres, pac.apellidos AS paciente_apellidos,
                        pac.telefono AS paciente_telefono,
                        m.codigo AS medico_codigo, m.nombres AS medico_nombres,
                        m.apellidos AS medico_apellidos,
-                       u.username AS registrado_username
+                       u.username AS registrado_username,
+                       c.codigo AS cita_codigo,
+                       o.codigo AS orden_codigo
                 FROM pagos p
                 JOIN pacientes pac ON pac.id = p.paciente_id
                 JOIN medicos m ON m.id = p.medico_id
-                LEFT JOIN usuarios u ON u.id = p.registrado_por';
+                LEFT JOIN usuarios u ON u.id = p.registrado_por
+                LEFT JOIN citas c ON c.id = p.cita_id
+                LEFT JOIN ordenes o ON o.id = p.orden_id';
     }
 
     /**
@@ -209,6 +314,20 @@ final class PagoModel
             'referencia_paciente' => $fila['referencia_paciente'],
             'fecha' => substr($fecha, 0, 10),
             'creado_at' => $fecha,
+            'cita_id' => $fila['cita_id'] !== null ? (int) $fila['cita_id'] : null,
+            'orden_id' => $fila['orden_id'] !== null ? (int) $fila['orden_id'] : null,
+            'tipo' => (string) ($fila['tipo'] ?? 'consulta'),
+            'estado' => (string) ($fila['estado'] ?? 'confirmado'),
+            'referencia' => $fila['referencia'] ?? null,
+            'confirmado_por_id' => $fila['confirmado_por'] !== null ? (int) $fila['confirmado_por'] : null,
+            'confirmado_en' => $fila['confirmado_en'] ?? null,
+            'reembolso_de' => $fila['reembolso_de'] !== null ? (int) $fila['reembolso_de'] : null,
+            'cita' => $fila['cita_id'] !== null
+                ? ['id' => (int) $fila['cita_id'], 'codigo' => $fila['cita_codigo'] ?? null]
+                : null,
+            'orden' => $fila['orden_id'] !== null
+                ? ['id' => (int) $fila['orden_id'], 'codigo' => $fila['orden_codigo'] ?? null]
+                : null,
             'paciente' => [
                 'id' => (int) $fila['paciente_id'],
                 'codigo' => (string) $fila['paciente_codigo'],

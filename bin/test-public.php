@@ -109,12 +109,21 @@ try {
 
     $citaCreada = $resultado['cita'];
     $fichaCreada = $resultado['ficha'];
+    $pagoCreado = $resultado['pago'] ?? [];
 
     comprobar('cita creada con código', str_starts_with((string) $citaCreada['codigo'], 'CM-'));
-    comprobar('cita queda programada', $citaCreada['estado'] === 'programada');
+    comprobar('la ficha web confirma la cita', $citaCreada['estado'] === 'confirmada');
     comprobar('origen de la cita es web', $citaCreada['origen'] === 'web');
     comprobar('ficha generada', str_starts_with((string) $fichaCreada['codigo'], 'FIC-'));
     comprobar('código de acceso de 4 dígitos', preg_match('/^\d{4}$/', (string) $fichaCreada['codigo_acceso']) === 1);
+    comprobar(
+        'la reserva web deja un adelanto pendiente de 150 Bs',
+        ($pagoCreado['estado_pago'] ?? '') === 'pendiente'
+        && abs((float) ($pagoCreado['adelanto'] ?? 0) - 150.0) < 0.001
+        && abs((float) ($pagoCreado['saldo'] ?? 0) - 150.0) < 0.001
+        && ($pagoCreado['referencia'] ?? '') !== ''
+        && ($pagoCreado['qr_contenido'] ?? '') !== ''
+    );
 
     DB::clearContext();
 

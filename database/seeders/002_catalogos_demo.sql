@@ -8,7 +8,10 @@ INSERT INTO especialidades (
     ('Pediatría', 'Atención de niños y adolescentes.', 'ambos', 0, 17, TRUE, 'child'),
     ('Geriatría', 'Atención integral de personas mayores.', 'ambos', 60, NULL, TRUE, 'elderly'),
     ('Cardiología', 'Evaluación y seguimiento cardiovascular.', 'ambos', NULL, NULL, FALSE, 'heart'),
-    ('Ginecología', 'Atención de salud femenina.', 'femenino', 12, NULL, FALSE, 'female')
+    ('Ginecología', 'Atención de salud femenina.', 'femenino', 12, NULL, FALSE, 'female'),
+    ('Dermatología', 'Diagnóstico y tratamiento de piel, cabello y uñas.', 'ambos', NULL, NULL, FALSE, 'skin'),
+    ('Otorrinolaringología', 'Atención de oído, nariz y garganta.', 'ambos', NULL, NULL, FALSE, 'ent'),
+    ('Gastroenterología', 'Atención de malestares digestivos y abdominales.', 'ambos', NULL, NULL, FALSE, 'stomach')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO medicos (
@@ -53,6 +56,36 @@ INSERT INTO medicos (
         '70010004',
         'andres.salinas@vidasalud.test',
         30
+    ),
+    (
+        'MED-DEMO-005',
+        NULL,
+        'MP-1005',
+        'Valeria',
+        'Ortiz',
+        '70010005',
+        'valeria.ortiz@vidasalud.test',
+        30
+    ),
+    (
+        'MED-DEMO-006',
+        NULL,
+        'MP-1006',
+        'Fernando',
+        'Quiroga',
+        '70010006',
+        'fernando.quiroga@vidasalud.test',
+        30
+    ),
+    (
+        'MED-DEMO-007',
+        NULL,
+        'MP-1007',
+        'Patricia',
+        'Vargas',
+        '70010007',
+        'patricia.vargas@vidasalud.test',
+        30
     )
 ON CONFLICT DO NOTHING;
 
@@ -64,7 +97,10 @@ FROM (VALUES
     ('MED-DEMO-002', 'Pediatría'),
     ('MED-DEMO-003', 'Geriatría'),
     ('MED-DEMO-003', 'Medicina General'),
-    ('MED-DEMO-004', 'Ginecología')
+    ('MED-DEMO-004', 'Ginecología'),
+    ('MED-DEMO-005', 'Dermatología'),
+    ('MED-DEMO-006', 'Otorrinolaringología'),
+    ('MED-DEMO-007', 'Gastroenterología')
 ) AS asignacion(medico_codigo, especialidad_nombre)
 JOIN medicos m ON m.codigo = asignacion.medico_codigo
 JOIN especialidades e ON e.nombre = asignacion.especialidad_nombre
@@ -84,7 +120,10 @@ INSERT INTO horarios (
 SELECT m.id, dia.dia, TIME '08:00', TIME '12:00', 50, 50
 FROM medicos m
 CROSS JOIN generate_series(1, 5) AS dia(dia)
-WHERE m.codigo IN ('MED-DEMO-001', 'MED-DEMO-002', 'MED-DEMO-003', 'MED-DEMO-004')
+WHERE m.codigo IN (
+      'MED-DEMO-001', 'MED-DEMO-002', 'MED-DEMO-003', 'MED-DEMO-004',
+      'MED-DEMO-005', 'MED-DEMO-006', 'MED-DEMO-007'
+  )
   AND NOT EXISTS (
       SELECT 1 FROM horarios h
       WHERE h.medico_id = m.id
@@ -99,7 +138,10 @@ INSERT INTO horarios (
 SELECT m.id, dia.dia, TIME '14:00', TIME '18:00', 50, 50
 FROM medicos m
 CROSS JOIN generate_series(1, 5) AS dia(dia)
-WHERE m.codigo IN ('MED-DEMO-001', 'MED-DEMO-002', 'MED-DEMO-003', 'MED-DEMO-004')
+WHERE m.codigo IN (
+      'MED-DEMO-001', 'MED-DEMO-002', 'MED-DEMO-003', 'MED-DEMO-004',
+      'MED-DEMO-005', 'MED-DEMO-006', 'MED-DEMO-007'
+  )
   AND NOT EXISTS (
       SELECT 1 FROM horarios h
       WHERE h.medico_id = m.id

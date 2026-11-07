@@ -15,6 +15,73 @@
     </div>
 </header>
 
+<section class="card" aria-labelledby="cobros-pendientes-title">
+    <div class="card-head card-head-wrap">
+        <div>
+            <span class="card-kicker">Cobros de citas</span>
+            <h2 id="cobros-pendientes-title">Adelantos y reembolsos pendientes</h2>
+        </div>
+        <div class="card-head-tools">
+            <button class="btn btn-ghost btn-sm" type="button" data-cobros-expirar>
+                <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+                Liberar adelantos vencidos
+            </button>
+            <button class="icon-btn" type="button" data-cobros-refresh aria-label="Actualizar cobros pendientes">
+                <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="pay-pending-grid">
+        <div>
+            <h3 class="pay-pending-title">Adelantos por confirmar</h3>
+            <div class="table-wrap" data-cobros-adelantos>
+                <div class="table-loading">
+                    <?php for ($i = 0; $i < 3; $i++): ?>
+                        <div class="skeleton skeleton-row"></div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3 class="pay-pending-title">Saldos por cobrar</h3>
+            <div class="table-wrap" data-cobros-saldos>
+                <div class="table-loading">
+                    <?php for ($i = 0; $i < 3; $i++): ?>
+                        <div class="skeleton skeleton-row"></div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3 class="pay-pending-title">Reembolsos por entregar</h3>
+            <div class="table-wrap" data-cobros-reembolsos>
+                <div class="table-loading">
+                    <?php for ($i = 0; $i < 3; $i++): ?>
+                        <div class="skeleton skeleton-row"></div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="card" aria-labelledby="ordenes-pendientes-title">
+    <div class="card-head card-head-wrap">
+        <div>
+            <span class="card-kicker">Laboratorio</span>
+            <h2 id="ordenes-pendientes-title">Órdenes pendientes de cobro</h2>
+        </div>
+    </div>
+    <div class="table-wrap" data-cobros-ordenes>
+        <div class="table-loading">
+            <?php for ($i = 0; $i < 3; $i++): ?>
+                <div class="skeleton skeleton-row"></div>
+            <?php endfor; ?>
+        </div>
+    </div>
+</section>
+
 <div class="pay-layout">
     <section class="card pay-form-card" aria-labelledby="pago-form-title">
         <div class="card-head">
@@ -189,3 +256,77 @@
         <strong>Total del rango: <span data-pago-table-total>Bs 0,00</span></strong>
     </div>
 </section>
+
+<div class="modal" id="modal-cobro" aria-hidden="true">
+    <div class="modal-backdrop" data-modal-close></div>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-cobro-title">
+        <header class="modal-head">
+            <div>
+                <span class="modal-kicker" data-cobro-kicker>Cobro</span>
+                <h2 id="modal-cobro-title" data-cobro-title>Registrar cobro</h2>
+            </div>
+            <button class="modal-close" type="button" data-modal-close aria-label="Cerrar">
+                <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+            </button>
+        </header>
+
+        <form data-cobro-form novalidate>
+            <input type="hidden" name="accion">
+            <input type="hidden" name="id">
+            <input type="hidden" name="monto">
+            <div class="modal-body">
+                <div class="cobro-summary" data-cobro-summary></div>
+
+                <div class="field">
+                    <label>Método *</label>
+                    <div class="method-grid" role="radiogroup" aria-label="Método de pago">
+                        <label class="method-card">
+                            <input type="radio" name="metodo" value="efectivo" checked>
+                            <span class="method-card-body">
+                                <span class="method-icon" aria-hidden="true"><svg class="icon"><use href="#i-money"></use></svg></span>
+                                <span><strong>Efectivo</strong><small>En caja</small></span>
+                                <span class="method-check" aria-hidden="true"><svg class="icon"><use href="#i-check"></use></svg></span>
+                            </span>
+                        </label>
+                        <label class="method-card">
+                            <input type="radio" name="metodo" value="qr">
+                            <span class="method-card-body">
+                                <span class="method-icon" aria-hidden="true"><svg class="icon"><use href="#i-qr"></use></svg></span>
+                                <span><strong>QR</strong><small>Transferencia</small></span>
+                                <span class="method-check" aria-hidden="true"><svg class="icon"><use href="#i-check"></use></svg></span>
+                            </span>
+                        </label>
+                        <label class="method-card">
+                            <input type="radio" name="metodo" value="visa">
+                            <span class="method-card-body">
+                                <span class="method-icon" aria-hidden="true"><svg class="icon"><use href="#i-card"></use></svg></span>
+                                <span><strong>Visa</strong><small>Débito o crédito</small></span>
+                                <span class="method-check" aria-hidden="true"><svg class="icon"><use href="#i-check"></use></svg></span>
+                            </span>
+                        </label>
+                        <label class="method-card">
+                            <input type="radio" name="metodo" value="mastercard">
+                            <span class="method-card-body">
+                                <span class="method-icon" aria-hidden="true"><svg class="icon"><use href="#i-card"></use></svg></span>
+                                <span><strong>Mastercard</strong><small>Débito o crédito</small></span>
+                                <span class="method-check" aria-hidden="true"><svg class="icon"><use href="#i-check"></use></svg></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="cobro-referencia">Referencia <span class="label-hint">(opcional)</span></label>
+                    <input id="cobro-referencia" name="referencia" type="text" maxlength="80"
+                           placeholder="N.º de voucher, comprobante o nota">
+                </div>
+            </div>
+
+            <footer class="modal-foot">
+                <span class="modal-foot-note" data-cobro-note></span>
+                <button class="btn btn-ghost btn-sm" type="button" data-modal-close>Cancelar</button>
+                <button class="btn btn-primary btn-sm" type="submit" data-cobro-submit>Confirmar cobro</button>
+            </footer>
+        </form>
+    </div>
+</div>

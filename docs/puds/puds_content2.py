@@ -103,7 +103,7 @@ def chapter5():
             ("Especialidad", "nombre, sexo_permitido, edad_min, edad_max, destacada", "N–M Médicos; 1–N Citas"),
             ("Horario", "dia_semana, hora_inicio, hora_fin, cupos_web, cupos_kiosco", "N–1 Médico"),
             ("Cita", "codigo, fecha, hora_inicio, hora_fin, estado, origen, es_reconsulta", "N–1 Paciente/Médico/Especialidad; 1–1 Ficha"),
-            ("Ficha", "codigo, canal, codigo_acceso, verificacion_biometrica", "1–1 Cita"),
+            ("Ficha", "codigo, canal, codigo_acceso", "1–1 Cita"),
             ("Consulta", "motivo, anamnesis, signos_vitales, diagnostico, tratamiento", "1–1 Cita; 1–N Pedidos"),
             ("Pedido", "codigo, tipo, codigo_acceso, enviado_whatsapp", "N–1 Consulta/Paciente/Médico"),
             ("Pago", "monto, metodo, referencia_paciente, fecha", "N–1 Paciente/Médico/Usuario"),

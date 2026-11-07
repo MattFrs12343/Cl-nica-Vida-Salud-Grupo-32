@@ -126,6 +126,9 @@
                         <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>
                         Agregar estudio
                     </button>
+                    <span class="field-help" style="margin-left:auto;">
+                        Total estimado: <strong data-orden-total>Bs 0,00</strong>
+                    </span>
                 </div>
                 <button class="btn btn-primary btn-sm" type="submit">
                     <span class="btn-label">Emitir orden</span>

@@ -105,6 +105,20 @@ final class PanelController extends Controller
         );
     }
 
+    public function adminExamenes(Request $request): Response
+    {
+        return $this->renderPanel(
+            'recepcion/examenes',
+            'Exámenes',
+            'examenes',
+            [['label' => 'Administración'], ['label' => 'Exámenes']],
+            [
+                'subtitle' => 'Catálogo de laboratorio e imagen con precios de la clínica.',
+                'script' => 'panel/js/admin.js',
+            ]
+        );
+    }
+
     public function recepcionDashboard(Request $request): Response
     {
         return $this->renderPanel(
@@ -197,7 +211,21 @@ final class PanelController extends Controller
             'pagos',
             [['label' => 'Recepción'], ['label' => 'Pagos']],
             [
-                'subtitle' => 'Registra el cobro de la consulta y revisa los movimientos del día.',
+                'subtitle' => 'Confirma adelantos, cobra saldos y entrega reembolsos.',
+                'script' => 'panel/js/recepcion.js',
+            ]
+        );
+    }
+
+    public function recepcionExamenes(Request $request): Response
+    {
+        return $this->renderPanel(
+            'recepcion/examenes',
+            'Exámenes',
+            'examenes',
+            [['label' => 'Recepción'], ['label' => 'Exámenes']],
+            [
+                'subtitle' => 'Catálogo de laboratorio e imagen con precios de la clínica.',
                 'script' => 'panel/js/recepcion.js',
             ]
         );

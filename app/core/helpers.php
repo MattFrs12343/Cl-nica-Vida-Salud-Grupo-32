@@ -87,7 +87,11 @@ function asset(string $path): string
         return $path;
     }
 
-    return url('assets/' . ltrim($path, '/'));
+    $relative = 'assets/' . ltrim($path, '/');
+    $file = public_path($relative);
+    $version = is_file($file) ? (string) filemtime($file) : null;
+
+    return url($relative) . ($version !== null ? '?v=' . $version : '');
 }
 
 /** @param array<string, mixed> $data */

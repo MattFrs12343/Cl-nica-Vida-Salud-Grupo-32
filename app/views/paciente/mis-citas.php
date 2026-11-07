@@ -43,7 +43,9 @@
     </div>
 
     <p class="text-muted" style="margin:0 0 12px;font-size:13px;">
-        Puedes cancelar una cita programada o confirmada hasta el día anterior a la atención.
+        Puedes cancelar una cita programada o confirmada: el sistema te propone
+        reprogramarla en el mismo horario de la próxima semana y, si no te conviene,
+        emite un comprobante de reembolso de tu adelanto para entregarte en recepción.
     </p>
 
     <div data-citas-list>

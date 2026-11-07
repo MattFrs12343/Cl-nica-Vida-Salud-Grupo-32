@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\DB;
 use App\Core\HttpException;
 use App\Models\CitaModel;
+use App\Models\ConfiguracionModel;
 use App\Models\EspecialidadModel;
 use App\Models\MedicoModel;
 use App\Models\PacienteModel;
@@ -30,13 +31,19 @@ final class CitaService
         private ?PacienteModel $pacientes = null,
         private ?MedicoModel $medicos = null,
         private ?EspecialidadModel $especialidades = null,
-        private ?DisponibilidadService $disponibilidad = null
+        private ?DisponibilidadService $disponibilidad = null,
+        private ?CancelacionService $cancelaciones = null,
+        private ?CobroService $cobros = null,
+        private ?ConfiguracionModel $configuracion = null
     ) {
         $this->citas ??= new CitaModel();
         $this->pacientes ??= new PacienteModel();
         $this->medicos ??= new MedicoModel();
         $this->especialidades ??= new EspecialidadModel();
         $this->disponibilidad ??= new DisponibilidadService();
+        $this->cancelaciones ??= new CancelacionService();
+        $this->cobros ??= new CobroService();
+        $this->configuracion ??= new ConfiguracionModel();
     }
 
     /**
@@ -126,6 +133,14 @@ final class CitaService
                     'motivo' => $motivo,
                     'es_prioritaria' => $esPrioritaria,
                 ]);
+
+                $config = $this->configuracion->pago();
+                $precio = $config['precio_consulta'];
+                $adelanto = round($precio * ($config['adelanto_porcentaje'] / 100), 2);
+                $expira = (new \DateTimeImmutable('now'))
+                    ->modify('+' . $config['pago_expira_minutos'] . ' minutes')
+                    ->format('Y-m-d H:i:sP');
+                $this->citas->aplicarCobroInicial((int) $nueva['id'], $precio, $adelanto, $expira);
 
                 $this->citas->registrarHistorial(
                     (int) $nueva['id'],
@@ -234,54 +249,9 @@ final class CitaService
      */
     public function cancelar(int $id, array $datos, array $usuario): array
     {
-        $motivo = $this->motivo($datos['motivo'] ?? null);
-
-        if ($motivo === null) {
-            $this->validacion(['motivo' => 'Indica el motivo de la cancelación.']);
-        }
-
-        try {
-            DB::transaction(function () use ($id, $motivo, $usuario): void {
-                $cita = $this->citas->findRawById($id, true);
-
-                if ($cita === null) {
-                    throw new HttpException(404, 'La cita no existe.', [], 'NOT_FOUND');
-                }
-
-                $this->autorizarCita($cita, $usuario);
-
-                if (!in_array((string) $cita['estado'], ['programada', 'confirmada'], true)) {
-                    throw new HttpException(
-                        409,
-                        'Esta cita no puede cancelarse en su estado actual.',
-                        [],
-                        'INVALID_STATE'
-                    );
-                }
-
-                if ((string) $cita['fecha'] <= date('Y-m-d')) {
-                    throw new HttpException(
-                        422,
-                        'Solo puede cancelar hasta el día anterior a la cita.',
-                        [],
-                        'CANCELLATION_TOO_LATE'
-                    );
-                }
-
-                $this->citas->cambiarEstado($id, 'cancelada', $motivo);
-                $this->citas->registrarHistorial(
-                    $id,
-                    (string) $cita['estado'],
-                    'cancelada',
-                    (int) ($usuario['id'] ?? 0) ?: null,
-                    $motivo
-                );
-            });
-        } catch (PDOException $exception) {
-            $this->traducirConflicto($exception);
-        }
-
-        return $this->detalle($id);
+        // La regla de "hasta el día anterior" fue reemplazada por el modelo de
+        // adelanto: cancelar antes de la cita reprograma o genera reembolso.
+        return $this->cancelaciones->cancelarDefinitivo($id, $datos, $usuario);
     }
 
     /**
@@ -299,7 +269,10 @@ final class CitaService
      */
     public function inasistencia(int $id, array $usuario): array
     {
-        return $this->cambiarEstadoAsistencia($id, 'inasistencia', $usuario, 'Paciente no se presentó');
+        $this->cambiarEstadoAsistencia($id, 'inasistencia', $usuario, 'Paciente no se presentó');
+        $this->cobros->retenerAdelanto($id);
+
+        return $this->detalle($id);
     }
 
     /**

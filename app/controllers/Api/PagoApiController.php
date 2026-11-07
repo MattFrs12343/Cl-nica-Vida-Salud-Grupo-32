@@ -7,7 +7,9 @@ namespace App\Controllers\Api;
 use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
+use App\Models\CitaModel;
 use App\Models\PagoModel;
+use App\Services\CobroService;
 
 /**
  * Registro y consulta de pagos de recepciA3n (M-28).
@@ -19,9 +21,18 @@ final class PagoApiController extends AdminApiController
 {
     private const METODOS = ['efectivo', 'visa', 'mastercard'];
 
-    public function __construct(private ?PagoModel $pagos = null)
-    {
-        $this->pagos ??= new PagoModel();
+    private ?PagoModel $pagos;
+    private ?CitaModel $citas;
+    private ?CobroService $cobros;
+
+    public function __construct(
+        ?PagoModel $pagos = null,
+        ?CitaModel $citas = null,
+        ?CobroService $cobros = null
+    ) {
+        $this->pagos = $pagos ?? new PagoModel();
+        $this->citas = $citas ?? new CitaModel();
+        $this->cobros = $cobros ?? new CobroService();
     }
 
     public function index(Request $request): Response
@@ -109,6 +120,12 @@ final class PagoApiController extends AdminApiController
             $campos['referencia_paciente'] = 'No puede superar los 150 caracteres.';
         }
 
+        $citaId = $this->enteroPositivo($request->input('cita_id'));
+
+        if ($request->input('cita_id') !== null && $citaId === null) {
+            $campos['cita_id'] = 'Selecciona una cita válida.';
+        }
+
         if ($campos !== []) {
             $this->validacion($campos);
         }
@@ -140,6 +157,28 @@ final class PagoApiController extends AdminApiController
             $this->validacion(['medico_id' => 'El mAcdico no existe o estAc inactivo.']);
         }
 
+        if ($citaId !== null) {
+            $this->vincularConCita(
+                citaId: $citaId,
+                pacienteId: (int) $pacienteId,
+                medicoId: (int) $medicoId,
+                monto: $monto,
+                metodo: $metodo,
+                referencia: $referencia,
+                usuario: $usuario
+            );
+
+            $pago = $this->comoPropietario(
+                fn (): ?array => $this->pagos->ultimoPorCita((int) $citaId)
+            );
+
+            if ($pago === null) {
+                throw new HttpException(500, 'No se pudo recuperar el pago registrado.', [], 'INTERNAL_ERROR');
+            }
+
+            return json_ok($pago, [], 'Pago registrado.', 201);
+        }
+
         $id = $this->comoPropietario(
             fn (): int => $this->pagos->crear([
                 'paciente_id' => (int) $pacienteId,
@@ -158,6 +197,72 @@ final class PagoApiController extends AdminApiController
         }
 
         return json_ok($pago, [], 'Pago registrado.', 201);
+    }
+
+    /**
+     * Registra el pago vinculado a la cita y actualiza su estado de cobro:
+     * si la cita no tiene adelanto confirmado se registra el adelanto; si ya
+     * lo tiene, el monto se abona al saldo. Así un pago manual nunca deja la
+     * cita en "pendiente" para su expiración automática.
+     *
+     * Delega en `CobroService` (la misma lógica que usan los endpoints de
+     * `/api/citas/{id}/adelanto/confirmar` y `/api/citas/{id}/saldo`) para no
+     * duplicar las reglas de negocio ni el porcentaje de adelanto configurado.
+     *
+     * @param array<string, mixed> $usuario
+     */
+    private function vincularConCita(
+        int $citaId,
+        int $pacienteId,
+        int $medicoId,
+        string $monto,
+        string $metodo,
+        ?string $referencia,
+        array $usuario
+    ): void {
+        $cita = $this->comoPropietario(
+            fn (): ?array => $this->citas->findRawById($citaId)
+        );
+
+        if ($cita === null) {
+            $this->validacion(['cita_id' => 'La cita no existe.']);
+        }
+
+        if ((int) $cita['paciente_id'] !== $pacienteId
+            || (int) $cita['medico_id'] !== $medicoId) {
+            $this->validacion([
+                'cita_id' => 'La cita no corresponde al paciente o médico indicado.',
+            ]);
+        }
+
+        $estadoPago = (string) $cita['estado_pago'];
+        $datosPago = [
+            'metodo' => $metodo,
+            'monto' => $monto,
+            'referencia' => $referencia,
+            'referencia_paciente' => $referencia,
+        ];
+
+        if ($estadoPago === 'pendiente') {
+            $this->comoPropietario(
+                fn (): array => $this->cobros->confirmarAdelanto($citaId, $datosPago, $usuario)
+            );
+
+            return;
+        }
+
+        if (!in_array($estadoPago, ['adelanto_pagado', 'sin_pago'], true)) {
+            throw new HttpException(
+                409,
+                'La cita no admite un nuevo cobro en su estado actual.',
+                [],
+                'INVALID_STATE'
+            );
+        }
+
+        $this->comoPropietario(
+            fn (): array => $this->cobros->cobrarSaldo($citaId, $datosPago, $usuario)
+        );
     }
 
     /** @param array<string, string> $params */

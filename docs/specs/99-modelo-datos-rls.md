@@ -216,7 +216,6 @@ CREATE TABLE fichas (
   cita_id INTEGER NOT NULL UNIQUE REFERENCES citas(id),
   canal canal_ficha NOT NULL,
   codigo_acceso VARCHAR(4) NOT NULL,
-  verificacion_biometrica BOOLEAN NOT NULL DEFAULT FALSE,
   emitida_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

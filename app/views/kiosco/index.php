@@ -85,19 +85,6 @@
                             <div><strong>Recibe tu ficha</strong><small>Código, clave y QR</small></div>
                         </li>
                     </ol>
-
-                    <div class="demo-box">
-                        <span class="demo-label">Modo demostración</span>
-                        <p>Prueba el flujo completo con un paciente de ejemplo.</p>
-                        <div class="demo-actions">
-                            <button class="btn btn-ghost btn-sm" type="button" data-action="demo">
-                                Probar con CI 10000001
-                            </button>
-                            <button class="btn btn-ghost btn-sm" type="button" data-action="start">
-                                Paciente nuevo
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </aside>
         </section>
@@ -167,29 +154,6 @@
                         </svg>
                     </button>
                 </div>
-            </div>
-        </section>
-
-        <!-- Verificación simulada ------------------------------------------->
-        <section class="screen screen-verify" data-screen="verify" aria-labelledby="verify-title" hidden>
-            <div class="verify-panel">
-                <div class="scan-shell" aria-hidden="true">
-                    <div class="scan-ring"></div>
-                    <div class="scan-ring scan-ring-2"></div>
-                    <div class="scan-face">
-                        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M32 8c-9.4 0-16 7.4-16 17v7c0 9.6 6.6 17 16 17s16-7.4 16-17v-7C48 15.4 41.4 8 32 8Z"/>
-                            <path d="M22 30h.01M42 30h.01"/>
-                            <path d="M26 41c3.4 2.4 8.6 2.4 12 0"/>
-                        </svg>
-                    </div>
-                    <span class="scan-line"></span>
-                </div>
-                <span class="screen-kicker">Verificación facial</span>
-                <h2 id="verify-title" data-verify-title>Verificando identidad…</h2>
-                <p data-verify-text>Comparando tu rostro con el registro de la clínica.</p>
-                <div class="progress-track" aria-hidden="true"><span class="progress-bar" data-verify-progress></span></div>
-                <p class="verify-note">Verificación simulada para esta demostración. No se captura ni almacena imagen.</p>
             </div>
         </section>
 
@@ -395,6 +359,50 @@
             </div>
         </section>
 
+        <!-- Pago del adelanto ------------------------------------------------>
+        <section class="screen screen-pago" data-screen="pago" aria-labelledby="pago-title" hidden>
+            <div class="screen-head">
+                <div>
+                    <span class="screen-kicker">Paso 3 de 4 · Adelanto</span>
+                    <h2 id="pago-title">Paga el adelanto</h2>
+                    <p>Escanea el QR y espera la confirmación de recepción para emitir tu ficha.</p>
+                </div>
+            </div>
+
+            <div class="confirm-layout pago-layout">
+                <div class="pago-card">
+                    <div class="pago-qr" data-pago-qr aria-label="Código QR para pagar el adelanto"></div>
+                    <div class="pago-data">
+                        <span class="confirm-label">Adelanto de consulta</span>
+                        <strong data-pago-adelanto>Bs 150,00</strong>
+                        <dl class="confirm-list">
+                            <div><dt>Referencia</dt><dd data-pago-referencia>—</dd></div>
+                            <div><dt>Titular</dt><dd data-pago-titular>—</dd></div>
+                            <div><dt>Saldo al terminar</dt><dd data-pago-saldo>—</dd></div>
+                            <div><dt>Vence</dt><dd data-pago-expira>—</dd></div>
+                        </dl>
+                    </div>
+                </div>
+
+                <aside class="confirm-side">
+                    <span class="kicker" data-pago-kicker>Esperando pago</span>
+                    <h3 data-pago-title-side>Cuando recepción confirme, tu ficha se emite sola.</h3>
+                    <p data-pago-status>El adelanto asegura tu cupo. El saldo se cancela al terminar la consulta.</p>
+                    <ul class="check-list">
+                        <li>Abre tu app bancaria y escanea el QR.</li>
+                        <li>Muestra el comprobante en recepción.</li>
+                        <li>La ficha aparece automáticamente al confirmar.</li>
+                    </ul>
+                    <p class="field-error" data-pago-error role="alert" hidden></p>
+                    <div class="pago-wait" data-pago-wait>
+                        <span class="pago-pulse" aria-hidden="true"></span>
+                        <span data-pago-wait-text>Verificando el pago…</span>
+                    </div>
+                    <button class="btn btn-soft" type="button" data-action="reset">Cancelar y volver</button>
+                </aside>
+            </div>
+        </section>
+
         <!-- Ficha ------------------------------------------------------------->
         <section class="screen screen-ficha" data-screen="ficha" aria-labelledby="ficha-title" hidden>
             <div class="ficha-layout" data-ficha-content>
@@ -451,10 +459,6 @@
                         <span>Cita</span>
                         <strong data-ficha-cita-side>CM-0000</strong>
                     </div>
-                    <div class="ficha-meta">
-                        <span>Verificación</span>
-                        <strong data-ficha-verificacion>Simulada</strong>
-                    </div>
 
                     <button class="btn btn-primary btn-xl" type="button" data-action="print">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -503,5 +507,39 @@
         <h2>Sesión del kiosco interrumpida</h2>
         <p data-overlay-text>No pudimos conectar con la clínica. Revisa la conexión e inténtalo de nuevo.</p>
         <button class="btn btn-primary btn-xl" type="button" data-action="reconnect">Reintentar</button>
+    </div>
+</div>
+
+<div class="chat-modal" data-chat-modal hidden aria-hidden="true">
+    <div class="chat-stage">
+        <figure class="chat-buddy" data-chat-buddy aria-hidden="true">
+            <img class="chat-buddy-img" src="<?= e(asset('kiosco/img/asistente-dr-alex.png')) ?>" alt="">
+            <figcaption class="chat-buddy-bubble">
+                <strong>Dr. Alex</strong>
+                <p>¡Hola! Soy Dr. Alex, tu asistente virtual. Cuéntame qué sientes y te ayudaré a encontrar la especialidad adecuada.</p>
+                <span class="chat-buddy-bubble-hint">Toca para continuar</span>
+            </figcaption>
+        </figure>
+
+        <div class="chat-card" role="dialog" aria-modal="true" aria-labelledby="chat-title">
+            <header class="chat-head">
+                <div>
+                    <span class="screen-kicker">Asistente de síntomas</span>
+                    <h2 id="chat-title">¿Qué sientes hoy?</h2>
+                </div>
+                <button class="kiosk-icon-btn" type="button" data-action="chat-close" aria-label="Cerrar asistente">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M18 6 6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </header>
+
+            <div class="chat-body" data-chat-body aria-live="polite"></div>
+
+            <form class="chat-input-row" data-chat-form>
+                <input type="text" data-chat-input placeholder='Ej: "Me duele la cabeza"' maxlength="140" autocomplete="off" spellcheck="true" lang="es" autocorrect="on">
+                <button class="btn btn-primary" type="submit">Enviar</button>
+            </form>
+        </div>
     </div>
 </div>

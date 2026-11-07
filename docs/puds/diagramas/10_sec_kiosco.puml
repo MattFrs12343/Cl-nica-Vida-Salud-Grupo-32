@@ -29,7 +29,7 @@ S -> DB : SELECT paciente
 alt paciente existe
   DB --> S : datos
   S --> C : paciente
-  C --> K : nombre + "escaneo facial"
+  C --> K : nombre
 else paciente nuevo
   C --> K : formulario rápido
   P -> K : CI, nombres, apellidos,\nfecha nac., sexo, teléfono

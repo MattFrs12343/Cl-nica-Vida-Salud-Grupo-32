@@ -5,9 +5,11 @@ declare(strict_types=1);
 use App\Controllers\Api\AgendaApiController;
 use App\Controllers\Api\AuditoriaApiController;
 use App\Controllers\Api\CitaApiController;
+use App\Controllers\Api\CobroApiController;
 use App\Controllers\Api\ConsultaApiController;
 use App\Controllers\Api\DisponibilidadApiController;
 use App\Controllers\Api\EspecialidadApiController;
+use App\Controllers\Api\ExamenApiController;
 use App\Controllers\Api\FichaApiController;
 use App\Controllers\Api\HorarioApiController;
 use App\Controllers\Api\KioscoApiController;
@@ -60,6 +62,7 @@ $router->group('/api/kiosco', static function ($router): void {
     $router->get('/medicos', [KioscoApiController::class, 'medicos']);
     $router->get('/disponibilidad', [KioscoApiController::class, 'disponibilidad']);
     $router->post('/reservar', [KioscoApiController::class, 'reservar']);
+    $router->get('/citas/{id}/pago', [KioscoApiController::class, 'estadoPago']);
     $router->post('/ficha', [KioscoApiController::class, 'ficha']);
     $router->get('/ficha/{codigo}', [KioscoApiController::class, 'verFicha']);
 }, ['kiosk']);
@@ -130,6 +133,27 @@ $router->group('/api', static function ($router): void {
     $router->get('/pagos', [PagoApiController::class, 'index'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
     $router->post('/pagos', [PagoApiController::class, 'store'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico', 'csrf']);
     $router->get('/pagos/{id}', [PagoApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+
+    // Cobros de consulta, adelantos, saldos, reembolsos y cancelaciones
+    $router->get('/cobros/pendientes', [CobroApiController::class, 'pendientes'], ['role:admin,super_admin,recepcionista,recepcionista_medico']);
+    $router->get('/cobros/ordenes-pendientes', [CobroApiController::class, 'ordenesPendientes'], ['role:admin,super_admin,recepcionista,recepcionista_medico']);
+    $router->post('/cobros/expirar', [CobroApiController::class, 'expirar'], ['role:admin,super_admin,recepcionista', 'csrf']);
+    $router->get('/citas/{id}/cobro', [CobroApiController::class, 'resumen'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico,paciente']);
+    $router->post('/citas/{id}/adelanto', [CobroApiController::class, 'iniciarAdelanto'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico,paciente', 'csrf']);
+    $router->post('/citas/{id}/adelanto/confirmar', [CobroApiController::class, 'confirmarAdelanto'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
+    $router->post('/citas/{id}/saldo', [CobroApiController::class, 'cobrarSaldo'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
+    $router->get('/citas/{id}/cancelacion/opciones', [CobroApiController::class, 'opcionesCancelacion'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico,paciente']);
+    $router->post('/citas/{id}/cancelacion/reprogramar', [CobroApiController::class, 'reprogramar'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico,paciente', 'csrf']);
+    $router->post('/citas/{id}/cancelacion/definitiva', [CobroApiController::class, 'cancelarDefinitivo'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico,paciente', 'csrf']);
+    $router->post('/citas/{id}/reembolso/entregar', [CobroApiController::class, 'entregarReembolso'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
+    $router->post('/ordenes/{id}/pago', [CobroApiController::class, 'pagarOrden'], ['role:admin,super_admin,recepcionista,recepcionista_medico', 'csrf']);
+
+    // Catálogo de exámenes de laboratorio/imagen (precios de recepción)
+    $router->get('/examenes', [ExamenApiController::class, 'index'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->post('/examenes', [ExamenApiController::class, 'store'], ['role:admin,super_admin,recepcionista', 'csrf']);
+    $router->get('/examenes/{id}', [ExamenApiController::class, 'show'], ['role:admin,super_admin,recepcionista,recepcionista_medico,medico']);
+    $router->put('/examenes/{id}', [ExamenApiController::class, 'update'], ['role:admin,super_admin,recepcionista', 'csrf']);
+    $router->patch('/examenes/{id}/estado', [ExamenApiController::class, 'estado'], ['role:admin,super_admin,recepcionista', 'csrf']);
 
     // Portal del paciente (M-33)
     $router->get('/me/perfil', [PacienteApiController::class, 'perfil'], ['role:paciente']);

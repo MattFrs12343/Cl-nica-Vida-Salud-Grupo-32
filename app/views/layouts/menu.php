@@ -13,6 +13,7 @@ $menus = [
     'admin' => [
         'Operación' => [
             ['dashboard', 'Dashboard', '/admin', 'grid'],
+            ['examenes', 'Exámenes', '/admin/examenes', 'flask'],
         ],
         'Configuración' => [
             ['usuarios', 'Usuarios', '/admin/usuarios', 'users'],
@@ -37,6 +38,7 @@ $menus = [
         'Fichas y caja' => [
             ['fichas', 'Fichas', '/recepcion/fichas', 'ticket'],
             ['pagos', 'Pagos', '/recepcion/pagos', 'card'],
+            ['examenes', 'Exámenes', '/recepcion/examenes', 'flask'],
         ],
     ],
     'medico' => [

@@ -25,7 +25,6 @@ Centralizar la información y automatizar la gestión de citas médicas de la Cl
 
 **Fuera de alcance**
 - Pasarela de pago real (el formulario Visa/Mastercard es solo UI).
-- Matching biométrico real (la verificación facial es simulada; identidad por CI).
 - Envío real por WhatsApp Business API (solo deep link con mensaje precargado).
 - Integración HL7/FHIR ni interoperabilidad externa.
 
@@ -142,7 +141,7 @@ Clinica/
 | RX01 | Cupos 50% web / 50% kiosco por franja de horario. |
 | RX02 | Restricción de sexo por especialidad (ginecología → femenino; resto ambos). |
 | RX03 | Restricción de edad por especialidad (pediatría 0–12; geriatría 60+; resto sin límite). |
-| RX04 | Cancelación solo hasta el día anterior a la cita; el día de la cita no se permite. |
+| RX04 | Cancelación permitida hasta el mismo día; con adelanto pagado se ofrece reprogramar (+7 días) o reembolso con comprobante. |
 | RX05 | Reconsulta por ausencia del médico: reagenda con prioridad y origen `reconsulta`. |
 | RX06 | Reconsulta de seguimiento al marcar `atendida` (misma semana siguiente sugerida). |
 | RX07 | Reconsulta puede tomar cupo aunque el canal esté agotado (solo vía recepción). |
@@ -152,6 +151,8 @@ Clinica/
 | RX11 | Pedidos se envían por WhatsApp con enlace + código de acceso (uno por pedido). |
 | RX12 | Paciente de kiosco existe sin cuenta; activa cuenta con CI + teléfono. |
 | RX13 | Auditoría con IP, datos antes/después, solo CRUD de catálogos. |
+| RX14 | Consulta con especialista 300 Bs; adelanto del 50 % (150 Bs) al reservar en web/kiosco/recepción y saldo al terminar. |
+| RX15 | Inasistencia retiene el adelanto; la cancelación definitiva genera comprobante de reembolso y la reprogramación transfiere el adelanto. |
 
 ## 9. Seguridad
 
@@ -169,7 +170,7 @@ Clinica/
 - **Desarrollo:** `docker-compose` con `php:8.2-apache` (con `pdo_pgsql`) + `postgres:16`.
 - **Producción:** hosting compartido cPanel (solo PHP/web) + PostgreSQL en Neon o Railway.
   - ⚠️ Verificar que el cPanel tenga `pdo_pgsql` habilitado.
-- **HTTPS obligatorio** (cámara facial del iPad y cookies seguras).
+- **HTTPS obligatorio** (cookies seguras).
 - **iPad kiosco:** accede a `https://<dominio>/kiosco` por WiFi/datos.
 
 ## 11. Correo electrónico (SMTP)

@@ -162,7 +162,7 @@ final class FichaModel
     private function sqlSelect(): string
     {
         return 'SELECT f.id, f.codigo, f.cita_id, f.canal, f.codigo_acceso,
-                       f.verificacion_biometrica, f.emitida_at,
+                       f.emitida_at,
                        f.reimpresiones, f.ultima_reimpresion_at,
                        c.codigo AS cita_codigo, c.fecha, c.hora_inicio, c.hora_fin,
                        c.estado AS cita_estado, c.origen,
@@ -204,7 +204,6 @@ final class FichaModel
             'origen' => (string) $fila['origen'],
             'canal' => (string) $fila['canal'],
             'codigo_acceso' => (string) $fila['codigo_acceso'],
-            'verificacion_biometrica' => (bool) $fila['verificacion_biometrica'],
             'emitida_at' => (string) $fila['emitida_at'],
             'reimpresiones' => (int) ($fila['reimpresiones'] ?? 0),
             'ultima_reimpresion_at' => $fila['ultima_reimpresion_at'] === null

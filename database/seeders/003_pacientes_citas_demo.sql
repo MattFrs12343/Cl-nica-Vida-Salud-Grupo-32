@@ -154,20 +154,20 @@ WHERE p.codigo = 'PAC-DEMO-004'
   AND e.nombre = 'Geriatría'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO fichas (codigo, cita_id, canal, codigo_acceso, verificacion_biometrica)
-SELECT 'FIC-DEMO-001', c.id, 'web', '1234', FALSE
+INSERT INTO fichas (codigo, cita_id, canal, codigo_acceso)
+SELECT 'FIC-DEMO-001', c.id, 'web', '1234'
 FROM citas c
 WHERE c.codigo = 'CM-DEMO-003'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO fichas (codigo, cita_id, canal, codigo_acceso, verificacion_biometrica)
-SELECT 'FIC-DEMO-002', c.id, 'kiosco', '5678', TRUE
+INSERT INTO fichas (codigo, cita_id, canal, codigo_acceso)
+SELECT 'FIC-DEMO-002', c.id, 'kiosco', '5678'
 FROM citas c
 WHERE c.codigo = 'CM-DEMO-004'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO fichas (codigo, cita_id, canal, codigo_acceso, verificacion_biometrica)
-SELECT 'FIC-DEMO-003', c.id, 'kiosco', '0000', FALSE
+INSERT INTO fichas (codigo, cita_id, canal, codigo_acceso)
+SELECT 'FIC-DEMO-003', c.id, 'kiosco', '0000'
 FROM citas c
 WHERE c.codigo = 'CM-DEMO-001'
 ON CONFLICT DO NOTHING;

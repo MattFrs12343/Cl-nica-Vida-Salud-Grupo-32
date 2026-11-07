@@ -93,6 +93,12 @@ final class CitaModel
      */
     public function crearRecepcion(array $datos): array
     {
+        $origen = (string) ($datos['origen'] ?? 'recepcion');
+
+        if (!in_array($origen, ['web', 'kiosco', 'recepcion'], true)) {
+            $origen = 'recepcion';
+        }
+
         $statement = $this->pdo->prepare(
             "INSERT INTO citas (
                  paciente_id, medico_id, especialidad_id, fecha, hora_inicio, hora_fin,
@@ -100,7 +106,7 @@ final class CitaModel
                  cita_origen_id, motivo
              ) VALUES (
                  :paciente_id, :medico_id, :especialidad_id, :fecha, :hora_inicio, :hora_fin,
-                 'programada', 'recepcion', CAST(:es_prioritaria AS boolean),
+                 'programada', CAST(:origen AS origen_cita), CAST(:es_prioritaria AS boolean),
                  CAST(:es_reconsulta AS boolean), CAST(:reconsulta_tipo AS tipo_reconsulta),
                  :cita_origen_id, :motivo
              )
@@ -113,6 +119,7 @@ final class CitaModel
             'fecha' => $datos['fecha'],
             'hora_inicio' => $datos['hora_inicio'],
             'hora_fin' => $datos['hora_fin'],
+            'origen' => $origen,
             'es_prioritaria' => ($datos['es_prioritaria'] ?? false) ? 'true' : 'false',
             'es_reconsulta' => ($datos['es_reconsulta'] ?? false) ? 'true' : 'false',
             'reconsulta_tipo' => $datos['reconsulta_tipo'] ?? null,
@@ -121,6 +128,33 @@ final class CitaModel
         ]);
 
         return $this->findRawById((int) $statement->fetchColumn()) ?? [];
+    }
+
+    /**
+     * Copia el estado de pago de una cita origen a la reprogramación: el
+     * adelanto no se pierde, se transfiere a la nueva fecha.
+     */
+    public function aplicarCobroTransferido(int $id, array $origen): void
+    {
+        $statement = $this->pdo->prepare(
+            "UPDATE citas
+             SET precio_total = :precio_total,
+                 adelanto = :adelanto,
+                 saldo = :saldo,
+                 estado_pago = 'adelanto_pagado',
+                 pago_adelanto_id = :pago_adelanto_id,
+                 pago_expira_en = NULL
+             WHERE id = :id"
+        );
+        $statement->execute([
+            'id' => $id,
+            'precio_total' => number_format((float) ($origen['precio_total'] ?? 0), 2, '.', ''),
+            'adelanto' => number_format((float) ($origen['adelanto'] ?? 0), 2, '.', ''),
+            'saldo' => number_format((float) ($origen['saldo'] ?? 0), 2, '.', ''),
+            'pago_adelanto_id' => isset($origen['pago_adelanto_id']) && $origen['pago_adelanto_id'] !== null
+                ? (int) $origen['pago_adelanto_id']
+                : null,
+        ]);
     }
 
     public function actualizarSlot(
@@ -151,6 +185,219 @@ final class CitaModel
             'UPDATE citas SET ' . implode(', ', $asignaciones) . ' WHERE id = :id'
         );
         $statement->execute($parametros);
+    }
+
+    /**
+     * Fija el precio de la consulta y el adelanto de una cita recién creada.
+     * El saldo se calcula aquí para que la cita siempre cuadre.
+     */
+    public function aplicarCobroInicial(
+        int $id,
+        float $precioTotal,
+        float $adelanto,
+        ?string $expiraEn = null
+    ): void {
+        $precioTotal = round(max(0.0, $precioTotal), 2);
+        $adelanto = round(min($precioTotal, max(0.0, $adelanto)), 2);
+        $saldo = round($precioTotal - $adelanto, 2);
+        $cobra = $adelanto > 0;
+
+        $statement = $this->pdo->prepare(
+            "UPDATE citas
+             SET precio_total = :precio_total,
+                 adelanto = :adelanto,
+                 saldo = :saldo,
+                 estado_pago = CAST(:estado_pago AS estado_pago_cita),
+                 pago_expira_en = CAST(:expira_en AS timestamptz)
+             WHERE id = :id"
+        );
+        $statement->execute([
+            'id' => $id,
+            'precio_total' => number_format($precioTotal, 2, '.', ''),
+            'adelanto' => number_format($adelanto, 2, '.', ''),
+            'saldo' => number_format($saldo, 2, '.', ''),
+            'estado_pago' => $cobra ? 'pendiente' : 'sin_pago',
+            'expira_en' => $cobra ? $expiraEn : null,
+        ]);
+    }
+
+    public function marcarAdelantoPagado(int $id, int $pagoId): void
+    {
+        $statement = $this->pdo->prepare(
+            "UPDATE citas
+             SET estado_pago = 'adelanto_pagado',
+                 pago_adelanto_id = :pago_id,
+                 pago_expira_en = NULL,
+                 estado = CASE WHEN estado = 'programada' THEN 'confirmada' ELSE estado END
+             WHERE id = :id"
+        );
+        $statement->execute(['id' => $id, 'pago_id' => $pagoId]);
+    }
+
+    public function marcarSaldoPagado(int $id): void
+    {
+        $this->pdo->prepare(
+            "UPDATE citas SET estado_pago = 'pagado', saldo = 0 WHERE id = :id"
+        )->execute(['id' => $id]);
+    }
+
+    /**
+     * Aplica un abono al saldo pendiente. Si el abono liquida la deuda, la
+     * cita queda como pagada; si es parcial, conserva el estado y descuenta.
+     */
+    public function aplicarAbonoSaldo(int $id, float $monto): bool
+    {
+        $monto = number_format(max(0.0, round($monto, 2)), 2, '.', '');
+        $statement = $this->pdo->prepare(
+            "UPDATE citas
+             SET saldo = GREATEST(0, ROUND(saldo - :monto_saldo, 2)),
+                 estado_pago = CASE
+                     WHEN ROUND(saldo - :monto_estado, 2) <= 0.01
+                         THEN CAST('pagado' AS estado_pago_cita)
+                     ELSE estado_pago
+                 END
+             WHERE id = :id
+             RETURNING estado_pago"
+        );
+        $statement->execute([
+            'id' => $id,
+            'monto_saldo' => $monto,
+            'monto_estado' => $monto,
+        ]);
+
+        return (string) $statement->fetchColumn() === 'pagado';
+    }
+
+    public function marcarTransferido(int $id): void
+    {
+        $this->pdo->prepare(
+            "UPDATE citas SET estado_pago = 'transferido', pago_expira_en = NULL WHERE id = :id"
+        )->execute(['id' => $id]);
+    }
+
+    public function marcarPerdido(int $id): void
+    {
+        $this->pdo->prepare(
+            "UPDATE citas SET estado_pago = 'perdido', pago_expira_en = NULL WHERE id = :id"
+        )->execute(['id' => $id]);
+    }
+
+    public function marcarReembolsoPendiente(int $id, string $codigo, float $monto): void
+    {
+        $this->pdo->prepare(
+            "UPDATE citas
+             SET estado_pago = 'reembolso_pendiente',
+                 reembolso_codigo = :codigo,
+                 reembolso_monto = :monto,
+                 reembolso_solicitado_en = now(),
+                 pago_expira_en = NULL
+             WHERE id = :id"
+        )->execute([
+            'id' => $id,
+            'codigo' => $codigo,
+            'monto' => number_format(max(0.0, $monto), 2, '.', ''),
+        ]);
+    }
+
+    public function marcarReembolsado(int $id, int $usuarioId): void
+    {
+        $this->pdo->prepare(
+            "UPDATE citas
+             SET estado_pago = 'reembolsado',
+                 reembolso_entregado_en = now(),
+                 reembolso_registrado_por = :usuario_id
+             WHERE id = :id"
+        )->execute(['id' => $id, 'usuario_id' => $usuarioId > 0 ? $usuarioId : null]);
+    }
+
+    public function marcarExpirado(int $id): void
+    {
+        $this->pdo->prepare(
+            "UPDATE citas SET estado_pago = 'expirado', pago_expira_en = NULL WHERE id = :id"
+        )->execute(['id' => $id]);
+    }
+
+    /**
+     * Citas con adelanto pendiente cuya ventana de pago ya venció.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function pendientesExpiradas(int $limite = 50): array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT id, estado, paciente_id, medico_id
+             FROM citas
+             WHERE estado_pago = 'pendiente'
+               AND pago_expira_en IS NOT NULL
+               AND pago_expira_en < now()
+               AND estado IN ('programada', 'confirmada')
+             ORDER BY pago_expira_en ASC
+             LIMIT " . max(1, min(500, $limite))
+        );
+        $statement->execute();
+
+        return $statement->fetchAll();
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function reembolsosPendientes(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT c.*, p.nombres AS paciente_nombres, p.apellidos AS paciente_apellidos,
+                    p.ci AS paciente_ci, p.telefono AS paciente_telefono
+             FROM citas c
+             JOIN pacientes p ON p.id = c.paciente_id
+             WHERE c.estado_pago = 'reembolso_pendiente'
+             ORDER BY c.reembolso_solicitado_en ASC"
+        );
+
+        return $statement === false ? [] : $statement->fetchAll();
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function adelantosPendientes(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT c.*, p.nombres AS paciente_nombres, p.apellidos AS paciente_apellidos,
+                    p.ci AS paciente_ci, p.telefono AS paciente_telefono
+             FROM citas c
+             JOIN pacientes p ON p.id = c.paciente_id
+             WHERE c.estado_pago = 'pendiente'
+               AND c.estado IN ('programada', 'confirmada')
+             ORDER BY c.fecha ASC, c.hora_inicio ASC"
+        );
+
+        return $statement === false ? [] : $statement->fetchAll();
+    }
+
+    /**
+     * Citas con adelanto confirmado y saldo pendiente de cobro.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function saldosPendientes(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT c.*, p.nombres AS paciente_nombres, p.apellidos AS paciente_apellidos,
+                    p.ci AS paciente_ci, p.telefono AS paciente_telefono
+             FROM citas c
+             JOIN pacientes p ON p.id = c.paciente_id
+             WHERE c.estado_pago = 'adelanto_pagado'
+               AND c.saldo > 0
+             ORDER BY c.fecha ASC, c.hora_inicio ASC"
+        );
+
+        return $statement === false ? [] : $statement->fetchAll();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findRawByCodigo(string $codigo): ?array
+    {
+        $statement = $this->pdo->prepare('SELECT * FROM citas WHERE codigo = :codigo LIMIT 1');
+        $statement->execute(['codigo' => strtoupper(trim($codigo))]);
+        $row = $statement->fetch();
+
+        return $row === false ? null : $row;
     }
 
     public function cambiarEstado(int $id, string $estado, ?string $motivoCancelacion = null): void
@@ -296,7 +543,10 @@ final class CitaModel
                  'programada', CAST(:origen AS origen_cita), :motivo
              )
              RETURNING id, codigo, paciente_id, medico_id, especialidad_id, fecha,
-                       hora_inicio, hora_fin, estado, origen, motivo"
+                       hora_inicio, hora_fin, estado, origen, motivo,
+                       precio_total, adelanto, saldo, estado_pago,
+                       pago_adelanto_id, pago_expira_en, reembolso_codigo,
+                       reembolso_monto, reembolso_solicitado_en"
         );
         $statement->execute([
             'paciente_id' => $pacienteId,
@@ -641,6 +891,10 @@ final class CitaModel
                        c.es_prioritaria, c.es_reconsulta, c.reconsulta_tipo,
                        c.cita_origen_id, c.motivo, c.motivo_cancelacion,
                        c.fecha_registro, c.created_at, c.updated_at,
+                       c.precio_total, c.adelanto, c.saldo, c.estado_pago,
+                       c.pago_adelanto_id, c.pago_expira_en,
+                       c.reembolso_codigo, c.reembolso_monto,
+                       c.reembolso_solicitado_en, c.reembolso_entregado_en,
                        p.codigo AS paciente_codigo, p.ci AS paciente_ci,
                        p.nombres AS paciente_nombres, p.apellidos AS paciente_apellidos,
                        p.telefono AS paciente_telefono, p.email AS paciente_email,
@@ -670,6 +924,25 @@ final class CitaModel
         $row['cita_origen_id'] = $row['cita_origen_id'] === null
             ? null
             : (int) $row['cita_origen_id'];
+        $row['precio_total'] = (float) ($row['precio_total'] ?? 0);
+        $row['adelanto'] = (float) ($row['adelanto'] ?? 0);
+        $row['saldo'] = (float) ($row['saldo'] ?? 0);
+        $row['pago_adelanto_id'] = isset($row['pago_adelanto_id']) && $row['pago_adelanto_id'] !== null
+            ? (int) $row['pago_adelanto_id']
+            : null;
+        $row['reembolso_monto'] = (float) ($row['reembolso_monto'] ?? 0);
+        $row['pago'] = [
+            'precio_total' => $row['precio_total'],
+            'adelanto' => $row['adelanto'],
+            'saldo' => $row['saldo'],
+            'estado' => (string) ($row['estado_pago'] ?? 'pendiente'),
+            'pago_adelanto_id' => $row['pago_adelanto_id'],
+            'expira_en' => $row['pago_expira_en'] ?? null,
+            'reembolso_codigo' => $row['reembolso_codigo'] ?? null,
+            'reembolso_monto' => $row['reembolso_monto'],
+            'reembolso_solicitado_en' => $row['reembolso_solicitado_en'] ?? null,
+            'reembolso_entregado_en' => $row['reembolso_entregado_en'] ?? null,
+        ];
 
         $pacienteNombre = trim((string) $row['paciente_nombres'] . ' ' . (string) $row['paciente_apellidos']);
         $medicoNombre = trim((string) $row['medico_nombres'] . ' ' . (string) $row['medico_apellidos']);

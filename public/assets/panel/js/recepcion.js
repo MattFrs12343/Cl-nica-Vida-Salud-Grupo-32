@@ -12,6 +12,7 @@ const modules = {
     reconsultas: () => import('./recepcion-reconsultas.js'),
     fichas: () => import('./recepcion-fichas.js'),
     pagos: () => import('./recepcion-pagos.js'),
+    examenes: () => import('./recepcion-examenes.js'),
 };
 
 const load = modules[page];

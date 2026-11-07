@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\DB;
 use App\Core\HttpException;
 use App\Models\CitaModel;
+use App\Models\ConfiguracionModel;
 use App\Models\EspecialidadModel;
 use App\Models\MedicoModel;
 use App\Models\PacienteModel;
@@ -30,7 +31,8 @@ final class KioscoService
         private ?EspecialidadModel $especialidades = null,
         private ?CitaModel $citas = null,
         private ?DisponibilidadService $disponibilidad = null,
-        private ?FichaService $fichas = null
+        private ?FichaService $fichas = null,
+        private ?ConfiguracionModel $configuracion = null
     ) {
         $this->pacientes ??= new PacienteModel();
         $this->medicos ??= new MedicoModel();
@@ -38,6 +40,7 @@ final class KioscoService
         $this->citas ??= new CitaModel();
         $this->disponibilidad ??= new DisponibilidadService();
         $this->fichas ??= new FichaService();
+        $this->configuracion ??= new ConfiguracionModel();
     }
 
     /**
@@ -352,7 +355,7 @@ final class KioscoService
         DB::setAuditContext(0, $ip);
 
         try {
-            $cita = DB::transaction(function () use (
+            $resultado = DB::transaction(function () use (
                 $pacienteId,
                 $medicoId,
                 $especialidadId,
@@ -379,7 +382,7 @@ final class KioscoService
                     (int) $medico['duracion_cita_min']
                 );
 
-                return $this->citas->crearKiosco(
+                $cita = $this->citas->crearKiosco(
                     $pacienteId,
                     $medicoId,
                     $especialidadId,
@@ -388,6 +391,28 @@ final class KioscoService
                     $horaFin,
                     $motivo
                 );
+
+                $config = $this->configuracion->pago();
+                $precio = $config['precio_consulta'];
+                $adelanto = round($precio * ($config['adelanto_porcentaje'] / 100), 2);
+                $expira = (new DateTimeImmutable('now'))
+                    ->modify('+' . $config['pago_expira_minutos'] . ' minutes')
+                    ->format('Y-m-d H:i:sP');
+
+                $this->citas->aplicarCobroInicial((int) $cita['id'], $precio, $adelanto, $expira);
+
+                return [
+                    'cita' => $this->citas->findRawById((int) $cita['id']) ?? $cita,
+                    'pago' => [
+                        'precio_total' => $precio,
+                        'adelanto' => $adelanto,
+                        'saldo' => round($precio - $adelanto, 2),
+                        'expira_en' => $expira,
+                        'referencia' => 'PAGO-' . (string) $cita['codigo'],
+                        'qr_contenido' => $config['contenido'],
+                        'qr_titular' => $config['titular'],
+                    ],
+                ];
             });
         } catch (PDOException $exception) {
             if ((string) $exception->getCode() === '23505') {
@@ -403,29 +428,71 @@ final class KioscoService
         }
 
         return [
-            'id' => (int) $cita['id'],
-            'codigo' => (string) $cita['codigo'],
+            'id' => (int) $resultado['cita']['id'],
+            'codigo' => (string) $resultado['cita']['codigo'],
             'paciente_id' => $pacienteId,
             'medico_id' => $medicoId,
             'especialidad_id' => $especialidadId,
-            'fecha' => (string) $cita['fecha'],
-            'hora_inicio' => substr((string) $cita['hora_inicio'], 0, 5),
-            'hora_fin' => substr((string) $cita['hora_fin'], 0, 5),
-            'estado' => (string) $cita['estado'],
-            'origen' => (string) $cita['origen'],
+            'fecha' => (string) $resultado['cita']['fecha'],
+            'hora_inicio' => substr((string) $resultado['cita']['hora_inicio'], 0, 5),
+            'hora_fin' => substr((string) $resultado['cita']['hora_fin'], 0, 5),
+            'estado' => (string) $resultado['cita']['estado'],
+            'origen' => (string) $resultado['cita']['origen'],
+            'estado_pago' => (string) ($resultado['cita']['estado_pago'] ?? 'pendiente'),
             'paciente' => $this->normalizarPaciente($paciente),
             'medico' => trim((string) $medico['nombres'] . ' ' . (string) $medico['apellidos']),
             'especialidad' => (string) $especialidad['nombre'],
+            'pago' => $resultado['pago'],
+        ];
+    }
+
+    /**
+     * Estado del adelanto para que el kiosco espere la confirmación de
+     * recepción antes de emitir la ficha.
+     *
+     * @return array<string, mixed>
+     */
+    public function estadoPago(mixed $citaId): array
+    {
+        if (!is_scalar($citaId) || !ctype_digit((string) $citaId) || (int) $citaId <= 0) {
+            throw new HttpException(
+                422,
+                'Revisa la cita consultada.',
+                [],
+                'VALIDATION_ERROR',
+                ['cita_id' => 'Selecciona una cita válida.']
+            );
+        }
+
+        $cita = $this->citas->findRawById((int) $citaId);
+
+        if ($cita === null) {
+            throw new HttpException(404, 'La cita no existe.', [], 'NOT_FOUND');
+        }
+
+        $estadoPago = (string) $cita['estado_pago'];
+
+        return [
+            'cita_id' => (int) $cita['id'],
+            'codigo' => (string) $cita['codigo'],
+            'estado' => (string) $cita['estado'],
+            'estado_pago' => $estadoPago,
+            'precio_total' => (float) $cita['precio_total'],
+            'adelanto' => (float) $cita['adelanto'],
+            'saldo' => (float) $cita['saldo'],
+            'expira_en' => $cita['pago_expira_en'] ?? null,
+            'puede_emitir_ficha' => in_array($estadoPago, ['adelanto_pagado', 'pagado', 'sin_pago'], true),
+            'referencia' => 'PAGO-' . (string) $cita['codigo'],
         ];
     }
 
     /**
      * Emite la ficha de una cita reservada en el kiosco. La emisión confirma
-     * la cita y registra el cambio de estado (RFK-H).
+     * la cita y registra el cambio de estado (RFK-D).
      *
      * @return array<string, mixed>
      */
-    public function emitirFicha(mixed $citaId, bool $verificacionBiometrica, string $ip = ''): array
+    public function emitirFicha(mixed $citaId, string $ip = ''): array
     {
         if (!is_scalar($citaId) || !ctype_digit((string) $citaId) || (int) $citaId <= 0) {
             throw new HttpException(
@@ -441,10 +508,37 @@ final class KioscoService
         // usuario_id nulo y la IP del kiosco en la auditoría.
         DB::setAuditContext(0, $ip);
 
+        $cita = $this->citas->findRawById((int) $citaId);
+
+        if ($cita === null) {
+            throw new HttpException(404, 'La cita no existe.', [], 'CITA_NOT_FOUND');
+        }
+
+        if (in_array((string) ($cita['estado'] ?? ''), ['cancelada', 'inasistencia'], true)) {
+            throw new HttpException(
+                409,
+                'La cita está cancelada.',
+                [],
+                'CITA_CANCELLED'
+            );
+        }
+
+        $estadoPago = (string) ($cita['estado_pago'] ?? 'pendiente');
+
+        // Sin pago confirmado (o sin deuda) no se emite ficha, aunque la
+        // llamada a la API se haga por fuera de la UI del kiosco.
+        if (!in_array($estadoPago, ['adelanto_pagado', 'pagado', 'sin_pago'], true)) {
+            throw new HttpException(
+                409,
+                'La cita aún no está pagada.',
+                [],
+                'PAYMENT_REQUIRED'
+            );
+        }
+
         return $this->fichas->emitir(
             (int) $citaId,
             'kiosco',
-            $verificacionBiometrica,
             'Ficha emitida en el kiosco'
         );
     }
