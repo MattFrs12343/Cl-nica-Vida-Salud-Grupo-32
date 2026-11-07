@@ -1522,10 +1522,9 @@ p {
 /* Pago del adelanto ------------------------------------------------------ */
 
 .pago-card {
-    display: grid;
-    grid-template-columns: minmax(150px, 190px) minmax(0, 1fr);
-    gap: clamp(1rem, 2.6vw, 1.8rem);
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
     padding: clamp(1.2rem, 2.4vw, 1.8rem);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
@@ -1533,15 +1532,91 @@ p {
     box-shadow: var(--shadow-sm);
 }
 
+.pago-tabs {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.3rem;
+    border-radius: var(--radius-sm);
+    background: var(--paper-2);
+}
+
+.pago-tab {
+    flex: 1;
+    padding: 0.65rem 0.6rem;
+    border: none;
+    border-radius: calc(var(--radius-sm) - 5px);
+    background: transparent;
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+
+.pago-tab.is-active {
+    background: var(--surface);
+    color: var(--pine);
+    box-shadow: var(--shadow-sm);
+}
+
+.pago-panel[hidden] {
+    display: none;
+}
+
 .pago-qr {
     display: grid;
     place-items: center;
-    width: 100%;
+    width: min(210px, 55vw);
     aspect-ratio: 1;
+    margin: 0 auto;
     padding: 0.7rem;
     border: 1px solid var(--line);
     border-radius: 18px;
     background: var(--white);
+}
+
+.pago-tarjeta-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.pago-tarjeta-nota {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.pago-efectivo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: 380px;
+    margin: 0 auto;
+    padding: 1.4rem 1rem;
+    text-align: center;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-sm);
+}
+
+.pago-efectivo svg {
+    width: 38px;
+    height: 38px;
+    color: var(--pine);
+}
+
+.pago-efectivo p {
+    margin: 0;
+    color: var(--ink-soft);
+}
+
+.pago-efectivo-ref {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    letter-spacing: 0.04em;
+    color: var(--pine);
 }
 
 .pago-qr svg {
@@ -1591,22 +1666,6 @@ p {
     0% { box-shadow: 0 0 0 0 rgba(207, 138, 62, 0.55); }
     70% { box-shadow: 0 0 0 12px rgba(207, 138, 62, 0); }
     100% { box-shadow: 0 0 0 0 rgba(207, 138, 62, 0); }
-}
-
-@media (max-width: 760px) {
-    .pago-card {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        text-align: center;
-    }
-
-    .pago-qr {
-        width: min(220px, 60vw);
-    }
-
-    .pago-data {
-        width: 100%;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

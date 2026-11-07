@@ -365,13 +365,70 @@
                 <div>
                     <span class="screen-kicker">Paso 3 de 4 · Adelanto</span>
                     <h2 id="pago-title">Paga el adelanto</h2>
-                    <p>Escanea el QR y espera la confirmación de recepción para emitir tu ficha.</p>
+                    <p>Elige cómo quieres pagar y espera la confirmación de recepción para emitir tu ficha.</p>
                 </div>
             </div>
 
             <div class="confirm-layout pago-layout">
                 <div class="pago-card">
-                    <div class="pago-qr" data-pago-qr aria-label="Código QR para pagar el adelanto"></div>
+                    <div class="pago-tabs" data-pago-tabs role="tablist" aria-label="Método de pago">
+                        <button type="button" class="pago-tab is-active" data-pago-tab="qr" role="tab" aria-selected="true">
+                            Código QR
+                        </button>
+                        <button type="button" class="pago-tab" data-pago-tab="tarjeta" role="tab" aria-selected="false">
+                            Tarjeta
+                        </button>
+                        <button type="button" class="pago-tab" data-pago-tab="efectivo" role="tab" aria-selected="false">
+                            Efectivo
+                        </button>
+                    </div>
+
+                    <div class="pago-panel" data-pago-panel="qr">
+                        <div class="pago-qr" data-pago-qr aria-label="Código QR para pagar el adelanto"></div>
+                    </div>
+
+                    <div class="pago-panel" data-pago-panel="tarjeta" hidden>
+                        <form class="pago-tarjeta-form" data-pago-tarjeta-form novalidate>
+                            <label class="field">
+                                <span>Número de tarjeta</span>
+                                <input type="text" inputmode="numeric" placeholder="4242 4242 4242 4242" maxlength="19" required>
+                            </label>
+                            <div class="form-grid">
+                                <label class="field">
+                                    <span>Vencimiento</span>
+                                    <input type="text" placeholder="MM/AA" maxlength="5" required>
+                                </label>
+                                <label class="field">
+                                    <span>CVV</span>
+                                    <input type="text" inputmode="numeric" placeholder="123" maxlength="3" required>
+                                </label>
+                            </div>
+                            <label class="field">
+                                <span>Nombre en la tarjeta</span>
+                                <input type="text" placeholder="Como figura en la tarjeta" required>
+                            </label>
+                            <p class="pago-tarjeta-nota">Pago simulado para esta demostración: no se procesa ninguna tarjeta real.</p>
+                            <button class="btn btn-primary btn-xl" type="submit" data-pago-tarjeta-submit>
+                                Confirmar pago con tarjeta
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="pago-panel" data-pago-panel="efectivo" hidden>
+                        <div class="pago-efectivo">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M6 10v.01M18 14v.01"/>
+                            </svg>
+                            <p>
+                                Acércate a caja y paga <strong data-pago-efectivo-monto>Bs 150,00</strong> en efectivo.
+                                Usa esta referencia:
+                            </p>
+                            <strong class="pago-efectivo-ref" data-pago-efectivo-ref>—</strong>
+                        </div>
+                    </div>
+
                     <div class="pago-data">
                         <span class="confirm-label">Adelanto de consulta</span>
                         <strong data-pago-adelanto>Bs 150,00</strong>
@@ -388,7 +445,7 @@
                     <span class="kicker" data-pago-kicker>Esperando pago</span>
                     <h3 data-pago-title-side>Cuando recepción confirme, tu ficha se emite sola.</h3>
                     <p data-pago-status>El adelanto asegura tu cupo. El saldo se cancela al terminar la consulta.</p>
-                    <ul class="check-list">
+                    <ul class="check-list" data-pago-instrucciones>
                         <li>Abre tu app bancaria y escanea el QR.</li>
                         <li>Muestra el comprobante en recepción.</li>
                         <li>La ficha aparece automáticamente al confirmar.</li>

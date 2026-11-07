@@ -105,6 +105,12 @@
         pagoWait: $('[data-pago-wait]'),
         pagoWaitText: $('[data-pago-wait-text]'),
         pagoError: $('[data-pago-error]'),
+        pagoTabs: $('[data-pago-tabs]'),
+        pagoInstrucciones: $('[data-pago-instrucciones]'),
+        pagoEfectivoMonto: $('[data-pago-efectivo-monto]'),
+        pagoEfectivoRef: $('[data-pago-efectivo-ref]'),
+        pagoTarjetaForm: $('[data-pago-tarjeta-form]'),
+        pagoTarjetaSubmit: $('[data-pago-tarjeta-submit]'),
         fichaContent: $('[data-ficha-content]'),
         fichaFallback: $('[data-ficha-fallback]'),
         fichaError: $('[data-ficha-error]'),
@@ -1171,6 +1177,53 @@
         show('confirm');
     }
 
+    /**
+     * Las 3 pestañas son solo distintas formas de mostrarle al paciente qué
+     * hacer; la confirmación real siempre la hace recepción (el QR/tarjeta/
+     * efectivo no cambian qué llamadas se hacen al servidor, solo la
+     * pantalla). Elegir una pestaña no manda nada al servidor.
+     */
+    const INSTRUCCIONES_PAGO = {
+        qr: [
+            'Abre tu app bancaria y escanea el QR.',
+            'Muestra el comprobante en recepción.',
+            'La ficha aparece automáticamente al confirmar.',
+        ],
+        tarjeta: [
+            'Completa los datos de la tarjeta (es una simulación).',
+            'Confirma el pago con el botón.',
+            'Recepción valida el pago y tu ficha se emite sola.',
+        ],
+        efectivo: [
+            'Acércate a caja con la referencia que aparece abajo.',
+            'Paga el adelanto en efectivo.',
+            'La ficha aparece automáticamente al confirmar.',
+        ],
+    };
+
+    function setPagoMetodo(metodo) {
+        if (els.pagoTabs) {
+            $$('[data-pago-tab]', els.pagoTabs).forEach((tab) => {
+                const activo = tab.dataset.pagoTab === metodo;
+                tab.classList.toggle('is-active', activo);
+                tab.setAttribute('aria-selected', activo ? 'true' : 'false');
+            });
+        }
+
+        $$('[data-pago-panel]', app).forEach((panel) => {
+            panel.hidden = panel.dataset.pagoPanel !== metodo;
+        });
+
+        if (els.pagoInstrucciones) {
+            els.pagoInstrucciones.innerHTML = '';
+            (INSTRUCCIONES_PAGO[metodo] || []).forEach((texto) => {
+                const item = document.createElement('li');
+                item.textContent = texto;
+                els.pagoInstrucciones.appendChild(item);
+            });
+        }
+    }
+
     function renderPago(cita) {
         const pago = state.pago || {};
 
@@ -1179,6 +1232,8 @@
         if (els.pagoTitular) els.pagoTitular.textContent = pago.qr_titular || 'Clínica Vida Salud';
         if (els.pagoSaldo) els.pagoSaldo.textContent = money(pago.saldo);
         if (els.pagoExpira) els.pagoExpira.textContent = shortDateTime(pago.expira_en);
+        if (els.pagoEfectivoMonto) els.pagoEfectivoMonto.textContent = money(pago.adelanto);
+        if (els.pagoEfectivoRef) els.pagoEfectivoRef.textContent = pago.referencia || '—';
         if (els.pagoKicker) els.pagoKicker.textContent = 'Esperando pago';
         if (els.pagoStatus) {
             els.pagoStatus.textContent = 'El adelanto asegura tu cupo. El saldo se cancela al terminar la consulta.';
@@ -1186,6 +1241,17 @@
         if (els.pagoWait) els.pagoWait.hidden = false;
         if (els.pagoWaitText) els.pagoWaitText.textContent = 'Verificando el pago…';
         setError(els.pagoError, '');
+
+        if (els.pagoTarjetaForm) {
+            els.pagoTarjetaForm.reset();
+            els.pagoTarjetaForm.hidden = false;
+            if (els.pagoTarjetaSubmit) {
+                els.pagoTarjetaSubmit.disabled = false;
+                els.pagoTarjetaSubmit.textContent = 'Confirmar pago con tarjeta';
+            }
+        }
+
+        setPagoMetodo('qr');
 
         state.pagoDeadline = pago.expira_en ? new Date(pago.expira_en).getTime() : 0;
 
@@ -1497,6 +1563,28 @@
         if (dateInput) {
             dateInput.max = isoDate(new Date());
         }
+    }
+
+    if (els.pagoTabs) {
+        els.pagoTabs.addEventListener('click', (event) => {
+            const tab = event.target.closest('[data-pago-tab]');
+            if (tab) setPagoMetodo(tab.dataset.pagoTab);
+        });
+    }
+
+    if (els.pagoTarjetaForm) {
+        els.pagoTarjetaForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            if (els.pagoTarjetaSubmit) {
+                els.pagoTarjetaSubmit.disabled = true;
+                els.pagoTarjetaSubmit.textContent = 'Esperando confirmación de recepción…';
+            }
+
+            if (els.pagoWaitText) {
+                els.pagoWaitText.textContent = 'Pago con tarjeta registrado. Verificando con recepción…';
+            }
+        });
     }
 
     document.addEventListener('pointerdown', noteActivity, { passive: true });
