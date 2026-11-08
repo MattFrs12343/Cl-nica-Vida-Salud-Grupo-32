@@ -13,4 +13,5 @@ return [
     'from_name' => env('MAIL_FROM_NAME', 'Clínica Vida Salud'),
     'smtp_auth' => filter_var(env('MAIL_SMTP_AUTH', false), FILTER_VALIDATE_BOOL),
     'timeout' => (int) env('MAIL_TIMEOUT', 10),
+    'brevo_api_key' => env('BREVO_API_KEY', ''),
 ];

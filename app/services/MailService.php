@@ -44,6 +44,10 @@ final class MailService
         $config = (array) config('mail', []);
         $driver = strtolower((string) ($config['driver'] ?? 'smtp'));
 
+        if ($driver === 'brevo') {
+            return $this->sendViaBrevoApi($destinatario, $asunto, $cuerpo, $config);
+        }
+
         if (!in_array($driver, ['smtp', 'mail'], true) || !class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
             $this->queue($destinatario, $asunto, $cuerpo);
 
@@ -96,6 +100,67 @@ final class MailService
             $mail->Body = $cuerpo;
             $mail->AltBody = $cuerpo;
             $mail->send();
+
+            return true;
+        } catch (Throwable $exception) {
+            logger($exception, ['correo' => $destinatario, 'asunto' => $asunto]);
+            $this->queue($destinatario, $asunto, $cuerpo);
+
+            return false;
+        }
+    }
+
+    /**
+     * Envía por la API HTTP de Brevo (puerto 443) en vez de SMTP (puerto 587).
+     * Algunos hostings gratuitos (como Render) bloquean conexiones salientes
+     * por SMTP, pero sí permiten HTTPS — por eso esta alternativa.
+     *
+     * @param array<string, mixed> $config
+     */
+    private function sendViaBrevoApi(string $destinatario, string $asunto, string $cuerpo, array $config): bool
+    {
+        $apiKey = trim((string) ($config['brevo_api_key'] ?? ''));
+
+        if ($apiKey === '') {
+            $this->queue($destinatario, $asunto, $cuerpo);
+
+            return false;
+        }
+
+        $payload = [
+            'sender' => [
+                'email' => (string) ($config['from'] ?? 'no-reply@vidasalud.test'),
+                'name' => (string) ($config['from_name'] ?? 'Clínica Vida Salud'),
+            ],
+            'to' => [['email' => $destinatario]],
+            'subject' => $asunto,
+            'textContent' => $cuerpo,
+        ];
+
+        try {
+            $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+                CURLOPT_HTTPHEADER => [
+                    'accept: application/json',
+                    'content-type: application/json',
+                    'api-key: ' . $apiKey,
+                ],
+                CURLOPT_TIMEOUT => (int) ($config['timeout'] ?? 10),
+            ]);
+
+            $response = curl_exec($ch);
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            if ($response === false || $status < 200 || $status >= 300) {
+                throw new \RuntimeException(
+                    'Brevo API error: ' . ($curlError !== '' ? $curlError : ('HTTP ' . $status . ' ' . $response))
+                );
+            }
 
             return true;
         } catch (Throwable $exception) {
