@@ -13,12 +13,16 @@ use App\Core\Response;
 use App\Core\Session;
 use App\Core\View;
 use App\Services\AuthService;
+use App\Services\GoogleAuthService;
 
 final class AuthController extends Controller
 {
-    public function __construct(private ?AuthService $auth = null)
-    {
+    public function __construct(
+        private ?AuthService $auth = null,
+        private ?GoogleAuthService $google = null
+    ) {
         $this->auth ??= new AuthService();
+        $this->google ??= new GoogleAuthService();
     }
 
     public function showLogin(Request $request): Response
@@ -82,6 +86,57 @@ final class AuthController extends Controller
         flash('success', 'Bienvenido/a, ' . $usuario['nombre'] . '.');
 
         return redirect($redirect);
+    }
+
+    public function googleRedirect(Request $request): Response
+    {
+        $state = bin2hex(random_bytes(16));
+        Session::set('_google_oauth_state', $state);
+
+        $url = $this->google->authorizationUrl(url('/auth/google/callback'), $state);
+
+        return redirect($url);
+    }
+
+    public function googleCallback(Request $request): Response
+    {
+        $state = (string) $request->query('state', '');
+        $expected = (string) Session::pull('_google_oauth_state', '');
+        $code = (string) $request->query('code', '');
+
+        if ($code === '' || $state === '' || $expected === '' || !hash_equals($expected, $state)) {
+            flash('error', 'No se pudo validar el inicio de sesión con Google. Intenta de nuevo.');
+
+            return redirect('/login');
+        }
+
+        try {
+            $perfil = $this->google->resolveProfile($code, url('/auth/google/callback'));
+            $usuario = $this->auth->loginWithGoogle($perfil['email'], $perfil['email_verified']);
+        } catch (HttpException $exception) {
+            ErrorHandler::log('Login con Google fallido', [
+                'ip' => $request->ip(),
+                'code' => $exception->errorCode() ?? 'ERROR',
+            ]);
+
+            flash('error', $exception->getMessage());
+
+            return redirect('/login');
+        }
+
+        Session::regenerate();
+        Session::rotateCsrf();
+        Session::set('usuario', $usuario);
+
+        try {
+            DB::setContext($usuario, $request->ip());
+        } catch (\Throwable) {
+            // El contexto se reintenta en el siguiente request; no bloquea el login.
+        }
+
+        flash('success', 'Bienvenido/a, ' . $usuario['nombre'] . '.');
+
+        return redirect(role_home((string) $usuario['rol']));
     }
 
     public function logout(Request $request): Response

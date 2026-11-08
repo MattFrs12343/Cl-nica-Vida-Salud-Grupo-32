@@ -15,6 +15,9 @@ use App\Controllers\AuthController;
 $router->get('/login', [AuthController::class, 'showLogin']);
 $router->post('/auth/login', [AuthController::class, 'login'], ['csrf']);
 
+$router->get('/auth/google', [AuthController::class, 'googleRedirect']);
+$router->get('/auth/google/callback', [AuthController::class, 'googleCallback']);
+
 $router->post('/auth/logout', [AuthController::class, 'logout'], ['auth', 'csrf']);
 
 $router->get('/recuperar', [AuthController::class, 'showRecuperar']);

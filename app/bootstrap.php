@@ -23,6 +23,7 @@ Env::load(BASE_PATH . '/.env');
 Config::load('app', BASE_PATH . '/app/config/config.php');
 Config::load('database', BASE_PATH . '/app/config/database.php');
 Config::load('mail', BASE_PATH . '/app/config/mail.php');
+Config::load('google', BASE_PATH . '/app/config/google.php');
 
 date_default_timezone_set((string) config('app.timezone', 'America/La_Paz'));
 

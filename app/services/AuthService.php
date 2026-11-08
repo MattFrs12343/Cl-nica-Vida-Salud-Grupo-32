@@ -153,6 +153,56 @@ final class AuthService
         ];
     }
 
+    /**
+     * Inicia sesión como super_admin a partir de un correo ya verificado
+     * por Google. Solo el correo configurado en GOOGLE_SUPERADMIN_EMAIL
+     * puede entrar por esta vía.
+     *
+     * @return array<string, mixed>
+     */
+    public function loginWithGoogle(string $email, bool $emailVerified): array
+    {
+        $allowed = trim((string) config('google.superadmin_email', ''));
+        $email = trim($email);
+
+        if ($allowed === '' || !$emailVerified || $email === '' || strcasecmp($email, $allowed) !== 0) {
+            throw new HttpException(
+                403,
+                'Esta cuenta de Google no está autorizada para ingresar.',
+                [],
+                'GOOGLE_NOT_AUTHORIZED'
+            );
+        }
+
+        $usuario = $this->usuarios->findByEmail($allowed);
+
+        if ($usuario === null || (string) $usuario['rol'] !== 'super_admin') {
+            throw new HttpException(
+                403,
+                'No existe una cuenta de super administrador para este correo.',
+                [],
+                'GOOGLE_NOT_AUTHORIZED'
+            );
+        }
+
+        if ((bool) $usuario['bloqueado'] === true) {
+            throw new HttpException(
+                423,
+                'Cuenta bloqueada por intentos fallidos. Contacte al administrador.',
+                [],
+                'ACCOUNT_LOCKED'
+            );
+        }
+
+        if ((bool) $usuario['activo'] === false) {
+            throw new HttpException(403, 'Cuenta inactiva. Contacte al administrador.', [], 'ACCOUNT_INACTIVE');
+        }
+
+        $this->usuarios->registrarAcceso((int) $usuario['id']);
+
+        return $this->construirSesion($usuario);
+    }
+
     public function solicitarReset(string $email): void
     {
         $email = trim($email);
