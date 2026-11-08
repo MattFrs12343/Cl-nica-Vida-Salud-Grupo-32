@@ -746,6 +746,8 @@ export default function initPagos() {
 
         loadSummary();
         loadPayments();
+        loadPending();
+        loadOrdenes();
 
         if (new URLSearchParams(window.location.search).get('nuevo') === '1') {
             window.setTimeout(() => $('[data-pago-patient-search]')?.focus(), 250);

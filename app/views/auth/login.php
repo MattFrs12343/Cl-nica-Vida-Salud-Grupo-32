@@ -56,7 +56,7 @@
     </svg>
     <span class="btn-label">Ingresar con Google</span>
 </a>
-<p class="field-hint auth-google-hint">Solo para administración del sistema.</p>
+<p class="field-hint auth-google-hint">Usa el correo con el que te registraron.</p>
 
 <div class="auth-links">
     <a class="auth-link-card" href="<?= e(url('/activar')) ?>">

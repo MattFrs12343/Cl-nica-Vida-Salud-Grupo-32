@@ -154,32 +154,33 @@ final class AuthService
     }
 
     /**
-     * Inicia sesión como super_admin a partir de un correo ya verificado
-     * por Google. Solo el correo configurado en GOOGLE_SUPERADMIN_EMAIL
-     * puede entrar por esta vía.
+     * Inicia sesión a partir de un correo ya verificado por Google. Entra
+     * cualquier cuenta existente (de cualquier rol) cuyo email coincida con
+     * el de la cuenta de Google usada — no hay una lista fija de correos
+     * permitidos, así que cualquier cuenta que el super_admin cree con un
+     * Gmail real puede usar este método sin configuración adicional.
      *
      * @return array<string, mixed>
      */
     public function loginWithGoogle(string $email, bool $emailVerified): array
     {
-        $allowed = trim((string) config('google.superadmin_email', ''));
         $email = trim($email);
 
-        if ($allowed === '' || !$emailVerified || $email === '' || strcasecmp($email, $allowed) !== 0) {
+        if (!$emailVerified || $email === '') {
             throw new HttpException(
                 403,
-                'Esta cuenta de Google no está autorizada para ingresar.',
+                'No se pudo verificar tu cuenta de Google.',
                 [],
                 'GOOGLE_NOT_AUTHORIZED'
             );
         }
 
-        $usuario = $this->usuarios->findByEmail($allowed);
+        $usuario = $this->usuarios->findByEmail($email);
 
-        if ($usuario === null || (string) $usuario['rol'] !== 'super_admin') {
+        if ($usuario === null) {
             throw new HttpException(
                 403,
-                'No existe una cuenta de super administrador para este correo.',
+                'No existe ninguna cuenta registrada con este correo.',
                 [],
                 'GOOGLE_NOT_AUTHORIZED'
             );
@@ -198,9 +199,15 @@ final class AuthService
             throw new HttpException(403, 'Cuenta inactiva. Contacte al administrador.', [], 'ACCOUNT_INACTIVE');
         }
 
+        $paciente = null;
+
+        if ((string) $usuario['rol'] === 'paciente') {
+            $paciente = $this->pacientes->findByUsuarioId((int) $usuario['id']);
+        }
+
         $this->usuarios->registrarAcceso((int) $usuario['id']);
 
-        return $this->construirSesion($usuario);
+        return $this->construirSesion($usuario, $paciente);
     }
 
     public function solicitarReset(string $email): void
